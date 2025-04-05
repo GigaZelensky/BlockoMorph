@@ -1,16 +1,18 @@
 package net.blockomorph.mixins;
 
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.entity.state.TntRenderState;
+import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.world.entity.item.PrimedTnt;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 
-import net.blockomorph.utils.*;
+import net.blockomorph.utils.PlayerAccessor;
+import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.screens.BlockMorphConfigScreen;
 
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.world.level.block.state.BlockState;
@@ -25,36 +27,38 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.level.GameType;
 import net.minecraft.client.renderer.ItemInHandRenderer;
+import net.minecraft.core.Direction;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 
 import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack;
-
-import net.minecraft.client.renderer.entity.state.PlayerRenderState;
-import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
-import net.minecraft.client.model.EntityModel;
-import net.minecraft.util.ARGB;
-import net.minecraft.client.renderer.ShapeRenderer;
+import com.mojang.math.Axis;
+import net.minecraft.util.Mth;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.nbt.CompoundTag;
+import java.util.Map;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import java.util.Map;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.client.renderer.LightTexture;
 
-//@Debug(export = true)
-@Mixin(LivingEntityRenderer.class)
-public abstract class PlayerRendererMixin<T extends LivingEntity, S extends LivingEntityRenderState, M extends EntityModel<? super S>> 
-extends EntityRenderer<T, S> {
+
+@Mixin(PlayerRenderer.class)
+public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
    private final BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
    private final BlockEntityRenderDispatcher blockEntityRenderDispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
    private final ItemInHandRenderer itemRenderer = Minecraft.getInstance().getEntityRenderDispatcher().getItemInHandRenderer();
@@ -63,65 +67,48 @@ extends EntityRenderer<T, S> {
 
    private final Minecraft mc = Minecraft.getInstance();
 
-   public PlayerRendererMixin(EntityRendererProvider.Context context, M entityModel, float f) {
-      super(context);
+   public PlayerRendererMixin(EntityRendererProvider.Context p_174557_, boolean p_174558_) {
+      super(p_174557_, null, 0.5F);
    }
-
-   private RenderStateAccessor getPl(PlayerRenderState r) {
-   	  return (RenderStateAccessor)r;
-   }
-
-   @Inject(
-      method = {"extractRenderState"},
-      at = {@At("TAIL")},
-      cancellable = true
-   )
-   public void extractRenderState(T abstractClientPlayer, S playerRenderState, float f, CallbackInfo ci) {
-   	  if (playerRenderState instanceof PlayerRenderState r)
-   	      this.getPl(r).loadPlayer((AbstractClientPlayer)abstractClientPlayer);
-   }
-
+   
    @Inject(
       method = {"render"},
       at = {@At("HEAD")},
       cancellable = true
    )
-   public void render(S state, PoseStack posestack, MultiBufferSource buffer, int packedLight, CallbackInfo ci) {
-      if (state instanceof PlayerRenderState r && this.getPl(r).getPlayer() instanceof PlayerAccessor pl) {
-        AbstractClientPlayer player = (AbstractClientPlayer)pl;
-        float g = Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(!Minecraft.getInstance().level.tickRateManager().isEntityFrozen(player));
+   public void render(AbstractClientPlayer player, float anim, float partialticks, PoseStack posestack, MultiBufferSource buffer, int light, CallbackInfo info) {
+      if (player instanceof PlayerAccessor pl) {
       	if (pl.isFullActive()) {
-      	   ci.cancel();
+           info.cancel();
       	   posestack.pushPose();
       	   this.adjustMatrixForPlayer(posestack, pl, player);
       	   this.renderBlock(player, posestack, buffer, pl);
-           this.renderBlockEntity(player, g, posestack, buffer, packedLight, pl);
+           this.renderBlockEntity(player, partialticks, posestack, buffer, light, pl);
            this.renderBreak(player, posestack, buffer, pl);
            this.renderFrame(player, posestack, buffer, pl);
            posestack.popPose();
            this.shadowRadius = 0.0f;
       	} else {
             if (pl.getTnt() != null) {
-                ci.cancel();
-                this.renderTnt(player, g, posestack, buffer, packedLight, pl);
+                info.cancel();
+                this.renderTnt(player, anim, partialticks, posestack, buffer, light, pl);
             }
             this.shadowRadius = 0.5f;
         }
       }
    }
 
-   private void renderTnt(AbstractClientPlayer player, float ticks, PoseStack posestack, MultiBufferSource buffer, int light, PlayerAccessor pl) {
+   private void renderTnt(AbstractClientPlayer player, float anim, float partialticks, PoseStack posestack, MultiBufferSource buffer, int light, PlayerAccessor pl) {
         PrimedTnt tnt = pl.getTnt();
+        EntityRenderer rend = entityDispatcher.getRenderer(pl.getTnt());
         try {
-            EntityRenderer<PrimedTnt, TntRenderState> rend = (EntityRenderer<PrimedTnt, TntRenderState>) entityDispatcher.getRenderer(pl.getTnt());
-            TntRenderState state = rend.createRenderState(tnt, ticks);
-            rend.render(state, posestack, buffer, light);
+            rend.render(tnt, anim, partialticks, posestack, buffer, light);
         } catch (Exception e) {
             if (player == Minecraft.getInstance().player && Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc)
                 sc.tagException = e.getMessage();
         }
    }
-
+   
    private void adjustMatrixForPlayer(PoseStack poseStack, PlayerAccessor pl, AbstractClientPlayer player) {
         BlockPos minpos = pl.minPos();
         AABB hitbox = player.getBoundingBox();
@@ -165,7 +152,7 @@ extends EntityRenderer<T, S> {
       		posestack.pushPose();
             posestack.translate(pos.getX(), pos.getY(), pos.getZ());
             BlockPos offset = player.blockPosition().offset(pos);
-            this.renderBlockEntity(entry.getValue(), player, partialticks, posestack, buffer, this.getRenderLight((T)player, offset), pl, offset); //getRenderLight USE TO FIX LIGHT
+            this.renderBlockEntity(entry.getValue(), player, partialticks, posestack, buffer, this.getRenderLight(player, offset), pl, offset); //getRenderLight USE TO FIX LIGHT
       		posestack.popPose();
    	    }
    }
@@ -191,7 +178,7 @@ extends EntityRenderer<T, S> {
         }
    }
 
-   protected int getRenderLight(T entity, BlockPos blockPos) {
+   protected int getRenderLight(AbstractClientPlayer entity, BlockPos blockPos) {
         return LightTexture.pack(this.getBlockLightLevel(entity, blockPos), this.getSkyLightLevel(entity, blockPos));
    }
 
@@ -259,17 +246,21 @@ extends EntityRenderer<T, S> {
    	    	posestack.popPose();
    	    	return;
    	    }
-   	    Boolean boolean_ = mc.options.highContrastBlockOutline().get();
-   	    int i = boolean_ != false ? -11010079 : ARGB.color(102, -16777216);
-   	    VertexConsumer vertexConsumer;
-   	    if (boolean_.booleanValue()) {
-   	    	vertexConsumer = buffer.getBuffer(RenderType.secondaryBlockOutline());
-   	    	ShapeRenderer.renderShape(posestack, vertexConsumer, shape, 0, 0, 0, -16777216);
-   	    }
-   	    vertexConsumer = buffer.getBuffer(RenderType.lines());
-        ShapeRenderer.renderShape(posestack, vertexConsumer, shape, 0, 0, 0, i);
+        this.renderVoxelShape(posestack, buffer.getBuffer(RenderType.lines()), shape);
         posestack.popPose();
    	}
+   }
+
+   private void renderVoxelShape(PoseStack poseStack, VertexConsumer vertexConsumer, VoxelShape voxelShape) {
+   	    PoseStack.Pose pose = poseStack.last();
+        voxelShape.forAllEdges((k, l, m, n, o, p) -> {
+            float q = (float)(n - k);
+            float r = (float)(o - l);
+            float s = (float)(p - m);
+            float t = Mth.sqrt(q * q + r * r + s * s);
+            vertexConsumer.addVertex(pose, (float)(k), (float)(l), (float)(m)).setColor(0f, 0f, 0f, 0.4f).setNormal(pose, q /= t, r /= t, s /= t);
+            vertexConsumer.addVertex(pose, (float)(n), (float)(o), (float)(p)).setColor(0f, 0f, 0f, 0.4f).setNormal(pose, q, r, s);
+        });
    }
 
 }

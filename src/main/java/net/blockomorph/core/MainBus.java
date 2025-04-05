@@ -25,10 +25,10 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 
 public class MainBus {
-
-	public static void registerClient() {
+   
+    public static void registerClient() {
 		registerMain();
-		ClientPlayNetworking.registerGlobalReceiver(MainPacket.ID, (payload, context) -> {
+   	    ClientPlayNetworking.registerGlobalReceiver(MainPacket.ID, (payload, context) -> {
 			try {
 				MainPacket.apply(payload, null, true);
 			} catch (Exception e) {
@@ -37,24 +37,24 @@ public class MainBus {
 		});
 		HudRenderCallback.EVENT.register(PlayerCrackOverlay::render);
 		KeyMappings.registerKeyMappings(KeyBindingHelper::registerKeyBinding);
-		ClientTickEvents.END_CLIENT_TICK.register((mc) -> {
+        ClientTickEvents.END_CLIENT_TICK.register((mc) -> {
 			MorphUtils.onClientTick();
 		});
 		WorldRenderEvents.BEFORE_ENTITIES.register((context) -> {
 			MorphUtils.onPick();
 		});
-	}
+    }
 
-	public static void registerServer() {
+    public static void registerServer() {
 		registerMain();
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			ServerPlayer p = handler.player;
-			MorphUtils.sendPlayer(new ClientBoundConfigUpdatePacket(Config.getInstance()), p);
-		});
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
+        	ServerPlayer p = handler.player;
+   	    	MorphUtils.sendPlayer(new ClientBoundConfigUpdatePacket(Config.getInstance()), p);
+   	    });
 		ServerPlayerEvents.COPY_FROM.register(MorphUtils::onPlayerClone);
-	}
+    }
 
-    private static void registerMain() {
+	private static void registerMain() {
 		ArgumentTypeRegistry.registerArgumentType(
 				ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, "enum_argument"),
 				EnumArgument.class,
@@ -79,5 +79,6 @@ public class MainBus {
 		MorphUtils.registerPacket(ServerBoundBlockMorphPacket.ID, ServerBoundBlockMorphPacket::new, false);
 		MorphUtils.registerPacket(ServerBoundInteractBlockPacket.ID, ServerBoundInteractBlockPacket::new, false);
 		MorphUtils.registerPacket(ServerBoundConfigUpdatePacket.ID, ServerBoundConfigUpdatePacket::new, false);
-    }
+	}
+
 }

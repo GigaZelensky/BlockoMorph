@@ -36,7 +36,7 @@ public abstract class GameRendererMixin {
      	Minecraft mc = Minecraft.getInstance();
      	if (MorphUtils.hit != null) {
      		Vec3 vec31 = MorphUtils.hit.getLocation();
-            Direction direction = Direction.getApproximateNearest(vec31.x - end.x, vec31.y - end.y, vec31.z - end.z);
+            Direction direction = Direction.getNearest(vec31.x - end.x, vec31.y - end.y, vec31.z - end.z);
             cir.setReturnValue(BlockHitResult.miss(vec31, direction, BlockPos.containing(vec31)));
      	}
      }

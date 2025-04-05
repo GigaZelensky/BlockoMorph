@@ -36,6 +36,6 @@ public class MinecraftMixin {
 				boolean flag = MorphUtils.performClientUse();
 				if (flag) ci.cancel();
 			}
-		}
+	   }
    }
 }

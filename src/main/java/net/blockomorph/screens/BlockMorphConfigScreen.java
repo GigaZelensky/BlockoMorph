@@ -17,7 +17,6 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.sounds.SoundManager;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
@@ -79,7 +78,6 @@ public class BlockMorphConfigScreen extends Screen {
    protected int imageHeight = 166;
    protected int leftPos;
    protected int topPos;
-   protected MultiBufferSource tempBufer;
    private int propOff;
    private int listPropNumber = -1;
    private int enumListOffset; //new
@@ -102,7 +100,6 @@ public class BlockMorphConfigScreen extends Screen {
    	    super.render(guiGraphics, mouseX, mouseY, partialTicks);
    	    this.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
 		this.renderLb(guiGraphics);
-		guiGraphics.drawSpecial(this::extractBuffer);
 		this.renderBlockAsIcon(guiGraphics, partialTicks);
 	    String name = playerState.getBlock().getName().getString();
 		if (name.length() > 13 && mouseX > this.leftPos + 15 && mouseX < this.leftPos + 75 && mouseY > this.topPos + 18 && mouseY < this.topPos + 78) guiGraphics.renderTooltip(this.font, Component.literal(name), mouseX, mouseY);
@@ -121,10 +118,6 @@ public class BlockMorphConfigScreen extends Screen {
 		} else if (prop != null) {
 			guiGraphics.renderTooltip(this.font, Component.literal(prop.getName()), mouseX, mouseY);
 		}
-   }
-
-   private void extractBuffer(MultiBufferSource b) {
-   	    this.tempBufer = b;
    }
 
    public void morphUpdate(BlockState state) {
@@ -155,10 +148,10 @@ public class BlockMorphConfigScreen extends Screen {
 		RenderSystem.setShaderColor(1, 1, 1, 1);
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
-		guiGraphics.blit(RenderType::guiTextured, texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
+		guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
 		if (!tagsBox.canConsumeInput()) 
-		    guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/morph_gui_icons.png"), this.leftPos + 7, this.topPos + 139, 0, 0, 162, 19, 162, 19);
-		guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/exit_tabs.png"), this.leftPos + 4, this.topPos - 19, 0, 23, 80, 22, 80, 46);
+		    guiGraphics.blit(ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/morph_gui_icons.png"), this.leftPos + 7, this.topPos + 139, 0, 0, 162, 19, 162, 19);
+		guiGraphics.blit(ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/exit_tabs.png"), this.leftPos + 4, this.topPos - 19, 0, 23, 80, 22, 80, 46);
 		this.renderMbButton(guiGraphics, partialTicks, gx, gy);
 		this.renderProp(guiGraphics, gx, gy);
 		RenderSystem.disableBlend();
@@ -166,7 +159,7 @@ public class BlockMorphConfigScreen extends Screen {
 
    private void renderMbButton(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
    	    if (Config.getInstance() != null && (boolean)Config.getInstance().getValue("advancedMode")) {
-   	    	guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/mb_but.png"), this.leftPos + 93, this.topPos + 120, 0, this.mb ? 10:0, 67, 10, 67, 20);
+   	    	guiGraphics.blit(ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/mb_but.png"), this.leftPos + 93, this.topPos + 120, 0, this.mb ? 10:0, 67, 10, 67, 20);
    	    	guiGraphics.drawCenteredString(this.font, Component.translatable("gui.blockomorph.mb"), this.leftPos + 93 + 33, this.topPos + 121, -1);
    	    }
    }
@@ -191,14 +184,14 @@ public class BlockMorphConfigScreen extends Screen {
    	    	if (this.propOff + i < props.size()) {
    	    	    Property<?> prop = props.get(this.propOff + i);
    	    	    if (prop instanceof BooleanProperty bool) {
-   	    	    	guiGraphics.blit(RenderType::guiTextured, PROP, this.leftPos + 93 , this.topPos + 24 + i * 19, 0, 38, 67, 19, 67, 64);
+   	    	    	guiGraphics.blit(PROP, this.leftPos + 93 , this.topPos + 24 + i * 19, 0, 38, 67, 19, 67, 64);
    	    	    	if (this.playerState.getValue(bool))
-   	    	    	    guiGraphics.blit(RenderType::guiTextured, PROP, this.leftPos + 93 + 44 , this.topPos + 24 + i * 19 + 6, 0, 57, 15, 7, 67, 64);
+   	    	    	    guiGraphics.blit(PROP, this.leftPos + 93 + 44 , this.topPos + 24 + i * 19 + 6, 0, 57, 15, 7, 67, 64);
    	    	    } else if (prop instanceof IntegerProperty integer) {
-   	    	    	guiGraphics.blit(RenderType::guiTextured, PROP, this.leftPos + 93 , this.topPos + 24 + i * 19, 0, 19, 67, 19, 67, 64);
+   	    	    	guiGraphics.blit(PROP, this.leftPos + 93 , this.topPos + 24 + i * 19, 0, 19, 67, 19, 67, 64);
    	    	    	guiGraphics.drawString(this.font, this.playerState.getValue(integer) + "", this.leftPos + 93 + 42, this.topPos + 24 + i * 19 + 6, -1, false);
    	    	    } else if (prop instanceof EnumProperty enumprop) {
-   	    	    	guiGraphics.blit(RenderType::guiTextured, PROP, this.leftPos + 93 , this.topPos + 24 + i * 19, 0, 0, 67, 19, 67, 64);
+   	    	    	guiGraphics.blit(PROP, this.leftPos + 93 , this.topPos + 24 + i * 19, 0, 0, 67, 19, 67, 64);
    	    	    	String value = (this.playerState.getValue(prop)).toString().toLowerCase();
    	    	    	if (value.length() > 4) {
    	    	    		value = value.substring(0, 3);
@@ -503,7 +496,7 @@ public class BlockMorphConfigScreen extends Screen {
 				WidgetSprites sp = this.sprites;
 				if (BlockMorphConfigScreen.this.editButBucket) sp = BUCKET;
 				ResourceLocation loc = sp.get(this.isActive(), this.isHoveredOrFocused());
-                g.blit(RenderType::guiTextured, loc, this.getX(), this.getY(), 0, 0, this.width, this.height, this.width, this.height);
+                g.blit(loc, this.getX(), this.getY(), 0, 0, this.width, this.height, this.width, this.height);
             }
 		};
 		this.addRenderableWidget(this.edit);
@@ -522,7 +515,7 @@ public class BlockMorphConfigScreen extends Screen {
 
    public void renderBlockAsIcon(GuiGraphics guiGraphics, float ticks) {
    	    PoseStack poseStack = guiGraphics.pose();
-        MultiBufferSource bufferSource = this.tempBufer;
+        MultiBufferSource.BufferSource bufferSource = guiGraphics.bufferSource();
         poseStack.pushPose();
         poseStack.translate(this.leftPos + 71, this.topPos + 63.8, 20); 
         poseStack.mulPose((new Matrix4f()).scaling(1.0F, -1.0F, 1.0F));

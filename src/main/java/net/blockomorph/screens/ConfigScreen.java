@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Arrays;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.minecraft.client.renderer.RenderType;
 
 public class ConfigScreen extends Screen {
    private static final ResourceLocation texture = ResourceLocation.tryParse("blockomorph:textures/screens/config_screen.png");
@@ -66,11 +65,11 @@ public class ConfigScreen extends Screen {
 		RenderSystem.setShaderColor(1, 1, 1, 1);
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
-		guiGraphics.blit(RenderType::guiTextured, texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
+		guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
 		this.renderConfigs(guiGraphics, gx, gy);
 		guiGraphics.drawString(this.font, Component.translatable("menu.options"), this.leftPos + 8, this.topPos + 6, 4210752, false);
 		//scroller always locked in this mod version
-		guiGraphics.blitSprite(RenderType::guiTextured, ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller_disabled"), this.leftPos + 158, this.topPos + 16, 12, 15);
+		guiGraphics.blitSprite(ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller_disabled"), this.leftPos + 158, this.topPos + 16, 12, 15);
 		RenderSystem.disableBlend();
    }
 
@@ -134,10 +133,10 @@ public class ConfigScreen extends Screen {
    	    	if (i > 6) break;
    	    	if (op.getName().equals("canOperatorModifyConfig")) continue;
    	    	if (op instanceof BooleanConfig e) {
-   	    		guiGraphics.blit(RenderType::guiTextured, CONF, this.leftPos + 10 , this.topPos + 15 + i * 20, 0, 0, 144, 20, 144, 74);
-   	    		if (e.getValue()) guiGraphics.blit(RenderType::guiTextured, CONF, this.leftPos + 10 + 105, this.topPos + 15 + i * 20 + 3, 0, 60, 24, 14, 144, 74);
+   	    		guiGraphics.blit(CONF, this.leftPos + 10 , this.topPos + 15 + i * 20, 0, 0, 144, 20, 144, 74);
+   	    		if (e.getValue()) guiGraphics.blit(CONF, this.leftPos + 10 + 105, this.topPos + 15 + i * 20 + 3, 0, 60, 24, 14, 144, 74);
    	    	} else if (op instanceof EnumConfig e2) {
-   	    		guiGraphics.blit(RenderType::guiTextured, CONF, this.leftPos + 10 , this.topPos + 15 + i * 20, 0, 20, 144, 20, 144, 74);
+   	    		guiGraphics.blit(CONF, this.leftPos + 10 , this.topPos + 15 + i * 20, 0, 20, 144, 20, 144, 74);
    	    		String value = e2.getValue().toString().toLowerCase();
    	    	    if (value.length() > 8) {
    	    	    	value = value.substring(0, 7);
@@ -147,11 +146,11 @@ public class ConfigScreen extends Screen {
    	    	} else if (op instanceof ListConfig e3) {
    	    		int x = this.leftPos + 10;
    	    		int y = this.topPos + 15 + i * 20;
-   	    		guiGraphics.blit(RenderType::guiTextured, CONF, x, y, 0, 40, 144, 20, 144, 74);
+   	    		guiGraphics.blit(CONF, x, y, 0, 40, 144, 20, 144, 74);
    	    		if (gx > x + 125 && gx < x + 125 + 16 && gy > y + 2 && gy < y + 2 + 16) {
-   	    			guiGraphics.blit(RenderType::guiTextured, BUTS, x + 125, y + 2, 0, 16, 16, 16, 16, 32);
+   	    			guiGraphics.blit(BUTS, x + 125, y + 2, 0, 16, 16, 16, 16, 32);
    	    		} else {
-   	    			guiGraphics.blit(RenderType::guiTextured, BUTS, x + 125, y + 2, 0, 0, 16, 16, 16, 32);
+   	    			guiGraphics.blit(BUTS, x + 125, y + 2, 0, 0, 16, 16, 16, 32);
    	    		}
    	    	}
    	    	String name = Component.translatable("gui.blockomorph." + op.getName()).getString();

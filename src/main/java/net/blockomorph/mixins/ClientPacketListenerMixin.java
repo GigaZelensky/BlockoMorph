@@ -12,9 +12,6 @@ import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.protocol.game.ClientboundPlayerCombatKillPacket;
-import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.nbt.CompoundTag;
 
 @Mixin(ClientPacketListener.class)
 public abstract class ClientPacketListenerMixin {

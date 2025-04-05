@@ -26,7 +26,7 @@ import net.minecraft.network.chat.Component;
 public class Config {
    private static final String configDir = FabricLoader.getInstance().getGameDir() + "\\config\\blockomorph.json";
    public final List<ConfigInstance<?>> options = List.of(
-   	   new EnumConfig<>("listMode", Mode.NONE),
+   	   new EnumConfig("listMode", Mode.NONE), 
    	   new BooleanConfig("solidBlocksOnly", false),
    	   new ListConfig("allowedBlocks", new ArrayList<>()),
    	   new ListConfig("bannedBlocks", new ArrayList<>()),
@@ -37,11 +37,11 @@ public class Config {
    static Config INSTANCE;
    static MinecraftServer server;
 
-   public static MinecraftServer getServer() {
-		return server;
+   private Config() {
    }
 
-   private Config() {
+   public static MinecraftServer getServer() {
+	   return server;
    }
 
    public <T> T getValue(String option) {

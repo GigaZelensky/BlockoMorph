@@ -4,7 +4,6 @@ import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 
@@ -36,7 +35,7 @@ public class ServerBoundUseBlockPacket implements BlockMorphPacket {
     @Override
     public void handle(Player player) {
         if (MorphUtils.getEntityLookedAt(player, -1, 1) instanceof PlayerAccessor pl) {
-            if (pl.clickPlayer(player, hit, hand) instanceof InteractionResult.Success s && s.swingSource() == InteractionResult.SwingSource.SERVER) player.swing(hand, true);
+            if (pl.clickPlayer(player, hit, hand).shouldSwing()) player.swing(hand, true);
         }
     }
 }

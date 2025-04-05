@@ -5,7 +5,6 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.renderer.RenderType;
 
 public class SoftSpritedImageButton extends ImageButton {
     public SoftSpritedImageButton(int i, int j, int k, int l, WidgetSprites widgetSprites, OnPress onPress) {
@@ -15,6 +14,6 @@ public class SoftSpritedImageButton extends ImageButton {
     @Override
     public void renderWidget(GuiGraphics guiGraphics, int i, int j, float f) {
         ResourceLocation resourceLocation = this.sprites.get(this.isActive(), this.isHoveredOrFocused());
-        guiGraphics.blit(RenderType::guiTextured, resourceLocation, this.getX(), this.getY(), 0, 0, this.width, this.height, this.width, this.height);
+        guiGraphics.blit(resourceLocation, this.getX(), this.getY(), 0, 0, this.width, this.height, this.width, this.height);
     }
 }

@@ -18,8 +18,7 @@
     "GameRendererMixin",
     "HudMixin",
     "MinecraftMixin",
-    "PlayerRendererMixin",
-    "RenderStateMixin"
+    "PlayerRendererMixin"
   ],
   "minVersion": "0.8"
 }

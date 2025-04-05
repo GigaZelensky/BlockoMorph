@@ -19,7 +19,6 @@ import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.util.RandomSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
@@ -94,7 +93,6 @@ public class MorphScreen extends Screen {
     protected int imageHeight = 166;
     protected int leftPos;
     protected int topPos;
-    protected MultiBufferSource tempBufer;
 	private int scrollOff;
 	private boolean scrollWork;
 	private static int page = 0;
@@ -124,11 +122,15 @@ public class MorphScreen extends Screen {
         }
 	}
 
-	private void extractBuffer(MultiBufferSource b) {
-   	    this.tempBufer = b;
-    }
+	public List<Block> getRegistredBlocks() {
+		List<Block> blocks = new ArrayList<>();
+		for (var entry : BuiltInRegistries.BLOCK.entrySet()) {
+             blocks.add(entry.getValue());
+        }
+        return blocks;
+	}
 
-    private void loadCreativeBlocks(Minecraft mc) {
+	private void loadCreativeBlocks(Minecraft mc) {
 		LocalPlayer pl = mc.player;
 		if (CreativeModeTabs.tryRebuildTabContents(
 			pl.connection.enabledFeatures(), 
@@ -142,14 +144,6 @@ public class MorphScreen extends Screen {
                 sessionSearchTrees.updateCreativeTags(list);
 			}
 		}
-	}
-
-	public List<Block> getRegistredBlocks() {
-		List<Block> blocks = new ArrayList<>();
-		for (var entry : BuiltInRegistries.BLOCK.entrySet()) {
-             blocks.add(entry.getValue());
-        }
-        return blocks;
 	}
 
 	public boolean isConfig() {
@@ -214,7 +208,6 @@ public class MorphScreen extends Screen {
 		}
 		if (selectedTab.showTitle())
 		    guiGraphics.drawString(this.font, selectedTab.getDisplayName(), this.leftPos + 8, this.topPos + 6, 0x404040, false);
-		guiGraphics.drawSpecial(this::extractBuffer);
 		this.renderBlockAsIcon(guiGraphics, partialTicks);
 		int i = this.findBlockIndex(mouseX, mouseY);
 		if (i != -1) {
@@ -262,12 +255,12 @@ public class MorphScreen extends Screen {
 
 	@Nullable
     public static CreativeModeTab getTab(ResourceLocation name) {
-        return BuiltInRegistries.CREATIVE_MODE_TAB.getValue(name);
+        return BuiltInRegistries.CREATIVE_MODE_TAB.get(name);
     }
 
     @Nullable
     public static CreativeModeTab getTab(ResourceKey name) {
-        return BuiltInRegistries.CREATIVE_MODE_TAB.getValue(name);
+        return BuiltInRegistries.CREATIVE_MODE_TAB.get(name);
     }
 
     @Nullable
@@ -279,8 +272,8 @@ public class MorphScreen extends Screen {
 		if (searchName.equals("")) {
 			this.refreshList();
 		}
-		this.savedBlocks.clear();
 		this.list.clear();
+		this.savedBlocks.clear();
 		if (selectedTab == loved_blocks) {
 			for (SavedBlock entry : this.savedBlockContent) {
 				if (entry.getName().toLowerCase().contains(searchName.toLowerCase())) {
@@ -313,6 +306,7 @@ public class MorphScreen extends Screen {
 
 	public void renderBlockAsIcon(GuiGraphics guiGraphics, float ticks) {
         PoseStack poseStack = guiGraphics.pose();
+        MultiBufferSource.BufferSource bufferSource = guiGraphics.bufferSource();
         int xO = 0;
         int yO = 0;
         
@@ -329,7 +323,7 @@ public class MorphScreen extends Screen {
       	   	  }
 
               poseStack.pushPose();
-              this.renderBlock(poseStack, this.tempBufer, xO, yO, blockState, ticks, tag);
+              this.renderBlock(poseStack, bufferSource, xO, yO, blockState, ticks, tag);
               poseStack.popPose();
 
               poseStack.pushPose();
@@ -350,7 +344,7 @@ public class MorphScreen extends Screen {
         }
     }
 
-    private void renderBlock(PoseStack poseStack, MultiBufferSource bufferSource, int xO, int yO, BlockState blockState, float ticks, @Nullable CompoundTag tag) {
+    private void renderBlock(PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, int xO, int yO, BlockState blockState, float ticks, @Nullable CompoundTag tag) {
     	poseStack.translate(this.leftPos + 42 + xO*36, this.topPos + 41.8 + yO*36, 100); 
         poseStack.mulPose((new Matrix4f()).scaling(1.0F, -1.0F, 1.0F));
         poseStack.scale(20.0F, 20.0F, 20.0F); 
@@ -373,20 +367,20 @@ public class MorphScreen extends Screen {
     	String name = BuiltInRegistries.BLOCK.getKey(blockState.getBlock()).toString();
         if (!this.isConfig()) {
         	if (MorphUtils.isBannedBlock(blockState, entity) != null) {
-        		guiGraphics.blit(RenderType::guiTextured, ResourceLocation.tryParse("blockomorph:textures/screens/sel_lock.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
+        		guiGraphics.blit(ResourceLocation.tryParse("blockomorph:textures/screens/sel_lock.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
         		return;
         	}
         	BlockState plSt = ((PlayerAccessor)entity).getBlockState();
             if (selectedTab == loved_blocks) {
             	if (plSt.equals(blockState) && tag.equals(((PlayerAccessor)entity).getTag()))
-            	guiGraphics.blit(RenderType::guiTextured, ResourceLocation.tryParse("blockomorph:textures/screens/selected.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
+            	guiGraphics.blit(ResourceLocation.tryParse("blockomorph:textures/screens/selected.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
             } else if (plSt.getBlock() == blockState.getBlock()) {
-            	guiGraphics.blit(RenderType::guiTextured, ResourceLocation.tryParse("blockomorph:textures/screens/selected.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
+            	guiGraphics.blit(ResourceLocation.tryParse("blockomorph:textures/screens/selected.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
             }
         } else if (this.mode == Config.Mode.WHITELIST) {
-            if (((List<String>)Config.getInstance().getValue("allowedBlocks")).contains(name)) guiGraphics.blit(RenderType::guiTextured, ResourceLocation.tryParse("blockomorph:textures/screens/sel_good.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
+            if (((List<String>)Config.getInstance().getValue("allowedBlocks")).contains(name)) guiGraphics.blit(ResourceLocation.tryParse("blockomorph:textures/screens/sel_good.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
         } else if (this.mode == Config.Mode.BLACKLIST) {
-            if (((List<String>)Config.getInstance().getValue("bannedBlocks")).contains(name)) guiGraphics.blit(RenderType::guiTextured, ResourceLocation.tryParse("blockomorph:textures/screens/sel_bad.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
+            if (((List<String>)Config.getInstance().getValue("bannedBlocks")).contains(name)) guiGraphics.blit(ResourceLocation.tryParse("blockomorph:textures/screens/sel_bad.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
         }
     }
 
@@ -506,7 +500,7 @@ public class MorphScreen extends Screen {
         tabType = tabType + "_middle";
         if (flag) tabType = tabType + "_selected";
         
-        gui.blit(RenderType::guiTextured, ResourceLocation.withDefaultNamespace("textures/gui/sprites/advancements/tab_" + tabType + ".png"), l, i1, 0, 0, weight, height, weight, height);
+        gui.blit(ResourceLocation.withDefaultNamespace("textures/gui/sprites/advancements/tab_" + tabType + ".png"), l, i1, 0, 0, weight, height, weight, height);
 
         gui.pose().pushPose();
         gui.pose().translate(0.0F, 0.0F, 100.0F);
@@ -529,9 +523,9 @@ public class MorphScreen extends Screen {
 		RenderSystem.setShaderColor(1, 1, 1, 1);
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
-		guiGraphics.blit(RenderType::guiTextured, texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
+		guiGraphics.blit(texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
 		if (this.hasSearchBar())
-		    guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/searchbar.png"), this.leftPos + 90, this.topPos - 19, 0, 0, 80, 23, 80, 23);
+		    guiGraphics.blit(ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/searchbar.png"), this.leftPos + 90, this.topPos - 19, 0, 0, 80, 23, 80, 23);
 		int j = 0;
 		for (int i = page * 10; i < page * 10 + 10; i++) {
 			if (i < tabs.size()) {
@@ -543,14 +537,14 @@ public class MorphScreen extends Screen {
 		if (this.needAllowedTab()) this.renderTabButton(guiGraphics, allowed, -3, true);
 		this.renderTabButton(guiGraphics, op_tab, -2, true);
 		this.renderTabButton(guiGraphics, search, -1, true);
-		guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/exit_tabs.png"), this.leftPos + 4, this.topPos - 19, 0, 0, 80, 22, 80, 46);
+		guiGraphics.blit(ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/exit_tabs.png"), this.leftPos + 4, this.topPos - 19, 0, 0, 80, 22, 80, 46);
 		int yPos = this.topPos + 16;
 		int totalScrollableElements = this.list.size() - 16;
 
         double scrollPercentage = (double)this.scrollOff / totalScrollableElements;
         int sharp = (int)Math.round(scrollPercentage * (253));
         sharp = Mth.clamp(sharp, 0, 127);
-		guiGraphics.blitSprite(RenderType::guiTextured, this.canScroll() ? SCROLLER_SPRITE : SCROLLER_DISABLED_SPRITE, this.leftPos + 158, yPos + sharp, 12, 15);
+		guiGraphics.blitSprite(this.canScroll() ? SCROLLER_SPRITE : SCROLLER_DISABLED_SPRITE, this.leftPos + 158, yPos + sharp, 12, 15);
 		RenderSystem.disableBlend();
 	}
 
@@ -726,17 +720,17 @@ public class MorphScreen extends Screen {
 		});
 		this.unmask.active = ((PlayerAccessor)this.entity).isFullActive();
 		this.unmask.visible = this.needUnmorphBut();
-		this.addRenderableWidget(this.unmask);
 		this.fuse = new SoftSpritedImageButton(this.leftPos - 28, this.topPos + this.imageHeight + 1, 26, 26, FLAME_BUT, e -> {
 			MorphUtils.sendServer(ServerBoundBlockMorphPacket.fuse());
 		});
 		this.fuse.active = this.activeFlameBut();
 		this.fuse.visible = this.needFlameBut();
 		this.addRenderableWidget(this.fuse);
+		this.addRenderableWidget(this.unmask);
 		if (this.isConfig()) this.addRenderableWidget(Button.builder(Component.literal("<--"), b -> this.minecraft.setScreen(new ConfigScreen()) ).pos(this.leftPos + 10, this.topPos + this.imageHeight + 1).size(20, 20).build());
 		if (pageCount > 1) {
             this.addRenderableWidget(Button.builder(Component.literal("<"), b -> this.setPage(false)).pos(leftPos - 22,  topPos - 22).size(20, 20).build());
-            this.addRenderableWidget(Button.builder(Component.literal(">"), b -> this.setPage(true)).pos(leftPos + imageWidth, topPos - 22).size(20, 20).build());
+            this.addRenderableWidget(Button.builder(Component.literal(">"), b -> this.setPage(true)).pos(leftPos + imageWidth - 0, topPos - 22).size(20, 20).build());
         }
 	}
 }

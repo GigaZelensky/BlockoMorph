@@ -5,7 +5,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 
-import net.blockomorph.utils.*;
+import net.blockomorph.utils.PlayerAccessor;
 
 import net.minecraft.world.entity.Entity;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -14,9 +14,6 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import org.joml.Quaternionf;
-import net.minecraft.client.renderer.entity.state.PlayerRenderState;
-import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.renderer.entity.state.EntityRenderState;
 
 @Mixin(EntityRenderDispatcher.class)
 public abstract class EntityRendererMixin {
@@ -26,9 +23,9 @@ public abstract class EntityRendererMixin {
       at = {@At("HEAD")},
       cancellable = true
    )
-   private static void renderHitbox(PoseStack poseStack, VertexConsumer vertexConsumer, Entity entity, float f, float g, float h, float i, CallbackInfo ci) {
-   	  if (entity instanceof PlayerAccessor pl) {
-   	  	if (pl.isFullActive()) ci.cancel();
+   private static void renderHitbox(PoseStack posestack, VertexConsumer vertex, Entity player, float f, float g, float h, float i, CallbackInfo info) {
+   	  if (player instanceof PlayerAccessor pl) {
+   	  	if (pl.isFullActive()) info.cancel();
    	  }
    }
 
@@ -37,11 +34,9 @@ public abstract class EntityRendererMixin {
       at = {@At("HEAD")},
       cancellable = true
    )
-   private void renderFlame(PoseStack poseStack, MultiBufferSource multiBufferSource, EntityRenderState entityRenderState, Quaternionf quaternionf, CallbackInfo ci) {
-      if (entityRenderState instanceof RenderStateAccessor r) {
-   	    PlayerAccessor pl = (PlayerAccessor)r.getPlayer();
-   	  	if (pl.isActive()) ci.cancel();
+   private void renderFire(PoseStack posestack, MultiBufferSource buffer, Entity player, Quaternionf quaternionf, CallbackInfo info) {
+   	  if (player instanceof PlayerAccessor pl) {
+   	  	if (pl.isActive()) info.cancel();
    	  }
    }
-
 }

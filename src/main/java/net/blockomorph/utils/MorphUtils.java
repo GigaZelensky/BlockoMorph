@@ -63,14 +63,13 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.world.level.block.piston.MovingPistonBlock;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.AbstractMap;
 import org.jetbrains.annotations.Nullable;
 import java.util.Comparator;
-import java.util.ArrayList;
 import java.util.function.Function;
 
 public class MorphUtils {
@@ -137,8 +136,9 @@ public class MorphUtils {
 
    public static void onPlayerClone(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean alive) {
         CompoundTag originalNBT = oldPlayer.saveWithoutId(new CompoundTag());
+        CompoundTag newNBT = newPlayer.saveWithoutId(new CompoundTag());
 
-       if (originalNBT.contains("BlockMorph")) {
+        if (originalNBT.contains("BlockMorph")) {
             CompoundTag tag = new CompoundTag();
             tag.put("BlockMorph", originalNBT.getCompound("BlockMorph"));
             newPlayer.load(tag);
@@ -152,7 +152,7 @@ public class MorphUtils {
         AABB hitbox = player.getBoundingBox();
         Vec3 playerCenter = player.position();
 
-        double offsetX = hitbox.minX - (playerCenter.x + minpos.getX());
+       double offsetX = hitbox.minX - (playerCenter.x + minpos.getX());
         double offsetZ = hitbox.minZ - (playerCenter.z + minpos.getZ());
 
         return vo.move(player.getX() + offsetX, player.getY(), player.getZ() + offsetZ);
@@ -167,6 +167,7 @@ public class MorphUtils {
     	    	player.swing(InteractionHand.MAIN_HAND, true);
     	    } else if (gm == GameType.SURVIVAL) {
     	    	mb.addPlayer(part, player);
+                //System.out.println("yes");
     	    }
     	    return true;	    
     	}
@@ -213,7 +214,8 @@ public class MorphUtils {
                 	}
                     if (i > -1 && hit != null && isAttackPressed) {
                     	//crackBlock(pl, calculateHitDirection(hit.getLocation(), hitEntity.getBoundingBox()));
-                    	crackBlock(pl, getClosestHitSide(pl.getRenderShape(hitPart).move(hitEntity.position()).move(-0.5, 0, -0.5), hit.getLocation()), hitPart);
+                    	Vec3 mb_pos = hitEntity.position();
+                    	crackBlock(pl, getClosestHitSide(pl.getRenderShape(hitPart).move(mb_pos.x, mb_pos.y, mb_pos.z).move(-0.5, 0, -0.5), hit.getLocation()), hitPart);
                     }
                     if (isAttackPressed && pl.readyForDestroy()) {
                     	GamemodeAccessor gm = ((GamemodeAccessor)mc.gameMode);
@@ -336,7 +338,7 @@ public class MorphUtils {
                 InteractionResult interactionresult1 = pl.clickPlayer(player, hiting, interactionhand);
                 sendServer(new ServerBoundUseBlockPacket(hiting, interactionhand));
                 if (interactionresult1.consumesAction()) {
-                    if (interactionresult1 instanceof InteractionResult.Success s && s.swingSource() == InteractionResult.SwingSource.CLIENT) {
+                    if (interactionresult1.shouldSwing()) {
                         player.swing(interactionhand);
                         if (!itemstack.isEmpty() && (itemstack.getCount() != i || mc.gameMode.hasInfiniteItems())) {
                             mc.gameRenderer.itemInHandRenderer.itemUsed(interactionhand);
@@ -405,7 +407,7 @@ public class MorphUtils {
 
 
         if (i < 9 - progress) {
-            gui.blitSprite(RenderType::guiTextured, sprite, xPos + 1, yPos + 1, 7, 7);
+            gui.blit(xPos + 1, yPos + 1, 0, 7, 7, sprite);
         }
        }
    }
@@ -413,9 +415,9 @@ public class MorphUtils {
    @Environment(EnvType.CLIENT)
    private static void renderBar(GuiGraphics graphics, int x, int y, int progress) {
         if (progress == 9) {
-        	graphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 10, 81, 9, 81, 19);
+        	graphics.blit(ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 10, 81, 9, 81, 19);
         } else {
-        	graphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 0, 81, 9, 81, 19);
+        	graphics.blit(ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 0, 81, 9, 81, 19);
         }    
    }
 
@@ -443,8 +445,8 @@ public class MorphUtils {
     	blocks.put(new BlockPos(0, 0, 0), mob_pl.getBlockState());
         boolean hasTnt = mob_pl.getTnt() != null;
         
-        Holder<DamageType> damage = mob.level().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).
-        getOrThrow(attacker == null ? PLAYER_DESTROYED_NULL : PLAYER_DESTROYED);
+        Holder<DamageType> damage = mob.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).
+        getHolderOrThrow(attacker == null ? PLAYER_DESTROYED_NULL : PLAYER_DESTROYED);
     	
     	if (Config.getInstance().getValue("playerDieAfterDestroy")) {
     		mob.hurt(new DamageSource(damage, attacker), Float.MAX_VALUE);
@@ -452,7 +454,7 @@ public class MorphUtils {
     		mob_pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), new CompoundTag(), false);
     	}
 
-    	if (mob.level() instanceof ServerLevel lv &&!hasTnt) {
+    	if (mob.level() instanceof ServerLevel lv && !hasTnt) {
         	for (Map.Entry<BlockPos, BlockState> entry : blocks.entrySet()) {
             	BlockPos pos = entry.getKey();
             	BlockState val = entry.getValue();

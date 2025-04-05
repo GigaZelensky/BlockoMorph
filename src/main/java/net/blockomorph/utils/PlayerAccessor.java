@@ -8,8 +8,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraft.core.BlockPos;
 import java.util.HashMap;
+import net.minecraft.core.BlockPos;
 
 public interface PlayerAccessor {
     void applyBlockMorph(BlockState state, CompoundTag tag, boolean mb);
@@ -33,4 +33,3 @@ public interface PlayerAccessor {
     PrimedTnt getTnt();
     void setTnt();
 }
-

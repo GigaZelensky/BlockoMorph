@@ -31,9 +31,7 @@ import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.level.saveddata.maps.MapId;
 import com.mojang.realmsclient.util.task.RealmCreationTask;
 import net.minecraft.world.item.alchemy.PotionBrewing;
-import net.minecraft.world.level.block.entity.FuelValues;
 import net.minecraft.world.level.entity.LevelEntityGetter;
-import net.minecraft.world.item.crafting.RecipeAccess;
 import net.minecraft.world.scores.Scoreboard;
 import net.minecraft.world.TickRateManager;
 import net.minecraft.world.level.gameevent.GameEvent;
@@ -52,13 +50,15 @@ import net.minecraft.world.level.material.Fluid;
 import java.util.HashMap;
 import java.util.function.Predicate;
 
+import net.minecraft.world.item.crafting.RecipeManager;
+
 public class MultiBlockLevel 
 extends Level {
     private final HashMap<BlockPos, BlockState> blocks = new HashMap<>();
     protected final Level realLevel;
     
     public MultiBlockLevel(Level lv, boolean client) {
-        super((WritableLevelData)lv.getLevelData(), lv.dimension(), lv.registryAccess(), lv.dimensionTypeRegistration(), client, lv.isDebug(), 0, 5);
+        super((WritableLevelData)lv.getLevelData(), lv.dimension(), lv.registryAccess(), lv.dimensionTypeRegistration(), lv.getProfilerSupplier(), client, lv.isDebug(), 0, 5);
         this.realLevel = lv;
     }
 
@@ -91,13 +91,15 @@ extends Level {
         return this.realLevel;
     }
 
+    public RecipeManager getRecipeManager() {
+    	return realLevel.getRecipeManager();
+    }
+
     public void sendBlockUpdated(BlockPos var1, BlockState var2, BlockState var3, int var4) {}
 
     public void playSeededSound(@Nullable Player var1, double var2, double var4, double var6, Holder<SoundEvent> var8, SoundSource var9, float var10, float var11, long var12) {}
 
     public void playSeededSound(@Nullable Player var1, Entity var2, Holder<SoundEvent> var3, SoundSource var4, float var5, float var6, long var7) {}
-
-    public void explode(@Nullable Entity var1, @Nullable DamageSource var2, @Nullable ExplosionDamageCalculator var3, double var4, double var6, double var8, float var10, boolean var11, ExplosionInteraction var12, ParticleOptions var13, ParticleOptions var14, Holder<SoundEvent> var15) {}
 
     public String gatherChunkSourceStats() {
     	return realLevel.gatherChunkSourceStats();
@@ -115,10 +117,6 @@ extends Level {
         return realLevel.getFreeMapId();
     }
 
-    public RecipeAccess recipeAccess() {
-    	return realLevel.recipeAccess();
-    }
-
     public TickRateManager tickRateManager() {
     	return realLevel.tickRateManager();
     }
@@ -130,10 +128,6 @@ extends Level {
 
     public PotionBrewing potionBrewing() {
     	return realLevel.potionBrewing();
-    }
-
-    public FuelValues fuelValues() {
-    	return realLevel.fuelValues();
     }
 
     protected LevelEntityGetter<Entity> getEntities() {
@@ -195,14 +189,6 @@ extends Level {
     }
 
     //scheduledTickAcceess
-
-    public <T> ScheduledTick<T> createTick(BlockPos var1, T var2, int var3, TickPriority var4) {
-    	return realLevel.createTick(var1, var2, var3, var4);
-    }
-
-    public <T> ScheduledTick<T> createTick(BlockPos var1, T var2, int var3) {
-    	return realLevel.createTick(var1, var2, var3);
-    }
 
     public LevelTickAccess<Block> getBlockTicks() {
     	return realLevel.getBlockTicks();
