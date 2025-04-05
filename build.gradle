@@ -1,11 +1,11 @@
 plugins {
-    id 'fabric-loom' version '1.7-SNAPSHOT'
+    id 'fabric-loom' version '1.10-SNAPSHOT'
     id 'maven-publish'
 }
 
-version = '5.0.3'
+version = '6.0.3'
 group = 'net.blockomorph'
-archivesBaseName = "blockomorph-1.21.4-fabric"
+archivesBaseName = "blockomorph-1.21.5-fabric"
 testmodid = 'blockomorph'
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
@@ -13,11 +13,11 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 loom {}
 
 dependencies {
-    minecraft "com.mojang:minecraft:1.21.4"
+    minecraft "com.mojang:minecraft:1.21.5"
     mappings loom.officialMojangMappings()
     
-    modImplementation "net.fabricmc:fabric-loader:0.16.9"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:0.112.2+1.21.4"
+    modImplementation "net.fabricmc:fabric-loader:0.16.10"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:0.119.9+1.21.5"
 }
 
 tasks.withType(JavaCompile).configureEach {

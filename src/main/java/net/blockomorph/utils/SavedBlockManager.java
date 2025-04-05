@@ -1,10 +1,11 @@
 package net.blockomorph.utils;
 
-import java.io.File;
 import java.util.HashMap;
-import net.minecraft.nbt.CompoundTag;
+
+import net.blockomorph.BlockomorphServer;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
+
 import java.util.Map;
 import java.nio.file.Path;
 
@@ -19,17 +20,17 @@ public class SavedBlockManager {
 
    public void load() {
    	  if (!init)
-   	  try {
-   	    CompoundTag tag = NbtIo.read(this.gameDir);
-   	    if (tag != null) {
-   	      for (String key : tag.getAllKeys()) {
-   	  	    this.blocks.put(key, SavedBlock.fromTag(tag.getCompound(key), key));
-   	      }
-   	    }
-   	    init = true;
-   	  } catch (Exception e) {
-   		e.printStackTrace();
-   	  }
+		  try {
+			  CompoundTag tag = NbtIo.read(this.gameDir);
+			  if (tag != null) {
+				  for (String name: tag.keySet()) {
+					  this.blocks.put(name, SavedBlock.fromTag(tag.getCompound(name).orElse(new CompoundTag()), name));
+				  }
+			  }
+			  init = true;
+		  } catch (Exception e) {
+			  BlockomorphServer.LOGGER.error("Error while loading saved blocks: ", e);
+		  }
    }
 
    public HashMap<String, SavedBlock> get() {
@@ -64,7 +65,7 @@ public class SavedBlockManager {
    	    }
    	    NbtIo.write(tag, this.gameDir);
    	  } catch (Exception e) {
-   		e.printStackTrace();
+		  BlockomorphServer.LOGGER.error("Error while writing saved blocks: ", e);
    	  }
    }
 }

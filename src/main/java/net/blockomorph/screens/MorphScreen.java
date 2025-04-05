@@ -8,6 +8,8 @@ import net.blockomorph.utils.*;
 import net.blockomorph.network.*;
 import net.blockomorph.utils.config.*;
 
+import net.minecraft.client.Camera;
+import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.chat.Component;
@@ -360,9 +362,9 @@ public class MorphScreen extends Screen {
       	BlockPos pos = AIR;
         RandomSource random = RandomSource.create(blockState.getSeed(pos));
         if (blockState.getRenderShape() != RenderShape.INVISIBLE) {
-           var model = this.dispatcher.getBlockModel(blockState);
+		   List<BlockModelPart> list = this.dispatcher.getBlockModel(blockState).collectParts(random);
            var renderType = ItemBlockRenderTypes.getMovingBlockRenderType(blockState);
-           this.dispatcher.getModelRenderer().tesselateBlock(world, model, blockState, pos, poseStack, bufferSource.getBuffer(renderType), false, RandomSource.create(), blockState.getSeed(pos), OverlayTexture.NO_OVERLAY);
+           this.dispatcher.getModelRenderer().tesselateBlock(world, list, blockState, pos, poseStack, bufferSource.getBuffer(renderType), false, OverlayTexture.NO_OVERLAY);
         } else if (blockState.getBlock().asItem() != null && !(blockState.getBlock() instanceof EntityBlock)) {
               //in development
         }
@@ -456,7 +458,8 @@ public class MorphScreen extends Screen {
                 if (renderer != null) {
            	        posestack.pushPose();
            	        try {
-                        renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY);
+						Camera cam = Minecraft.getInstance().getBlockEntityRenderDispatcher().camera;
+                        renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY, cam.getPosition());
            	        } catch (Exception e) {
            	        	
                     }
@@ -527,8 +530,6 @@ public class MorphScreen extends Screen {
 
 	protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
 		RenderSystem.setShaderColor(1, 1, 1, 1);
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
 		guiGraphics.blit(RenderType::guiTextured, texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
 		if (this.hasSearchBar())
 		    guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/searchbar.png"), this.leftPos + 90, this.topPos - 19, 0, 0, 80, 23, 80, 23);
@@ -551,7 +552,6 @@ public class MorphScreen extends Screen {
         int sharp = (int)Math.round(scrollPercentage * (253));
         sharp = Mth.clamp(sharp, 0, 127);
 		guiGraphics.blitSprite(RenderType::guiTextured, this.canScroll() ? SCROLLER_SPRITE : SCROLLER_DISABLED_SPRITE, this.leftPos + 158, yPos + sharp, 12, 15);
-		RenderSystem.disableBlend();
 	}
 
 	public boolean mouseClicked(double x, double y, int type) {

@@ -11,6 +11,7 @@ import net.fabricmc.api.Environment;
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -49,13 +50,10 @@ import net.minecraft.client.particle.TerrainParticle;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 
 import java.util.List;
 import java.util.Optional;
@@ -142,7 +140,7 @@ public class MorphUtils {
 
        if (originalNBT.contains("BlockMorph")) {
             CompoundTag tag = new CompoundTag();
-            tag.put("BlockMorph", originalNBT.getCompound("BlockMorph"));
+            tag.put("BlockMorph", originalNBT.getCompound("BlockMorph").orElse(new CompoundTag()));
             newPlayer.load(tag);
             newPlayer.refreshDimensions();
         }
@@ -340,7 +338,7 @@ public class MorphUtils {
                 if (interactionresult1.consumesAction()) {
                     if (interactionresult1 instanceof InteractionResult.Success s && s.swingSource() == InteractionResult.SwingSource.CLIENT) {
                         player.swing(interactionhand);
-                        if (!itemstack.isEmpty() && (itemstack.getCount() != i || mc.gameMode.hasInfiniteItems())) {
+                        if (!itemstack.isEmpty() && (itemstack.getCount() != i || mc.gameMode.getPlayerMode() == GameType.CREATIVE)) {
                             mc.gameRenderer.itemInHandRenderer.itemUsed(interactionhand);
                         }
                     }
@@ -380,20 +378,20 @@ public class MorphUtils {
    	    if (player instanceof PlayerAccessor pl && pl.isActive()) {
    	        int width = mc.getWindow().getGuiScaledWidth();
 		    int height = mc.getWindow().getGuiScaledHeight();
-            renderBlockHeart(GUI, (Player)player, pl, width, height);
+            renderBlockHeart(GUI, pl, width, height);
             return true;
         }
         return false;
    }
 
    @Environment(EnvType.CLIENT)
-   private static void renderBlockHeart(GuiGraphics gui, Player player, PlayerAccessor pl, int width, int height) {
+   private static void renderBlockHeart(GuiGraphics gui, PlayerAccessor pl, int width, int height) {
        int maxHearts = 10;
        int progress = pl.getBiggestProgress();
 
        BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
-       BakedModel model = dispatcher.getBlockModel(pl.getBlockState());
-       TextureAtlasSprite sprite = model.getParticleIcon();
+       BlockStateModel model = dispatcher.getBlockModel(pl.getBlockState());
+       TextureAtlasSprite sprite = model.particleIcon();
 
 
        int x = width / 2 - 91;
@@ -421,7 +419,7 @@ public class MorphUtils {
         }    
    }
 
-   public static void pickBlockPlayer(Player pl, ItemStack itemstack) {
+   /*public static void pickBlockPlayer(Player pl, ItemStack itemstack) {
    	        if (true) return;
    	        MultiPlayerGameMode gm = Minecraft.getInstance().gameMode;
    	        Inventory inventory = pl.getInventory();
@@ -438,7 +436,7 @@ public class MorphUtils {
                   //gm.handlePickItem(i);
                }
             }
-   }
+   }*/
 
    public static void destroy(PlayerAccessor mob_pl, @org.jetbrains.annotations.Nullable Entity attacker) {
     	Entity mob = (Player)mob_pl;
