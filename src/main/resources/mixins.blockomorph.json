@@ -4,20 +4,20 @@
   "compatibilityLevel": "JAVA_17",
   "mixins": [
     "BlockInputMixin",
-    "PlayerMixin",
     "EntityGetterMixin",
     "EntityMixin",
+    "PlayerMixin",
     "ServerMoveMixin",
-    "ServerPlayerMixin",
-    "DimensionMixin"
+    "ServerPlayerMixin"
   ],
   "client": [
-  	"PlayerRendererMixin",
-  	"EntityRendererMixin",
-    "LevelRenderMixin",
     "ClientPacketListenerMixin",
+    "EntityRendererMixin",
+    "GameModeManagerMixin",
     "GameRendererMixin",
-    "GameModeManagerMixin"
+    "HudMixin",
+    "MinecraftMixin",
+    "PlayerRendererMixin"
   ],
   "minVersion": "0.8"
 }

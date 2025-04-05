@@ -1,28 +1,28 @@
 package net.blockomorph.utils.config;
 
-import java.util.ArrayList;
-import java.io.FileWriter;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import com.google.gson.*;
+import net.blockomorph.core.MainBus;
+import net.blockomorph.network.ClientBoundConfigUpdatePacket;
+import net.blockomorph.utils.MorphUtils;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+
+import javax.print.DocFlavor;
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.List;
-import java.nio.file.Path;
 import java.nio.file.Files;
-
-import net.blockomorph.utils.MorphUtils;
-import net.minecraft.network.FriendlyByteBuf;
-import net.blockomorph.network.ClientBoundConfigUpdatePacket;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonElement;
-import net.neoforged.fml.loading.FMLPaths;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.minecraft.network.chat.Component;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Config {
-   private static final String configDir = FMLPaths.GAMEDIR.get()+ "\\config\\blockomorph.json";
+   private static final String configDir = FabricLoader.getInstance().getGameDir() + "\\config\\blockomorph.json";
    public final List<ConfigInstance<?>> options = List.of(
    	   new EnumConfig("listMode", Mode.NONE), 
    	   new BooleanConfig("solidBlocksOnly", false),
@@ -33,8 +33,13 @@ public class Config {
    	   new BooleanConfig("canOperatorModifyConfig", true)
    );
    static Config INSTANCE;
+   static MinecraftServer server;
 
    private Config() {
+   }
+
+   public static MinecraftServer getServer() {
+	   return server;
    }
 
    public <T> T getValue(String option) {
@@ -52,7 +57,7 @@ public class Config {
 
    public void makeDirty() {
    	  write();
-   	  MorphUtils.sendAll(new ClientBoundConfigUpdatePacket(this));
+	  MorphUtils.sendAll(new ClientBoundConfigUpdatePacket(this));
    }
 
    public void parse(String op, String val, boolean isPacket) {
@@ -73,16 +78,20 @@ public class Config {
    	  }
    }
 
-	public static Config readFromBufer(FriendlyByteBuf buf) {
+   public static Config readFromBufer(FriendlyByteBuf buf) {
 		Config cfg = new Config();
 		for (ConfigInstance<?> con : cfg.options) {
 			con.readBufer(buf);
 		}
 		return cfg;
-	}
+   }
 
    public static Config getInstance() {
    	  return INSTANCE;
+   }
+
+   public static void setServer(MinecraftServer s) {
+   	  server = s;
    }
 
    public static void load(Config cfg) {

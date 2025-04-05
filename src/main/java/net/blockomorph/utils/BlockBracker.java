@@ -1,27 +1,24 @@
 package net.blockomorph.utils;
 
-import net.blockomorph.utils.*;
-import java.util.List;
-import net.minecraft.world.entity.player.Player;
-import java.util.ArrayList;
-import java.util.Iterator;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.TntBlock;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.world.level.block.SoundType;
+
 import java.util.AbstractMap;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.entity.Entity;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class BlockBracker {
@@ -65,7 +62,7 @@ public class BlockBracker {
                 while (this.progress >= 1.0f) {
                 	this.setProgress(this.getProgress() + 1);
                     if (this.getProgress() > 9) {
-                        this.destroy(this.getAttacker());
+						this.destroy(this.getAttacker());
                     }
                     this.progress -= 1;
                 }
@@ -119,6 +116,14 @@ public class BlockBracker {
        }
     }
 
+    private String getKey() {
+    	return this.offset.getX() +
+    		" " +
+    		this.offset.getY() +
+    		" " +
+    		this.offset.getZ();
+    }
+
 	private void destroy(Player attacker) {
 		BlockState st = player.getBlockState();
 		if (st.getBlock() instanceof TntBlock && player.getTnt() == null && st.getValue(BlockStateProperties.UNSTABLE)) {
@@ -136,14 +141,6 @@ public class BlockBracker {
 		}
 		MorphUtils.destroy(player, attacker);
 	}
-
-    private String getKey() {
-    	return this.offset.getX() +
-    		" " +
-    		this.offset.getY() +
-    		" " +
-    		this.offset.getZ();
-    }
 
     private void setProgress(int i) {
     	CompoundTag tag = this.entityData.get(PROGRESSES);
@@ -180,7 +177,7 @@ public class BlockBracker {
         float progress = blockState.getDestroyProgress(pl, pl.level(), blockPos);
         if (Float.isInfinite(progress) || progress == 0) {
         	if (Float.isInfinite(progress)) {
-        		this.destroy(pl);
+				this.destroy(pl);
         		pl.swing(InteractionHand.MAIN_HAND, true);
         	}
         	return -1;

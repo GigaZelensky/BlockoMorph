@@ -1,61 +1,53 @@
 package net.blockomorph.mixins;
 
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.world.entity.item.PrimedTnt;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-
-import net.blockomorph.utils.PlayerAccessor;
-import net.blockomorph.utils.LevelRendererAccessor;
-import net.blockomorph.utils.MorphUtils;
-import net.blockomorph.screens.BlockMorphConfigScreen;
-
-import net.neoforged.neoforge.client.model.data.ModelData;
-
-import net.minecraft.client.renderer.entity.player.PlayerRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.Level;
-import net.minecraft.core.BlockPos;
-import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
-import net.minecraft.client.Minecraft;
-import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.block.EntityBlock;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.client.renderer.entity.LivingEntityRenderer;
-import net.minecraft.client.model.PlayerModel;
-import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.resources.model.ModelBakery;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraft.world.phys.shapes.CollisionContext;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.level.GameType;
-
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.AABB;
-import java.util.Map;
+import net.blockomorph.screens.BlockMorphConfigScreen;
+import net.blockomorph.utils.MorphUtils;
+import net.blockomorph.utils.PlayerAccessor;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.model.PlayerModel;
+import net.minecraft.client.model.geom.ModelLayers;
+import net.minecraft.client.player.AbstractClientPlayer;
+import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.block.BlockRenderDispatcher;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
+import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
+import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.player.PlayerRenderer;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.model.ModelBakery;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import javax.annotation.Nullable;
+import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.item.PrimedTnt;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
+import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+
+import java.util.Map;
+
 
 @Mixin(PlayerRenderer.class)
 public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
    private final BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
    private final BlockEntityRenderDispatcher blockEntityRenderDispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
+   private final ItemInHandRenderer itemRenderer = Minecraft.getInstance().getEntityRenderDispatcher().getItemInHandRenderer();
    private final EntityRenderDispatcher entityDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
    private final BlockPos AIR = new BlockPos(0, 512, 0); 
 
@@ -94,7 +86,7 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
 
    private void renderTnt(AbstractClientPlayer player, float anim, float partialticks, PoseStack posestack, MultiBufferSource buffer, int light, PlayerAccessor pl) {
         PrimedTnt tnt = pl.getTnt();
-        EntityRenderer rend = entityDispatcher.getRenderer(pl.getTnt());
+        EntityRenderer<? super PrimedTnt> rend = entityDispatcher.getRenderer(pl.getTnt());
         try {
             rend.render(tnt, anim, partialticks, posestack, buffer, light);
         } catch (Exception e) {
@@ -157,7 +149,7 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
             if (blockEntity != null) {
               try {
       	        blockEntity.setLevel(player.level());
-      	        blockEntity.loadWithComponents(pl.getTag(), player.level().registryAccess());
+      	        blockEntity.load(pl.getTag());
                 BlockEntityRenderer renderer = blockEntityRenderDispatcher.getRenderer(blockEntity);
                 if (renderer != null) {
            	        posestack.pushPose();
@@ -202,7 +194,7 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
         posestack.pushPose();
         PoseStack.Pose posestack$pose1 = posestack.last();
         if (k > -1 && k < 10) {
-            VertexConsumer vertexconsumer1 = new SheetedDecalTextureGenerator(buffer.getBuffer(ModelBakery.DESTROY_TYPES.get(k)), posestack$pose1, 1.0F);
+            VertexConsumer vertexconsumer1 = new SheetedDecalTextureGenerator(buffer.getBuffer(ModelBakery.DESTROY_TYPES.get(k)), posestack$pose1.pose(), posestack$pose1.normal(), 1.0F);
             this.dispatcher.renderBreakingTexture(blockstate, AIR, player.level(), posestack, vertexconsumer1);
         }
  
@@ -240,9 +232,21 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
    	    	posestack.popPose();
    	    	return;
    	    }
-        ((LevelRendererAccessor)mc.levelRenderer).renderBlockHitbox(posestack, buffer.getBuffer(RenderType.lines()), shape, 0, 0, 0, 0f, 0f, 0f, 0.4f);
+        this.renderVoxelShape(posestack, buffer.getBuffer(RenderType.lines()), shape);
         posestack.popPose();
    	}
+   }
+
+   private void renderVoxelShape(PoseStack poseStack, VertexConsumer vertexConsumer, VoxelShape voxelShape) {
+   	    PoseStack.Pose pose = poseStack.last();
+        voxelShape.forAllEdges((k, l, m, n, o, p) -> {
+            float q = (float)(n - k);
+            float r = (float)(o - l);
+            float s = (float)(p - m);
+            float t = Mth.sqrt(q * q + r * r + s * s);
+            vertexConsumer.vertex(pose.pose(), (float)(k), (float)(l), (float)(m)).color(0f, 0f, 0f, 0.4f).normal(pose.normal(), q /= t, r /= t, s /= t).endVertex();
+            vertexConsumer.vertex(pose.pose(), (float)(n), (float)(o), (float)(p)).color(0f, 0f, 0f, 0.4f).normal(pose.normal(), q, r, s).endVertex();
+        });
    }
 
 }

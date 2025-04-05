@@ -1,20 +1,19 @@
 package net.blockomorph.utils;
 
-import java.io.File;
-import java.util.HashMap;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
+
+import java.io.File;
+import java.util.HashMap;
 import java.util.Map;
-import java.nio.file.Path;
 
 public class SavedBlockManager {
-   private final Path gameDir;
+   private final File gameDir;
    private boolean init;
    private final HashMap<String, SavedBlock> blocks = new HashMap<>();
    
-   public SavedBlockManager(Path gameDir) {
-   	  this.gameDir = gameDir.resolve("saved_blocks.bmdat");
+   public SavedBlockManager(File gameDir) {
+   	  this.gameDir = new File(gameDir, "saved_blocks.bmdat");
    }
 
    public void load() {

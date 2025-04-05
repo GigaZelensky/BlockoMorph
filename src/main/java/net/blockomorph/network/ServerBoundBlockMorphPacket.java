@@ -18,7 +18,7 @@ public class ServerBoundBlockMorphPacket implements BlockMorphPacket {
     }
 
     public ServerBoundBlockMorphPacket(FriendlyByteBuf buf) {
-        this.tag = buf.readNbt();
+        this.tag = buf.readAnySizeNbt();
     }
 
     @Override

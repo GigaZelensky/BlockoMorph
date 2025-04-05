@@ -1,62 +1,35 @@
 package net.blockomorph.network;
 
-import net.blockomorph.Blockomorph;
+import io.netty.buffer.Unpooled;
+import net.blockomorph.BlockomorphServer;
 import net.blockomorph.utils.MorphUtils;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.PacketFlow;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
+import net.minecraft.world.entity.player.Player;
 
-public class MainPacket implements CustomPacketPayload {
-    public static final Type<MainPacket> ID = new Type<>(ResourceLocation.fromNamespaceAndPath(Blockomorph.MODID, "main_packet"));
-    ResourceLocation id;
-    BlockMorphPacket packet;
-
-    public static final StreamCodec<RegistryFriendlyByteBuf, MainPacket> STREAM_CODEC = StreamCodec.of((RegistryFriendlyByteBuf buffer, MainPacket message) -> {
-        buffer.writeResourceLocation(message.id);
-        message.packet.write(buffer);
-    }, MainPacket::new);
-
+public class MainPacket extends FriendlyByteBuf {
+    public static final ResourceLocation ID = new ResourceLocation(BlockomorphServer.MOD_ID, "main_packet");
     public MainPacket(BlockMorphPacket packet) {
-        this.id = ResourceLocation.fromNamespaceAndPath(Blockomorph.MODID, packet.getId());
-        this.packet = packet;
+        super(Unpooled.buffer());
+        writeResourceLocation(new ResourceLocation(BlockomorphServer.MOD_ID, packet.getId()));
+        packet.write(this);
     }
 
-    public MainPacket(FriendlyByteBuf buf) {
-        this.id = buf.readResourceLocation();
-        MorphUtils.PacketInfo suppl = MorphUtils.getHandler(this.id);
-        if (suppl.packet() != null) {
-            this.packet = suppl.packet().apply(buf);
+    public static Runnable preApply(FriendlyByteBuf buf, Player player, boolean isClient) {
+        ResourceLocation res = buf.readResourceLocation();
+        MorphUtils.PacketInfo suppl = MorphUtils.getHandler(res);
+        if (suppl == null || suppl.packet() == null) throw new IllegalArgumentException("Unknown packet type received!");
+        BlockMorphPacket packet = suppl.packet().apply(buf);
+        return () -> {
+            postApply(packet, player, isClient, suppl.isClient());
+        };
+    }
+
+    private static void postApply(BlockMorphPacket packet, Player player, boolean isClient, boolean client) {
+        if (packet == null) throw new IllegalArgumentException("Unknown packet type received!");
+        if ((isClient && !client) || (!isClient && client)) {
+            throw new IllegalArgumentException("Wrong side for packet!");
         }
-    }
-
-    public static void apply(MainPacket message, IPayloadContext context) {
-        context.enqueueWork(() -> {
-            MorphUtils.PacketInfo suppl = MorphUtils.getHandler(message.id);
-            if (message.packet == null || suppl == null) throw new IllegalArgumentException("Unknown packet type received!");
-            boolean cl = suppl.isClient();
-            PacketFlow dir = context.flow();
-            if ((dir == PacketFlow.CLIENTBOUND && !cl) || (dir == PacketFlow.SERVERBOUND && cl)) {
-                throw new IllegalArgumentException("Wrong side for packet!");
-            }
-            message.packet.handle(context.player());
-        }).exceptionally(e -> {
-            context.connection().disconnect(Component.literal("Broken BlockMorphPacket with ID " + message.id + ": "+ e.getMessage()));
-            return null;
-        });
-    }
-
-    @Override
-    public String toString() {
-        return "BlockMorphMainPacket: " + this.id;
-    }
-
-    @Override
-    public Type<? extends CustomPacketPayload> type() {
-        return ID;
+        packet.handle(player);
     }
 }

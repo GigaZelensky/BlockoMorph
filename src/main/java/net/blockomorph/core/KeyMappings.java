@@ -1,24 +1,21 @@
 package net.blockomorph.core;
 
+import net.blockomorph.network.ClientBoundConfigUpdatePacket;
+import net.blockomorph.network.MainPacket;
+import net.blockomorph.screens.BlockMorphConfigScreen;
+import net.blockomorph.screens.ConfigScreen;
+import net.blockomorph.screens.MorphScreen;
+import net.blockomorph.utils.MorphUtils;
+import net.blockomorph.utils.config.Config;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
 
-import net.blockomorph.screens.*;
-import net.blockomorph.utils.config.*;
-
-import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.common.EventBusSubscriber;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.KeyMapping;
-import net.minecraft.network.chat.Component;
-
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
-@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD, value = {Dist.CLIENT})
+
 public class KeyMappings {
     private static final Minecraft mc = Minecraft.getInstance();
 	private static final ArrayList<KeyMapping> KEYS = new ArrayList<>();
@@ -37,10 +34,9 @@ public class KeyMappings {
 		}
 	});
 
-	@SubscribeEvent
-	public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
+	static void registerKeyMappings(Consumer<KeyMapping> register) {
 		for (KeyMapping key : KEYS) {
-			event.register(key);
+			register.accept(key);
 		}
 	}
 

@@ -1,28 +1,28 @@
 package net.blockomorph.screens;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import net.blockomorph.core.MainBus;
+import net.blockomorph.network.ServerBoundConfigUpdatePacket;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.*;
-import net.blockomorph.network.ServerBoundConfigUpdatePacket;
-
-
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
-import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
-import java.util.List;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+
 import java.util.Arrays;
-import net.neoforged.neoforge.network.PacketDistributor;
+import java.util.List;
 
 public class ConfigScreen extends Screen {
-   private static final ResourceLocation texture = ResourceLocation.tryParse("blockomorph:textures/screens/config_screen.png");
-   private static final ResourceLocation CONF = ResourceLocation.tryParse("blockomorph:textures/screens/configs.png");
-   private static final ResourceLocation BUTS = ResourceLocation.tryParse("blockomorph:textures/screens/list_but.png");
+   private static final ResourceLocation texture = new ResourceLocation("blockomorph:textures/screens/config_screen.png");
+   private static final ResourceLocation CONF = new ResourceLocation("blockomorph:textures/screens/configs.png");
+   private static final ResourceLocation BUTS = new ResourceLocation("blockomorph:textures/screens/list_but.png");
    private final Level world;
    private final Player entity;
    protected int imageWidth = 176;
@@ -40,8 +40,9 @@ public class ConfigScreen extends Screen {
 
    @Override
    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-   	    super.render(guiGraphics, mouseX, mouseY, partialTicks);
+		this.renderBackground(guiGraphics);
 		this.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
+		super.render(guiGraphics, mouseX, mouseY, partialTicks);
 		ConfigInstance<?> op = this.getProp(mouseX, mouseY);
 		if (op != null) {
 			String name = Component.translatable("gui.blockomorph." + op.getName()).getString();
@@ -68,7 +69,7 @@ public class ConfigScreen extends Screen {
 		this.renderConfigs(guiGraphics, gx, gy);
 		guiGraphics.drawString(this.font, Component.translatable("menu.options"), this.leftPos + 8, this.topPos + 6, 4210752, false);
 		//scroller always locked in this mod version
-		guiGraphics.blitSprite(ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller_disabled"), this.leftPos + 158, this.topPos + 16, 12, 15);
+		guiGraphics.blit(new ResourceLocation("textures/gui/container/creative_inventory/tabs.png"), this.leftPos + 158, this.topPos + 16, 232 + (false ? 0 : 12), 0, 12, 15);
 		RenderSystem.disableBlend();
    }
 

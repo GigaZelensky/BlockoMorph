@@ -1,15 +1,16 @@
 package net.blockomorph.utils;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.item.PrimedTnt;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.VoxelShape;
+
 import java.util.HashMap;
-import net.minecraft.core.BlockPos;
 
 public interface PlayerAccessor {
     void applyBlockMorph(BlockState state, CompoundTag tag, boolean mb);
@@ -18,7 +19,6 @@ public interface PlayerAccessor {
     BlockState getBlockState();
     CompoundTag getTag();
     boolean isActive();
-    boolean isFullActive();
     CompoundTag getProgress();
     void addPlayer(BlockPos pos, Player player);
     void removePlayer(BlockPos pos, Player pl);
@@ -30,6 +30,7 @@ public interface PlayerAccessor {
     int getBiggestProgress();
     boolean isMultiBlock();
     BlockPos minPos();
+    boolean isFullActive();
     PrimedTnt getTnt();
     void setTnt();
 }
