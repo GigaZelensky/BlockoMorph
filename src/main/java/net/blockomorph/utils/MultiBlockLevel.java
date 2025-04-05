@@ -13,7 +13,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.Entity;
@@ -54,7 +53,7 @@ import net.minecraft.world.item.crafting.RecipeManager;
 
 public class MultiBlockLevel 
 extends Level {
-    private final HashMap<BlockPos, BlockState> blocks = new HashMap<>();
+    private final HashMap<BlockPos, BlockState> blocks = new HashMap();
     protected final Level realLevel;
     
     public MultiBlockLevel(Level lv, boolean client) {
@@ -79,7 +78,7 @@ extends Level {
 
     //suppliers
 
-    public @NotNull List<Entity> getEntities(@Nullable Entity e, AABB ab, Predicate<? super Entity> p) {
+    public List<Entity> getEntities(@Nullable Entity e, AABB ab, Predicate<? super Entity> p) {
         return realLevel.getEntities(e, ab, p);
     }
 
@@ -87,13 +86,22 @@ extends Level {
         realLevel.getEntities(test, ab, p, l, i);
     }
 
-    public Level getRealLevel() {
-        return this.realLevel;
-    }
-
     public RecipeManager getRecipeManager() {
     	return realLevel.getRecipeManager();
     }
+
+    @Override
+    public void setDayTimePerTick(float t) {}
+
+    public float getDayTimePerTick() {
+    	return realLevel.getDayTimePerTick();
+    }
+
+    public float getDayTimeFraction() {
+    	return realLevel.getDayTimeFraction();
+    }
+
+    public void setDayTimeFraction(float t) {}
 
     public void sendBlockUpdated(BlockPos var1, BlockState var2, BlockState var3, int var4) {}
 
@@ -198,4 +206,7 @@ extends Level {
     	return realLevel.getFluidTicks();
     }
 
+    public Level getRealLevel() {
+        return this.realLevel;
+    }
 }

@@ -20,8 +20,7 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 import java.util.function.Predicate;
-
-import org.jetbrains.annotations.Nullable;
+import javax.annotation.Nullable;
 
 @Mixin(Level.class)
 public abstract class EntityGetterMixin implements LevelAccessor, CollisionGetter {

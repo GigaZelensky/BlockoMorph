@@ -9,8 +9,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 
 import net.blockomorph.utils.PlayerAccessor;
+import net.blockomorph.utils.LevelRendererAccessor;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.screens.BlockMorphConfigScreen;
+
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -37,38 +40,29 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.level.GameType;
-import net.minecraft.client.renderer.ItemInHandRenderer;
-import net.minecraft.core.Direction;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
 
 import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.math.Axis;
-import net.minecraft.util.Mth;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.nbt.CompoundTag;
-import java.util.Map;
-import org.jetbrains.annotations.Nullable;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-
+import net.minecraft.world.phys.AABB;
+import java.util.Map;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.client.renderer.LightTexture;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import javax.annotation.Nullable;
 
 @Mixin(PlayerRenderer.class)
 public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
    private final BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
    private final BlockEntityRenderDispatcher blockEntityRenderDispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
-   private final ItemInHandRenderer itemRenderer = Minecraft.getInstance().getEntityRenderDispatcher().getItemInHandRenderer();
    private final EntityRenderDispatcher entityDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
    private final BlockPos AIR = new BlockPos(0, 512, 0); 
 
    private final Minecraft mc = Minecraft.getInstance();
 
    public PlayerRendererMixin(EntityRendererProvider.Context p_174557_, boolean p_174558_) {
-      super(p_174557_, null, 0.5F);
+      super(p_174557_, new PlayerModel<>(p_174557_.bakeLayer(p_174558_ ? ModelLayers.PLAYER_SLIM : ModelLayers.PLAYER), p_174558_), 0.5F);
    }
    
    @Inject(
@@ -79,7 +73,7 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
    public void render(AbstractClientPlayer player, float anim, float partialticks, PoseStack posestack, MultiBufferSource buffer, int light, CallbackInfo info) {
       if (player instanceof PlayerAccessor pl) {
       	if (pl.isFullActive()) {
-           info.cancel();
+      	   info.cancel();
       	   posestack.pushPose();
       	   this.adjustMatrixForPlayer(posestack, pl, player);
       	   this.renderBlock(player, posestack, buffer, pl);
@@ -108,7 +102,7 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
                 sc.tagException = e.getMessage();
         }
    }
-   
+
    private void adjustMatrixForPlayer(PoseStack poseStack, PlayerAccessor pl, AbstractClientPlayer player) {
         BlockPos minpos = pl.minPos();
         AABB hitbox = player.getBoundingBox();
@@ -246,21 +240,9 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
    	    	posestack.popPose();
    	    	return;
    	    }
-        this.renderVoxelShape(posestack, buffer.getBuffer(RenderType.lines()), shape);
+        ((LevelRendererAccessor)mc.levelRenderer).renderBlockHitbox(posestack, buffer.getBuffer(RenderType.lines()), shape, 0, 0, 0, 0f, 0f, 0f, 0.4f);
         posestack.popPose();
    	}
-   }
-
-   private void renderVoxelShape(PoseStack poseStack, VertexConsumer vertexConsumer, VoxelShape voxelShape) {
-   	    PoseStack.Pose pose = poseStack.last();
-        voxelShape.forAllEdges((k, l, m, n, o, p) -> {
-            float q = (float)(n - k);
-            float r = (float)(o - l);
-            float s = (float)(p - m);
-            float t = Mth.sqrt(q * q + r * r + s * s);
-            vertexConsumer.addVertex(pose, (float)(k), (float)(l), (float)(m)).setColor(0f, 0f, 0f, 0.4f).setNormal(pose, q /= t, r /= t, s /= t);
-            vertexConsumer.addVertex(pose, (float)(n), (float)(o), (float)(p)).setColor(0f, 0f, 0f, 0.4f).setNormal(pose, q, r, s);
-        });
    }
 
 }

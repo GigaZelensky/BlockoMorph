@@ -17,8 +17,7 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
 import java.util.List;
 import java.util.Arrays;
-
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 public class ConfigScreen extends Screen {
    private static final ResourceLocation texture = ResourceLocation.tryParse("blockomorph:textures/screens/config_screen.png");

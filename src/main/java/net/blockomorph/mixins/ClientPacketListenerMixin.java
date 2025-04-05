@@ -23,7 +23,7 @@ public abstract class ClientPacketListenerMixin {
    	  if (entity == player && ((PlayerAccessor)player).isActive()) {
    	  	  ci.cancel();
           player.respawn();
-   	  }
+      }
    }
 
    

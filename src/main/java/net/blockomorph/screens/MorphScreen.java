@@ -1,12 +1,9 @@
 package net.blockomorph.screens;
 
-import net.blockomorph.BlockomorphServer;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-
+import net.blockomorph.Blockomorph;
 import net.blockomorph.utils.*;
-import net.blockomorph.network.*;
 import net.blockomorph.utils.config.*;
+import net.blockomorph.network.*;
 
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
@@ -32,9 +29,9 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.client.gui.components.Button;
-
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.Mth;
 
 import org.joml.Matrix4f;
@@ -48,39 +45,41 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import org.jetbrains.annotations.Nullable;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceKey;
+import net.neoforged.neoforge.common.CreativeModeTabRegistry;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
+import javax.annotation.Nullable;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.neoforged.neoforge.client.CreativeModeTabSearchRegistry;
 import net.minecraft.client.multiplayer.SessionSearchTrees;
 
-@Environment(EnvType.CLIENT)
+@OnlyIn(Dist.CLIENT)
 public class MorphScreen extends Screen {
+    private static final ResourceLocation SCROLLER_SPRITE = ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller");
+    private static final ResourceLocation SCROLLER_DISABLED_SPRITE = ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller_disabled");
 	private final HashMap<String, List<Block>> content;
 	private final BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
 	private final BlockEntityRenderDispatcher blockEntityRenderDispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
-	private static final ResourceLocation SCROLLER_SPRITE = ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller");
-    private static final ResourceLocation SCROLLER_DISABLED_SPRITE = ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller_disabled");
-    private static final CreativeModeTab allowed = CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0).title(Component.translatable("gui.blockomorph.allowedBlocks")).icon(() -> {return new ItemStack(Items.NETHER_STAR);}).build();
+	private static CreativeModeTab selectedTab = CreativeModeTabs.getDefaultTab();
+	private static final CreativeModeTab search = CreativeModeTabRegistry.getTab(ResourceLocation.withDefaultNamespace("search"));
+	private static final CreativeModeTab op_tab = CreativeModeTabRegistry.getTab(ResourceLocation.withDefaultNamespace("op_blocks"));
+	private static final CreativeModeTab loved_blocks = CreativeModeTabRegistry.getTab(ResourceLocation.withDefaultNamespace("hotbar"));
+	private static final CreativeModeTab allowed = CreativeModeTab.builder().title(Component.translatable("gui.blockomorph.allowedBlocks")).withSearchBar().icon(() -> {return new ItemStack(Items.NETHER_STAR);}).build();
     private static final WidgetSprites DEMORPH_BUT = new WidgetSprites(
    	 ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/demorph_def.png"),
    	 ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/demorph_dis.png"),
    	 ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/demorph_hov.png")
     );
 	private static final WidgetSprites FLAME_BUT = new WidgetSprites(
-			ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, "textures/screens/flame_def.png"),
-			ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, "textures/screens/flame_dis.png"),
-			ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, "textures/screens/flame_hov.png")
+			ResourceLocation.fromNamespaceAndPath(Blockomorph.MODID, "textures/screens/flame_def.png"),
+			ResourceLocation.fromNamespaceAndPath(Blockomorph.MODID, "textures/screens/flame_dis.png"),
+			ResourceLocation.fromNamespaceAndPath(Blockomorph.MODID, "textures/screens/flame_hov.png")
 	);
-	private static CreativeModeTab selectedTab = CreativeModeTabs.getDefaultTab();
-	private static final CreativeModeTab search = getTab(CreativeModeTabs.SEARCH);
-	private static final CreativeModeTab op_tab = getTab(CreativeModeTabs.OP_BLOCKS);
-	private static final CreativeModeTab loved_blocks = getTab(CreativeModeTabs.HOTBAR);
-	public static final List<CreativeModeTab> tabs = getUnStandartTabs();
+	public static final List<CreativeModeTab> tabs = CreativeModeTabRegistry.getSortedCreativeModeTabs();
 	private List<Block> reg;
 	private static List<Block> list = new ArrayList<>();
 	private final static BlockPos AIR = new BlockPos(0, 512, 0); 
@@ -88,7 +87,7 @@ public class MorphScreen extends Screen {
 	private final List<SavedBlock> savedBlocks = new ArrayList<>();
 	private final Level world;
 	private final Player entity;
-	protected boolean init;
+	public boolean init;
 	protected int imageWidth = 176;
     protected int imageHeight = 166;
     protected int leftPos;
@@ -113,7 +112,7 @@ public class MorphScreen extends Screen {
 		Minecraft mc = Minecraft.getInstance();
 		this.world = mc.level;
 		this.entity = mc.player;
-		this.reg = getRegistredBlocks();
+		this.reg = this.getRegistredBlocks();
 		this.loadCreativeBlocks(mc);
         this.content = this.sortBlocksByTabs(this.reg, CreativeModeTabs.tabs());
         pageCount = (int) Math.ceil((double) tabs.size() / 10);
@@ -139,29 +138,17 @@ public class MorphScreen extends Screen {
 		)) {
 			SessionSearchTrees sessionSearchTrees = pl.connection.searchTrees();
 			if (sessionSearchTrees != null) {
-				List<ItemStack> list = List.copyOf(CreativeModeTabs.searchTab().getDisplayItems());
-                sessionSearchTrees.updateCreativeTooltips(pl.level().registryAccess(), list);
-                sessionSearchTrees.updateCreativeTags(list);
+			    CreativeModeTabs.allTabs().stream().filter(CreativeModeTab::hasSearchBar).forEach(tab -> {
+                    List<ItemStack> list = List.copyOf(tab.getDisplayItems());
+                    sessionSearchTrees.updateCreativeTooltips(pl.level().registryAccess(), list, CreativeModeTabSearchRegistry.getNameSearchKey(tab));
+                    sessionSearchTrees.updateCreativeTags(list, CreativeModeTabSearchRegistry.getTagSearchKey(tab));
+                });
 			}
 		}
 	}
 
 	public boolean isConfig() {
 		return this.mode != Config.Mode.NONE;
-	}
-
-	private static List<CreativeModeTab> getUnStandartTabs() {
-		List<CreativeModeTab> t = new ArrayList<>();
-		List<CreativeModeTab> f = new ArrayList<>();
-		t.add(loved_blocks);
-        t.add(search);
-        t.add(op_tab);
-        t.add(getTab(CreativeModeTabs.INVENTORY));
-        for (CreativeModeTab tab : BuiltInRegistries.CREATIVE_MODE_TAB) {
-            if (!t.contains(tab))
-                f.add(tab);
-        }
-        return f;
 	}
 
 	public HashMap<String, List<Block>> sortBlocksByTabs(List<Block> blocks, List<CreativeModeTab> tabs) {
@@ -177,13 +164,14 @@ public class MorphScreen extends Screen {
             	boolean flag = false;
                 for (CreativeModeTab tab : tabs) {
                     if (tab != search && tab.contains(itemStack)) {
-                        sortedBlocks.computeIfAbsent(getName(tab).toString(), k -> new ArrayList<>()).add(block);
+                        sortedBlocks.computeIfAbsent(CreativeModeTabRegistry.getName(tab).toString(), k -> new ArrayList<>()).add(block);
                         flag = true;
                     }
                 }
                 if (!flag) sortedBlocks.get("unsortable").add(block);
             }
         }
+
         sortedBlocks.put("allowed", (this.reg.stream()
             .filter(block -> MorphUtils.isBannedBlock(block.defaultBlockState(), entity) == null)
             .collect(Collectors.toList())));
@@ -200,14 +188,14 @@ public class MorphScreen extends Screen {
 
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
-	    super.render(guiGraphics, mouseX, mouseY, partialTicks);
+		super.render(guiGraphics, mouseX, mouseY, partialTicks);
 		this.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
 		if (pageCount > 1) {
 		    Component page = Component.literal(String.format("%d / %d", MorphScreen.page + 1, pageCount));
 		    guiGraphics.drawString(this.font, page.getVisualOrderText(), this.leftPos + (this.imageWidth / 2) - (this.font.width(page) / 2), this.topPos - 34, -1);
 		}
 		if (selectedTab.showTitle())
-		    guiGraphics.drawString(this.font, selectedTab.getDisplayName(), this.leftPos + 8, this.topPos + 6, 0x404040, false);
+		    guiGraphics.drawString(this.font, selectedTab.getDisplayName(), this.leftPos + 8, this.topPos + 6, selectedTab.getLabelColor(), false);
 		this.renderBlockAsIcon(guiGraphics, partialTicks);
 		int i = this.findBlockIndex(mouseX, mouseY);
 		if (i != -1) {
@@ -248,25 +236,10 @@ public class MorphScreen extends Screen {
 			if (content.containsKey("minecraft:op_blocks")) this.list.addAll(content.get("minecraft:op_blocks"));
 			this.list.addAll(content.get("unsortable"));
 		} else {
-			String name = this.getName(selectedTab).toString();
+			String name = CreativeModeTabRegistry.getName(selectedTab).toString();
 			if (content.containsKey(name)) this.list.addAll(content.get(name));
 		}
 	}
-
-	@Nullable
-    public static CreativeModeTab getTab(ResourceLocation name) {
-        return BuiltInRegistries.CREATIVE_MODE_TAB.get(name);
-    }
-
-    @Nullable
-    public static CreativeModeTab getTab(ResourceKey name) {
-        return BuiltInRegistries.CREATIVE_MODE_TAB.get(name);
-    }
-
-    @Nullable
-    public static ResourceLocation getName(CreativeModeTab tab) {
-        return BuiltInRegistries.CREATIVE_MODE_TAB.getKey(tab);
-    }
 
 	public void searchBlock(String searchName) {
 		if (searchName.equals("")) {
@@ -285,7 +258,7 @@ public class MorphScreen extends Screen {
 		}
 		String name = "";
 		if (selectedTab != allowed)
-		   name = this.getName(selectedTab).toString();
+		   name = CreativeModeTabRegistry.getName(selectedTab).toString();
 		if (content.containsKey(name) || selectedTab == search || selectedTab == allowed) {
 		   List<Block> searcheable;
 		   if (selectedTab == search) {
@@ -469,10 +442,6 @@ public class MorphScreen extends Screen {
     	this.scrollOff = 0;
     }
 
-    public boolean hasSearchBar() {
-    	return selectedTab == search || selectedTab == loved_blocks;
-    }
-
     protected void renderTabButton(GuiGraphics gui, CreativeModeTab tab, int i, boolean isLeft) {
         boolean flag = tab == selectedTab;
         String tabType;
@@ -518,6 +487,9 @@ public class MorphScreen extends Screen {
     	return pos += i * 32;
     }
 
+    public boolean hasSearchBar() {
+    	return selectedTab.hasSearchBar() || selectedTab == loved_blocks;
+    }
 
 	protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
 		RenderSystem.setShaderColor(1, 1, 1, 1);
@@ -602,6 +574,10 @@ public class MorphScreen extends Screen {
 		return super.mouseClicked(x, y, type);
 	}
 
+	private void send(ServerBoundConfigUpdatePacket p) {
+   	    MorphUtils.sendServer(p);
+    }
+
 	private boolean canScroll() {
 		if (this.list.size() > 16) return true;
 		return false;
@@ -627,7 +603,7 @@ public class MorphScreen extends Screen {
 	}
 
 	private boolean needUnmorphBut() {
-		return !this.isConfig() && MorphUtils.isBannedBlock(Blocks.AIR.defaultBlockState(), null) == null;
+		return !this.isConfig() && MorphUtils.isBannedBlock(Blocks.AIR.defaultBlockState(), null) ==null;
 	}
 
 	private boolean needFlameBut() {
@@ -642,10 +618,6 @@ public class MorphScreen extends Screen {
 
 	private void playDownSound() {
    	    this.minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-    }
-
-	private void send(ServerBoundConfigUpdatePacket p) {
-   	    MorphUtils.sendServer(p);
     }
 
 	public boolean mouseReleased(double x, double y, int type) {
@@ -708,7 +680,7 @@ public class MorphScreen extends Screen {
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
 		this.refreshList();
-		searchBox = new ListenerEditBox(this.font, this.leftPos + 99, this.topPos + -10, 70, 12, null, this::searchBlock);
+		searchBox = new ListenerEditBox(this.font, this.leftPos + 99, this.topPos + -10, 70, 12, Component.literal("searchbox"), this::searchBlock);
 		searchBox.setMaxLength(32767);
 		searchBox.setBordered(false);
 		searchBox.setTextColor(16777215);

@@ -1,6 +1,5 @@
 package net.blockomorph.mixins;
 
-import net.blockomorph.BlockomorphServer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
@@ -19,6 +18,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import net.blockomorph.utils.*;
 import net.blockomorph.screens.BlockMorphConfigScreen;
+
+import net.blockomorph.Blockomorph;
 
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.nbt.CompoundTag;
@@ -40,30 +41,25 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.client.Minecraft;
-import net.fabricmc.api.Environment;
-import net.fabricmc.api.EnvType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+
+import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.List;
-
-import org.jetbrains.annotations.Nullable;
-import net.minecraft.tags.FluidTags;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.core.Holder;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.effect.MobEffect;
-import net.minecraft.util.Mth;
-import java.util.function.Predicate;
-
 import net.minecraft.world.level.block.AnvilBlock;
+import net.minecraft.util.Mth;
+
+import java.util.function.Predicate;
 import java.util.HashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import java.util.Map;
 import net.minecraft.world.phys.shapes.Shapes;
+import java.util.Map;
+
 
 @Mixin(Player.class)
 public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor {
@@ -80,8 +76,8 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
       super(type, world);
    }
 
-   @Inject(method = "defineSynchedData", at = @At("TAIL"))
-   protected void defineData(SynchedEntityData.Builder builder, CallbackInfo ci) {
+   @Inject(method = "defineSynchedData", at = @At("TAIL"), cancellable = true)
+   protected void defineSynchedData(SynchedEntityData.Builder builder, CallbackInfo ci) {
    	  CompoundTag morphblocktag = new CompoundTag();
       morphblocktag.put("BlockState", NbtUtils.writeBlockState(Blocks.AIR.defaultBlockState()));
       morphblocktag.putBoolean("MultiBlock", false);
@@ -152,48 +148,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
         this.entityData.set(BRAKE_PROGRESS, progress);
    }
 
-   public boolean isOnFire() {
-   	   if (this.isActive()) return false;
-   	   return super.isOnFire();
-   }
-   
-   public boolean hasEffect(Holder<MobEffect> holder) {
-   	    if (this.isActive() && holder.equals(MobEffects.WATER_BREATHING)) return true;
-        return super.hasEffect(holder);
-   }
-
-   public int getAirSupply() {
-   	   if (this.isActive()) {
-   	   	  if (this.isEyeInFluid(FluidTags.WATER)) {
-   	   	  	return 0;
-   	   	  }
-   	   }
-   	   return super.getAirSupply();
-   }
-
-   public float getHealth() {
-   	   if (super.getHealth() == 0) return 0;
-   	   if (this.isActive()) return 20;
-       return super.getHealth();
-   }
-
-   public void setAirSupply(int i) {
-   	   if (this.isActive()) i = 0;
-       super.setAirSupply(i);
-   }
-
-   public double getAttributeValue(Holder<Attribute> attribute) {
-   	   if (this.isActive()) {
-   	   	   if (attribute.equals(Attributes.MAX_HEALTH)) return 20;
-   	   }
-       return super.getAttributeValue(attribute);
-   }
-
-   @Inject(method = "getAbsorptionAmount", at = @At("HEAD"), cancellable = true)
-   public void getAbsorptionAmount(CallbackInfoReturnable<Float> cir) {
-       if (this.isActive()) cir.setReturnValue(0f);
-   }
-
    @Inject(method = "causeFallDamage", at = @At("HEAD"), cancellable = true)
    public void causeFallDamage(float f, float g, DamageSource damageSource, CallbackInfoReturnable<Boolean> cir) {
    	   if (this.isActive()) {
@@ -218,7 +172,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 
    public void applyBlockMorph(BlockState state, CompoundTag tag, boolean mb) {
    	  CompoundTag morphblocktag = this.entityData.get(DATA_BlockMorph);
-      morphblocktag = morphblocktag.copy(); //FIXME:
+          morphblocktag = morphblocktag.copy(); //FIXME:
    	  if (state.getBlock() instanceof EntityBlock bl) {
    	    CompoundTag blockEntityTag;
    	    try {
@@ -238,7 +192,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
               blockEntityTag.merge(tag);
           }
    	    } catch (Exception e) {
-   	    	BlockomorphServer.LOGGER.warn("When receiving original tags from the block entity of the player " + this + " an error occurred: " + e.getMessage());
+   	    	Blockomorph.LOGGER.warn("When receiving original tags from the block entity of the player " + this + " an error occurred: " + e.getMessage());
    	    	blockEntityTag = new CompoundTag();
    	    	blockEntityTag.merge(tag);
    	    }
@@ -255,11 +209,11 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
    	  
    }
 
-   public InteractionResult clickPlayer(Player clicker, BlockHitResult hiter, InteractionHand hand) {
+    public InteractionResult clickPlayer(Player clicker, BlockHitResult hiter, InteractionHand hand) {
         return this.clckTnt(clicker, hiter, hand);
-   }
+    }
 
-   private InteractionResult clckTnt(Player clicker, BlockHitResult hiter, InteractionHand hand) {
+    private InteractionResult clckTnt(Player clicker, BlockHitResult hiter, InteractionHand hand) {
         ItemStack itemstack = clicker.getItemInHand(hand);
         if (!itemstack.is(Items.FLINT_AND_STEEL) && !itemstack.is(Items.FIRE_CHARGE)) {
             return InteractionResult.PASS;
@@ -277,15 +231,15 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
             clicker.awardStat(Stats.ITEM_USED.get(item));
             return InteractionResult.sidedSuccess(clicker.level().isClientSide);
         }
-   }
+    }
 
-   public void setTnt() {
+    public void setTnt() {
         BlockState state = this.getBlockState();
         if (state.getBlock() instanceof TntBlock tnt && this.tnt == null) {
             TntSpawnLevel lv = new TntSpawnLevel(this.level(), false, state);
             PrimedTnt TNT;
             try {
-                state.handleNeighborChanged(lv, this.blockPosition(), Blocks.REDSTONE_BLOCK, BlockPos.ZERO, false);
+                tnt.onCaughtFire(state, lv, this.blockPosition(), null, (Player) (Object) this);
             } catch (Exception e) {
                 TNT = lv.extractTnt();
                 if (TNT == null) {
@@ -309,7 +263,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
                 this.setDeltaMovement(new Vec3(-Math.sin(d0) * 0.02D, (double)0.2F, -Math.cos(d0) * 0.02D));
             }
         }
-   }
+    }
 
    public PrimedTnt getTnt() {
         return this.tnt;
@@ -325,7 +279,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
    }
 
    public CompoundTag getTag() {
-   	    return this.entityData.get(DATA_BlockMorph).getCompound("Tags");
+   	  return this.entityData.get(DATA_BlockMorph).getCompound("Tags");
    }
 
    public boolean isActive() {
@@ -388,7 +342,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		if (this.isMultiBlock()) this.blocks = lv.getBlocks();
         CompoundTag tg = new CompoundTag();
         tg.putInt("fuse", -1);
-		this.entityData.set(BRAKE_PROGRESS, tg);
+        this.entityData.set(BRAKE_PROGRESS, tg);
 		this.brackers.clear();
 		this.brackers.add(new BlockBracker(
 			this,
@@ -415,7 +369,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
    	        	int j = br.getProgress();
    	   	        if (j > i) i = j;
    	        }
-   	    } catch (Exception ignored) {}
+   	    } catch (Exception e) {}
    	    return i;
    }
 
@@ -535,7 +489,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
       }
    }
 
-   @Environment(EnvType.CLIENT)
+   @OnlyIn(Dist.CLIENT)
    public void clientUpdate() {
    	  if (Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc) sc.morphUpdate(this.getBlockState());
    }
