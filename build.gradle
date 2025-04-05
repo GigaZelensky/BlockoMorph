@@ -1,53 +1,97 @@
 plugins {
-    id 'fabric-loom' version '1.7-SNAPSHOT'
-    id 'maven-publish'
+    id 'eclipse'
+    id 'net.minecraftforge.gradle' version '[6.0,6.2)'
+    id 'org.spongepowered.mixin' version '0.7.+'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 version = '1.0.7'
-group = 'net.blockomorph'
-archivesBaseName = "blockomorph-1.20.1-fabric"
-testmodid = 'blockomorph'
+group = 'blockomorph'
+archivesBaseName = 'blockomorph-1.20.1-forge'
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
-loom {
+minecraft {
+    mappings channel: 'official', version: '1.20.1'
 
+    accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
+
+    copyIdeResources = true
+
+    runs {
+        client {
+            workingDirectory project.file('run')
+
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                examplemod {
+                    source sourceSets.main
+                }
+            }
+        }
+
+        server {
+            workingDirectory project.file('runServer')
+
+            property 'forge.logging.markers', 'REGISTRIES'
+            property 'forge.logging.console.level', 'debug'
+
+            mods {
+                examplemod {
+                    source sourceSets.main
+                }
+            }
+        }
+    }
 }
 
-dependencies {
-    minecraft "com.mojang:minecraft:1.20.1"
-    mappings loom.officialMojangMappings()
-    
-    modImplementation "net.fabricmc:fabric-loader:0.16.5"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:0.92.2+1.20.1"
-}
+/*shadowJar {
+    relocate 'org.spongepowered.mixin', 'shadow.org.spongepowered.mixin'
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-}
 
-processResources {
-    inputs.property "version", project.version
+    dependencies {
+        include(dependency('org.spongepowered:mixin:0.8.7'))
+        // include(dependency('org.spongepowered:mixin:0.8.+'))
+    }
 
-	filesMatching("fabric.mod.json") {
-		expand "version": project.version
-	}
-}
+}*/
 
-remapJar {
-    destinationDirectory = file("D:\\SERVER\\mods\\mod\\blockomorph\\jar\\outPut")
-}
-
-java {
-    withSourcesJar()
-
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
-}
-
-jar {
-    from "LICENSE"
+/*configurations.configureEach {
+    resolutionStrategy {
+        force 'org.spongepowered:mixin:0.8.7'
+    }
 }
 
 repositories {
+    maven {
+        name = "Fabric"
+        url = "https://maven.fabricmc.net/"
+    }
+}*/
+
+dependencies {
+    minecraft "net.minecraftforge:forge:1.20.1-47.2.0"
+    //implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5"))
+    //implementation(include("io.github.llamalad7:mixinextras-forge:0.3.5"))
+    //annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
+}
+
+mixin {
+    config 'mixins.blockomorph.json'
+
+    debug.verbose = true
+    debug.export = true
+    dumpTargetOnFailure = true
+
+    quiet
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+jar {
+    destinationDirectory = file("D:\\SERVER\\mods\\mod\\blockomorph\\jar\\outPut")
 }

@@ -1,31 +1,39 @@
 package net.blockomorph.core;
 
 import net.blockomorph.network.ClientBoundConfigUpdatePacket;
-import net.blockomorph.network.MainPacket;
+import net.blockomorph.network.DebugPacket;
+import net.blockomorph.network.DebugPacket2;
 import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.screens.ConfigScreen;
 import net.blockomorph.screens.MorphScreen;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.Config;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
-import java.util.function.Consumer;
 
-
+@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD, value = {Dist.CLIENT})
 public class KeyMappings {
     private static final Minecraft mc = Minecraft.getInstance();
 	private static final ArrayList<KeyMapping> KEYS = new ArrayList<>();
 
 	public static final KeyMapping MORPH = new HandlerKeymapping("key.blockomorph.morph_menu", GLFW.GLFW_KEY_Y, () ->
-			mc.setScreen(new MorphScreen(Config.Mode.NONE, false))
+		mc.setScreen(new MorphScreen(Config.Mode.NONE, false))
 	);
 
 	public static final KeyMapping MORPH_CONFIG = new HandlerKeymapping("key.blockomorph.morph_config_menu", GLFW.GLFW_KEY_U, () ->
-			mc.setScreen(new BlockMorphConfigScreen(false))
+		mc.setScreen(new BlockMorphConfigScreen(false))
 	);
 
 	public static final KeyMapping CONFIG = new HandlerKeymapping("key.blockomorph.config_menu", GLFW.GLFW_KEY_N, () -> {
@@ -34,9 +42,28 @@ public class KeyMappings {
 		}
 	});
 
-	static void registerKeyMappings(Consumer<KeyMapping> register) {
+	public static final KeyMapping db = new HandlerKeymapping("key.blockomorph.config_menu2", GLFW.GLFW_KEY_I, () -> {
+		MorphUtils.sendServer(new DebugPacket(BlockHitResult.miss(Vec3.ZERO, Direction.DOWN, BlockPos.ZERO)));
+	});
+
+	public static final KeyMapping db2 = new HandlerKeymapping("key.blockomorph.config_menu22", GLFW.GLFW_KEY_J, () -> {
+		if (Minecraft.getInstance().hitResult instanceof BlockHitResult bl) {
+			MorphUtils.sendServer(new DebugPacket(bl));
+			DebugPacket.handleAlternative(bl, mc.player);
+		}
+	});
+
+	public static final KeyMapping db3 = new HandlerKeymapping("key.blockomorph.config_menu223", GLFW.GLFW_KEY_V, () -> {
+		if (Minecraft.getInstance().hitResult instanceof EntityHitResult ent) {
+            MorphUtils.sendServer(new DebugPacket2(ent.getEntity().getId()));
+		//MorphUtils.sendServer(new DebugPacket2(-1));
+        }
+	});
+
+	@SubscribeEvent
+	public static void registerKeyMappings(RegisterKeyMappingsEvent event) {
 		for (KeyMapping key : KEYS) {
-			register.accept(key);
+			event.register(key);
 		}
 	}
 

@@ -1,13 +1,10 @@
 package net.blockomorph.utils;
 
-import net.blockomorph.BlockomorphServer;
+import com.mojang.blaze3d.platform.Window;
+import net.blockomorph.Blockomorph;
 import net.blockomorph.network.*;
+import net.blockomorph.utils.accessors.GamemodeAccessor;
 import net.blockomorph.utils.config.Config;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -22,7 +19,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
@@ -32,6 +28,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.DamageTypeTags;
+import net.minecraft.tags.TagKey;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
@@ -40,7 +38,6 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -56,82 +53,110 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.Nullable;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.InputEvent;
+import net.minecraftforge.client.event.RenderBlockScreenEffectEvent;
+import net.minecraftforge.client.event.RenderGuiOverlayEvent;
+import net.minecraftforge.client.event.ViewportEvent;
+import net.minecraftforge.client.gui.overlay.ForgeGui;
+import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.living.LivingAttackEvent;
+import net.minecraftforge.event.entity.living.LivingDrownEvent;
+import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.loading.FMLPaths;
+import net.minecraftforge.network.PacketDistributor;
+import net.minecraftforge.registries.ForgeRegistries;
 
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Function;
 
+@Mod.EventBusSubscriber
 public class MorphUtils {
    public static final ResourceKey<DamageType> PLAYER_DESTROYED = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation("blockomorph:player_destroyed"));
    public static final ResourceKey<DamageType> PLAYER_DESTROYED_NULL = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation("blockomorph:player_destroyed_null"));
-   private static boolean attackPressed;
    public static final SavedBlockManager bmanager = getSavedManager();
+   private static boolean attackPressed;
    public static Entity hitEntity;
    public static BlockPos hitPart;
+   public static Vec3 hitOffset;
    public static EntityHitResult hit;
+   private static int useDelay;
    private static SavedBlockManager getSavedManager() {
-        return new SavedBlockManager(FabricLoader.getInstance().getGameDirectory());
+   	    return new SavedBlockManager(FMLPaths.GAMEDIR.get().toFile());
    }
 
    private static final HashMap<ResourceLocation, PacketInfo> handlers = new HashMap<>();
    public static PacketInfo getHandler(ResourceLocation id) {
-        return handlers.get(id);
+       return handlers.get(id);
    }
 
    public static void sendServer(BlockMorphPacket packet) {
-       ClientPlayNetworking.send(MainPacket.ID, new MainPacket(packet));
+       Blockomorph.PACKET_HANDLER.sendToServer(new MainPacket(packet));
    }
 
    public static void sendAll(BlockMorphPacket packet) {
-        for (ServerPlayer p : Config.getServer().getPlayerList().getPlayers()) {
-           ServerPlayNetworking.send(p, MainPacket.ID, new MainPacket(packet));
-        }
-   } //config
+   	    Blockomorph.PACKET_HANDLER.send(PacketDistributor.ALL.noArg(), new MainPacket(packet));
+   }
 
    public static void sendPlayer(BlockMorphPacket packet, ServerPlayer pl) {
-       ServerPlayNetworking.send(pl, MainPacket.ID, new MainPacket(packet));
-   } //onJoin
+   	    Blockomorph.PACKET_HANDLER.send(PacketDistributor.PLAYER.with(() -> pl), new MainPacket(packet));
+   }
 
    public static void registerPacket(String id, Function<FriendlyByteBuf, BlockMorphPacket> bl, boolean client) {
-        ResourceLocation res = new ResourceLocation(BlockomorphServer.MOD_ID, id);
-        if (handlers.containsKey(res)) {
-            throw new IllegalArgumentException("Packet with Id: " + id + " alredy registered!");
-        }
-        handlers.put(new ResourceLocation(BlockomorphServer.MOD_ID, id), new PacketInfo(bl, client));
+       ResourceLocation res = new ResourceLocation(Blockomorph.MODID, id);
+       if (handlers.containsKey(res)) {
+           throw new IllegalArgumentException("Packet with Id: " + id + " alredy registered!");
+       }
+       handlers.put(new ResourceLocation(Blockomorph.MODID, id), new PacketInfo(bl, client));
    }
 
    public record PacketInfo(Function<FriendlyByteBuf, BlockMorphPacket> packet, boolean isClient) {}
 
-   @Nullable
-   public static BannedBlock isBannedBlock(BlockState state, @Nullable  Player pl) {
-       String name = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
-       Config.Mode mode = Config.getInstance().getValue("listMode");
-       if ((!state.isSolid() || state.getBlock() instanceof BarrierBlock || state.getBlock() instanceof MovingPistonBlock) && (state.getBlock() != Blocks.AIR) && (boolean)Config.getInstance().getValue("solidBlocksOnly")) {
-           return new BannedBlock("Block " + name + " not allowed because is solid!", Component.translatable("commands.blockmorph.solid"));
-       } else if (pl != null && ((PlayerAccessor)pl).getTnt() != null) {
-           return new BannedBlock("Block " + name + " not allowed because player-tnt caught fire!", Component.translatable("commands.blockmorph.tnt"));
-       } else if (mode == Config.Mode.WHITELIST) {
-           if (!((List<String>)Config.getInstance().getValue("allowedBlocks")).contains(name))
-               return new BannedBlock("Block " + name + " not allowed because it not in whitelist!", Component.translatable("commands.blockmorph.whitelist"));
-       } else if (mode == Config.Mode.BLACKLIST) {
-           if (((List<String>)Config.getInstance().getValue("bannedBlocks")).contains(name))
-               return new BannedBlock("Block " + name + " not allowed because it in blacklist!", Component.translatable("commands.blockmorph.blacklist"));
-       }
-       return null;
-   }
+    public static BlockPos parseBlockPos(String input) {
+        String[] parts = input.trim().split(" ");
 
-   public record BannedBlock(String reason, Component text) {}
+        if (parts.length != 3) return null;
 
-   public static void onPlayerClone(ServerPlayer oldPlayer, ServerPlayer newPlayer, boolean alive) {
-        CompoundTag originalNBT = oldPlayer.saveWithoutId(new CompoundTag());
+        try {
+            int x = Integer.parseInt(parts[0]);
+            int y = Integer.parseInt(parts[1]);
+            int z = Integer.parseInt(parts[2]);
+
+            return new BlockPos(x, y, z);
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    public static String getBlockPos(BlockPos offset) {
+        return offset.getX() +
+                " " +
+                offset.getY() +
+                " " +
+                offset.getZ();
+    }
+
+   @SubscribeEvent
+   public static void onPlayerClone(PlayerEvent.Clone event) {
+        CompoundTag originalNBT = event.getOriginal().saveWithoutId(new CompoundTag());
 
         if (originalNBT.contains("BlockMorph")) {
             CompoundTag tag = new CompoundTag();
             tag.put("BlockMorph", originalNBT.getCompound("BlockMorph"));
-            newPlayer.load(tag);
-            newPlayer.refreshDimensions();
+            event.getEntity().load(tag);
+            event.getEntity().refreshDimensions();
         }
+   }
+
+   @SubscribeEvent
+   public static void onJoin(PlayerEvent.PlayerLoggedInEvent event) {
+   	    sendPlayer(new ClientBoundConfigUpdatePacket(Config.getInstance()), (ServerPlayer) event.getEntity());
    }
 
    public static VoxelShape centerVoxelShape(VoxelShape vo, PlayerAccessor pl) {
@@ -140,10 +165,30 @@ public class MorphUtils {
         AABB hitbox = player.getBoundingBox();
         Vec3 playerCenter = player.position();
 
-       double offsetX = hitbox.minX - (playerCenter.x + minpos.getX());
+        double offsetX = hitbox.minX - (playerCenter.x + minpos.getX());
         double offsetZ = hitbox.minZ - (playerCenter.z + minpos.getZ());
 
         return vo.move(player.getX() + offsetX, player.getY(), player.getZ() + offsetZ);
+   }
+
+   public static Vec3 getRealBlockPos(PlayerAccessor original, BlockPos offset) {
+       AABB aabb = ((Player)original).getBoundingBox();
+       BlockPos minPos = original.minPos();
+
+       int deltaX = offset.getX() - minPos.getX();
+       int deltaY = offset.getY() - minPos.getY();
+       int deltaZ = offset.getZ() - minPos.getZ();
+
+       double globalX = aabb.minX + deltaX;
+       double globalY = aabb.minY + deltaY;
+       double globalZ = aabb.minZ + deltaZ;
+
+       return new Vec3(globalX, globalY, globalZ);
+   }
+
+   public static Vec3 getCetneredRealBlockPos(PlayerAccessor original, BlockPos offset) {
+       Vec3 vec = getRealBlockPos(original, offset);
+       return new Vec3(vec.x + 0.5, vec.y + 0.5, vec.z + 0.5);
    }
 
    public static boolean onPlayerAttack(Player player, Entity mob, BlockPos part) {
@@ -161,114 +206,97 @@ public class MorphUtils {
     	return false;
    }
 
-   public static boolean onPlayerAttacked(LivingEntity attacked, DamageSource damage, float amount) {
+   @SubscribeEvent
+   public static void onPlayerAttacked(LivingAttackEvent event) {
+   	    Entity attacked = event.getEntity();
+   	    DamageSource damage = event.getSource();
    	    if (attacked instanceof PlayerAccessor pl) {
-            boolean noTnt = pl.getTnt() == null;
-            boolean tntBlock = pl.getBlockState().getBlock() instanceof TntBlock;
-            boolean tntDamage = damage.is(DamageTypes.PLAYER_EXPLOSION) || damage.is(DamageTypes.EXPLOSION);
-            boolean allowed =
-                damage.is(DamageTypes.GENERIC_KILL) ||
-                damage.is(DamageTypes.FELL_OUT_OF_WORLD);
+   	    	boolean noTnt = pl.getTnt() == null;
+   	    	boolean tntBlock = pl.getBlockState().getBlock() instanceof TntBlock;
+   	    	boolean tntDamage = 
+   	    	damage.is(DamageTypes.PLAYER_EXPLOSION) ||
+   	        damage.is(DamageTypes.EXPLOSION);
+   	        boolean allowed =
+   	        damage.is(DamageTypes.GENERIC_KILL) || 
+   	        damage.is(DamageTypes.FELL_OUT_OF_WORLD);
    	        if (pl.isActive()) {
-                if (allowed || (!tntBlock && tntDamage)) {
-                    destroy(pl, damage.getEntity());
-                } else if (tntBlock && tntDamage && noTnt) {
-                    pl.setTnt();
-                    PrimedTnt tnt = pl.getTnt();
+   	        	if (!(damage.is(PLAYER_DESTROYED) || damage.is(PLAYER_DESTROYED_NULL))) event.setCanceled(true);
+   	        	if (allowed || (!tntBlock && tntDamage)) {
+   	        		destroy(pl, damage.getEntity());
+   	        	} else if (tntBlock && tntDamage && noTnt) {
+   	        		pl.setTnt();
+   	        		PrimedTnt tnt = pl.getTnt();
                     if (tnt != null) {
-                        tnt.setFuse(tnt.getFuse() / 2);
+                    	tnt.setFuse(tnt.getFuse() / 2);
                     }
-                }
-                return !(damage.is(PLAYER_DESTROYED) || damage.is(PLAYER_DESTROYED_NULL));
+   	        	}
    	        }
    	    }
-   	    return false;
    }
 
-    @Environment(EnvType.CLIENT)
-    public static boolean performClientUse() {
-        Minecraft mc = Minecraft.getInstance();
-        LocalPlayer player = mc.player;
-        if (!attackPressed && hit != null && hit.getEntity() instanceof PlayerAccessor pl && pl.isFullActive()) {
-            for(InteractionHand interactionhand : InteractionHand.values()) {
-                ItemStack itemstack = player.getItemInHand(interactionhand);
-                if (!itemstack.isItemEnabled(mc.level.enabledFeatures())) {
-                    return false;
-                }
+   @SubscribeEvent
+   public static void onPlayerDrown(LivingDrownEvent event) {
+   	    if (event.getEntity() instanceof PlayerAccessor pl) {
+   	    	if (pl.isActive()) event.setDrowning(false);
+   	    }
+   }
 
-                Vec3 mb_pos = hitEntity.position();
-                VoxelShape shape = pl.getRenderShape(hitPart).move(mb_pos.x, mb_pos.y, mb_pos.z).move(-0.5, 0, -0.5);
-                Direction dir = getClosestHitSide(shape, hit.getLocation());
-                boolean flag = false;
-                for (AABB aabb : shape.toAabbs()) {
-                    if (aabb.contains(hit.getLocation())) {
-                        flag = true;
-                        break;
-                    }
-                }
-
-                BlockHitResult hiting = new BlockHitResult(hit.getLocation(), dir, hitPart, flag);
-                int i = itemstack.getCount();
-                InteractionResult interactionresult1 = pl.clickPlayer(player, hiting, interactionhand);
-                sendServer(new ServerBoundUseBlockPacket(hiting, interactionhand));
-                if (interactionresult1.consumesAction()) {
-                    if (interactionresult1.shouldSwing()) {
-                        player.swing(interactionhand);
-                        if (!itemstack.isEmpty() && (itemstack.getCount() != i || mc.gameMode.hasInfiniteItems())) {
-                            mc.gameRenderer.itemInHandRenderer.itemUsed(interactionhand);
-                        }
-                    }
-                    return true;
-                }
-                if (interactionresult1 == InteractionResult.FAIL) {
-                    return false;
-                }
-            }
-        }
-        return false;
-    }
-
-   @Environment(EnvType.CLIENT)
-   public static void onClientTick() {
+   @OnlyIn(Dist.CLIENT)
+   @SubscribeEvent
+   public static void onClientTick(TickEvent.ClientTickEvent event) {
    	Minecraft mc = Minecraft.getInstance();
-   	        if (mc.player != null) {
+   	        if (mc.player != null && event.phase == TickEvent.Phase.END) {
                 boolean isAttackPressed = mc.options.keyAttack.isDown();
+                if (useDelay > 0) useDelay--;
 
                 if (hitEntity instanceof PlayerAccessor pl && pl.isFullActive()) {
                 	int i = pl.getBiggestProgress();
                 	if ((hitPart != null && !isAttackPressed && i > -1) || (attackPressed && !isAttackPressed)) {
-                        sendServer(new ServerBoundInteractBlockPacket(false, -1, hitPart));
+                        MorphUtils.sendServer(new ServerBoundInteractBlockPacket(false, -1, hitPart));
                         pl.setReady(true);
                 	}
-                    if (i > -1 && hit != null && isAttackPressed) {
-                    	//crackBlock(pl, calculateHitDirection(hit.getLocation(), hitEntity.getBoundingBox()));
-                    	Vec3 mb_pos = hitEntity.position();
-                    	crackBlock(pl, getClosestHitSide(pl.getRenderShape(hitPart).move(mb_pos.x, mb_pos.y, mb_pos.z).move(-0.5, 0, -0.5), hit.getLocation()), hitPart);
+                    if (i > -1 && hit != null && isAttackPressed && hitPart != null) {
+                        Vec3 realPos = getRealBlockPos(pl, hitPart);
+                        VoxelShape shape = pl.getRenderShape(hitPart).move(-hitPart.getX(), -hitPart.getY(), -hitPart.getZ()).move(realPos.x, realPos.y, realPos.z);
+                    	crackBlock(pl, getClosestHitSide(shape, hit.getLocation()), shape, pl.getBlocks().get(hitPart));
                     }
                     if (isAttackPressed && pl.readyForDestroy()) {
                     	GamemodeAccessor gm = ((GamemodeAccessor)mc.gameMode);
                     	if (gm.getDelay() > 0) {
                     		gm.setDelay(gm.getDelay() - 1);
                     	} else {
-                    		sendServer(new ServerBoundInteractBlockPacket(true, hitEntity.getId(), hitPart));
-                    		onPlayerAttack(mc.player, hitEntity, null);
+                    		MorphUtils.sendServer(new ServerBoundInteractBlockPacket(true, hitEntity.getId(), hitPart));
+   	    	                onPlayerAttack(mc.player, hitEntity, null);
                     	}
                     }
                 }
                 attackPressed = isAttackPressed;
 
             }
+   } 
+
+   @Nullable
+   public static BannedBlock isBannedBlock(BlockState state, @Nullable  Player pl) {
+       String name = ForgeRegistries.BLOCKS.getKey(state.getBlock()).toString();
+       Config.Mode mode = Config.getInstance().getValue("listMode");
+       if ((!state.isSolid() || state.getBlock() instanceof BarrierBlock || state.getBlock() instanceof MovingPistonBlock) && (state.getBlock() != Blocks.AIR) && (boolean)Config.getInstance().getValue("solidBlocksOnly")) {
+           return new BannedBlock("Block " + name + " not allowed because is solid!", Component.translatable("commands.blockmorph.solid"));
+       } else if (pl != null && ((PlayerAccessor)pl).getTnt() != null) {
+           return new BannedBlock("Block " + name + " not allowed because player-tnt caught fire!", Component.translatable("commands.blockmorph.tnt"));
+       } else if (mode == Config.Mode.WHITELIST) {
+           if (!((List<String>)Config.getInstance().getValue("allowedBlocks")).contains(name))
+               return new BannedBlock("Block " + name + " not allowed because it not in whitelist!", Component.translatable("commands.blockmorph.whitelist"));
+       } else if (mode == Config.Mode.BLACKLIST) {
+           if (((List<String>)Config.getInstance().getValue("bannedBlocks")).contains(name))
+               return new BannedBlock("Block " + name + " not allowed because it in blacklist!", Component.translatable("commands.blockmorph.blacklist"));
+       }
+       return null;
    }
 
-   public static float getBlockReach(Player pl) {
-        if (pl.isCreative()) {
-            return 5.0f;
-        }
-        return 4.5f;
-   }
+   public record BannedBlock(String reason, Component text) {}
 
-   public static AbstractMap.SimpleEntry<BlockPos, EntityHitResult> getPlayerLookedResult(Player player, double distance, float timeCalapse) {
-   	    if (distance < 0) distance = getBlockReach(player);
+   public static MorphedPlayerHit getPlayerLookedResult(Player player, double distance, float timeCalapse) {
+   	    if (distance < 0) distance = player.getBlockReach();
    	    
         Vec3 eyePosition = player.getEyePosition(timeCalapse);
         Vec3 lookVector = player.getViewVector(timeCalapse);
@@ -279,107 +307,184 @@ public class MorphUtils {
         AABB aabb = new AABB(eyePosition, reachVector).inflate(1.0D);
         List<Entity> entities = player.level().getEntities(player, aabb);
 
-        Entity closestEntity = null;
+        Entity closestEntity;
         double closestDistance = distance;
-        Optional<Vec3> result = Optional.empty();
-        EntityHitResult hit2 = null;
-        BlockPos hitP = null;
+        Optional<Vec3> result;
+        EntityHitResult hit2;
+        BlockPos hitP;
 
         List<Hit> hits = new ArrayList<>();
 
         for (Entity entity : entities) {
         	if (entity instanceof PlayerAccessor mob) {
-        	  HashMap<BlockPos, BlockState> blocks = new HashMap(mob.getBlocks());
+        	  HashMap<BlockPos, BlockState> blocks = new HashMap<>(mob.getBlocks());
         	  blocks.put(new BlockPos(0, 0, 0), mob.getBlockState());
         	  for (Map.Entry<BlockPos, BlockState> entry : blocks.entrySet()) {
                 VoxelShape voxelShape = entry.getValue().getShape(entity.level(), entity.blockPosition(), CollisionContext.of(entity));
                 BlockPos pos = entry.getKey();
                 voxelShape = voxelShape.move(pos.getX(), pos.getY(), pos.getZ());
-                //voxelShape = voxelShape.move(entity.getX() - 0.5, entity.getY(), entity.getZ() - 0.5);
                 voxelShape = centerVoxelShape(voxelShape, mob);
 
                 for (AABB entityAABB : voxelShape.toAabbs()) {
                      result = entityAABB.clip(eyePosition, reachVector);
 
                      if (result.isPresent()) {
-                         double entityDistance = eyePosition.distanceTo(result.get());
+                         Vec3 res = result.get();
+                         double entityDistance = eyePosition.distanceTo(res);
 
                          if (entityDistance < closestDistance) {
                              closestDistance = entityDistance;
                              closestEntity = entity;
-                             hit2 = new EntityHitResult(closestEntity, result.get());
+
+                             AABB aabbOffset = Shapes.block().bounds().move(getRealBlockPos(mob, pos));
+                             double x = res.x() - aabbOffset.minX;
+                             double y = res.y() - aabbOffset.minY;
+                             double z = res.z() - aabbOffset.minZ;
+
+                             hit2 = new EntityHitResult(closestEntity, new Vec3(x, y ,z));
                              hitP = pos;
                              hits.add(new Hit(closestEntity, closestDistance, result, hit2, hitP));
                          }
                      }
                 }
-                closestEntity = null;
                 closestDistance = distance;
-                result = Optional.empty();
-                hit2 = null;
-                hitP = null;
-        	  }
+              }
         	}
         }
         hits.sort(Comparator.comparingDouble(hit -> eyePosition.distanceTo(hit.result().get())));
         if (!hits.isEmpty()) {
         	Hit hit = hits.get(0);
         	if (blockhit != null && hit.result().isPresent()) {
-        	    if (hit.closestEntity() != null && hit.closestDistance() > eyePosition.distanceTo(blockhit)) return new AbstractMap.SimpleEntry(null, null);
+        	    if (hit.closestEntity() != null && hit.closestDistance() > eyePosition.distanceTo(blockhit)) return null;
             }
-            return new AbstractMap.SimpleEntry(hit.hitP(), hit.hit2());
+            return new MorphedPlayerHit(hit.hitP, hit.hit2.getLocation(), new EntityHitResult(hit.closestEntity, hit.result().get()));
         }
 
-        return new AbstractMap.SimpleEntry(null, null);
+        return null;
    }
 
-   @Environment(EnvType.CLIENT)
-   public static boolean onAttackBlockPlayer() { 
+   public record MorphedPlayerHit(BlockPos blockOffset, Vec3 xyzOffset, EntityHitResult hitResult) {}
+
+   @OnlyIn(Dist.CLIENT)
+   @SubscribeEvent
+   public static void onRenderFire(RenderBlockScreenEffectEvent event) {
+   	if (((PlayerAccessor)event.getPlayer()).isActive()) {
+   		if (event.getOverlayType() == RenderBlockScreenEffectEvent.OverlayType.FIRE) event.setCanceled(true);
+   	}
+   }
+
+   @OnlyIn(Dist.CLIENT)
+   @SubscribeEvent
+   public static void onAttackBlockPlayer(InputEvent.InteractionKeyMappingTriggered event) {
    	    Minecraft mc = Minecraft.getInstance();
    	    if (hit != null && hit.getEntity() instanceof PlayerAccessor pl && pl.isFullActive()) {
-   	    	if (hitEntity instanceof Player) {
-   	    	    sendServer(new ServerBoundInteractBlockPacket(true, hitEntity.getId(), hitPart));
-   	    	    onPlayerAttack(mc.player, hitEntity, null);
+   	    	if (event.isAttack()) {
+   	    		event.setCanceled(true);
+   	    		if (hitEntity instanceof Player) {
+   	    			MorphUtils.sendServer(new ServerBoundInteractBlockPacket(true, hitEntity.getId(), hitPart));
+   	    	        onPlayerAttack(mc.player, hitEntity, null);
+   	    		}
+   	    	} else if (event.isUseItem()) {
+   	    		if (event.getHand() == InteractionHand.MAIN_HAND) performClientUse(pl);
    	    	}
-   	    	return true;
    	    }
-   	    return false;
    }
 
-   @Environment(EnvType.CLIENT)
-   public static void onPick() { 
+   @OnlyIn(Dist.CLIENT)
+   private static void performClientUse(PlayerAccessor pl) {
+   	    Minecraft mc = Minecraft.getInstance();
+   	    LocalPlayer player = mc.player;
+   	    if (!attackPressed && useDelay == 0) {
+                useDelay = 4;
+   	    	for(InteractionHand interactionhand : InteractionHand.values()) {
+   	    		ItemStack itemstack = player.getItemInHand(interactionhand);
+                if (!itemstack.isItemEnabled(mc.level.enabledFeatures())) {
+                   return;
+                }
+
+                Vec3 realPos = getRealBlockPos(pl, hitPart);
+                VoxelShape shape = pl.getRenderShape(hitPart).move(-hitPart.getX(), -hitPart.getY(), -hitPart.getZ()).move(realPos.x, realPos.y, realPos.z);
+                Direction dir = getClosestHitSide(shape, hit.getLocation());
+                if (dir == null) return;
+                boolean flag = false;
+                for (AABB aabb : shape.toAabbs()) {
+                	if (aabb.contains(hit.getLocation())) {
+                		flag = true;
+                		break;
+                	}
+                }
+                
+                BlockHitResult hiting = new BlockHitResult(hitOffset.add(hitPart.getX(), hitPart.getY(), hitPart.getZ()), dir, hitPart, flag);
+                int i = itemstack.getCount();
+                InteractionResult interactionresult1 = pl.clickPlayer(player, hiting, interactionhand);
+                sendServer(new ServerBoundUseBlockPacket(hiting, interactionhand));
+                if (interactionresult1.consumesAction()) {
+                    if (interactionresult1.shouldSwing()) {
+                        player.swing(interactionhand);
+                        if (!itemstack.isEmpty() && (itemstack.getCount() != i || mc.gameMode.hasInfiniteItems())) {
+                            mc.gameRenderer.itemInHandRenderer.itemUsed(interactionhand);
+                        }
+                    }
+                    return;
+                }
+                if (interactionresult1 == InteractionResult.FAIL) {
+                    return;
+                }
+   	    	}
+   	    }
+   }
+
+   @OnlyIn(Dist.CLIENT)
+   @SubscribeEvent
+   public static void onPick(ViewportEvent.ComputeCameraAngles event) {
    	 Minecraft mc = Minecraft.getInstance();
    	 boolean isAttackPressed = mc.options.keyAttack.isDown();
    	 if (mc.getCameraEntity() instanceof Player pl) {
-   	 	AbstractMap.SimpleEntry<BlockPos, EntityHitResult> hitter = getPlayerLookedResult(pl, -1, 1);
-   	 	hitPart = hitter.getKey();
-   	 	hit = hitter.getValue();
-   	 	Entity ent;
-   	 	if (hit == null) {
-   	 		ent = null;
-   	 	} else ent = hit.getEntity();
-   	 	if (ent != hitEntity && hitEntity != null) ((PlayerAccessor)hitEntity).setReady(true);
-   	 	if (hitEntity != null && !hitEntity.isAlive() && isAttackPressed) ((GamemodeAccessor)mc.gameMode).setDelay(5);
+   	 	MorphedPlayerHit hitter = getPlayerLookedResult(pl, -1, 1);
+        Entity ent;
+        if (hitter == null) {
+            hitPart = null;
+            hit = null;
+            hitOffset = null;
+            ent = null;
+        } else {
+            hitPart = hitter.blockOffset();
+            hit = hitter.hitResult();
+            hitOffset = hitter.xyzOffset();
+            ent = hit.getEntity();
+        }
+   	 	if (ent != hitEntity && hitEntity != null)
+                ((PlayerAccessor)hitEntity).setReady(true);
+   	 	if (hitEntity != null && !hitEntity.isAlive() && isAttackPressed)
+                ((GamemodeAccessor)mc.gameMode).setDelay(5);
    	    hitEntity = ent;
    	 }
    }
 
-   @Environment(EnvType.CLIENT)
-   public static boolean onHudRender(GuiGraphics GUI) {
+   @OnlyIn(Dist.CLIENT)
+   @SubscribeEvent
+   public static void onHudRender(RenderGuiOverlayEvent.Pre event) {
    	    Minecraft mc = Minecraft.getInstance();
    	    Entity player = mc.getCameraEntity();
+   	    ResourceLocation overlayId = event.getOverlay().id();
+   	    boolean flag = mc.gameMode.canHurtPlayer();
    	    
    	    if (player instanceof PlayerAccessor pl && pl.isActive()) {
-   	        int width = mc.getWindow().getGuiScaledWidth();
-		    int height = mc.getWindow().getGuiScaledHeight();
-            renderBlockHeart(GUI, (Player)player, pl, width, height);
-            return true;
+   	        if (flag && overlayId.equals(new ResourceLocation("minecraft", "player_health"))) {
+   	           Window w = event.getWindow();
+   	           int width = w.getGuiScaledWidth();
+               int height = w.getGuiScaledHeight();
+               renderBlockHeart(event.getGuiGraphics(), pl, width, height);
+               ((ForgeGui)mc.gui).leftHeight += 10;
+               event.setCanceled(true);
+   	        }
+   	        if (overlayId.equals(new ResourceLocation("minecraft", "air_level")))
+                   event.setCanceled(true);
         }
-        return false;
    }
 
-   @Environment(EnvType.CLIENT)
-   private static void renderBlockHeart(GuiGraphics gui, Player player, PlayerAccessor pl, int width, int height) {
+   @OnlyIn(Dist.CLIENT)
+   private static void renderBlockHeart(GuiGraphics gui, PlayerAccessor pl, int width, int height) {
        int maxHearts = 10;
        int progress = pl.getBiggestProgress();
 
@@ -404,7 +509,7 @@ public class MorphUtils {
        }
    }
 
-   @Environment(EnvType.CLIENT)
+   @OnlyIn(Dist.CLIENT)
    private static void renderBar(GuiGraphics graphics, int x, int y, int progress) {
         if (progress == 9) {
         	graphics.blit(new ResourceLocation("blockomorph:textures/screens/icons.png"), x, y, 0, 10, 81, 9, 81, 19);
@@ -433,25 +538,37 @@ public class MorphUtils {
 
    public static void destroy(PlayerAccessor mob_pl, @Nullable Entity attacker) {
     	Entity mob = (Player)mob_pl;
-    	HashMap<BlockPos, BlockState> blocks = new HashMap(mob_pl.getBlocks());
+    	HashMap<BlockPos, BlockState> blocks = new HashMap<>(mob_pl.getBlocks());
     	blocks.put(new BlockPos(0, 0, 0), mob_pl.getBlockState());
         boolean hasTnt = mob_pl.getTnt() != null;
+
+        Collection<TagKey<DamageType>> type = Set.of(
+        	DamageTypeTags.BYPASSES_INVULNERABILITY,
+        	DamageTypeTags.BYPASSES_RESISTANCE,
+        	DamageTypeTags.BYPASSES_EFFECTS,
+        	DamageTypeTags.BYPASSES_COOLDOWN,
+        	DamageTypeTags.BYPASSES_ENCHANTMENTS,
+        	DamageTypeTags.BYPASSES_SHIELD,
+        	DamageTypeTags.BYPASSES_ARMOR
+        );
         
-        Holder<DamageType> damage = mob.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).
+        Holder.Reference<DamageType> damage = mob.level().registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).
         getHolderOrThrow(attacker == null ? PLAYER_DESTROYED_NULL : PLAYER_DESTROYED);
+        damage.bindTags(type);
     	
     	if (Config.getInstance().getValue("playerDieAfterDestroy")) {
     		mob.hurt(new DamageSource(damage, attacker), Float.MAX_VALUE);
     	} else {
-    		mob_pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), new CompoundTag(), false);
+    		mob_pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), new CompoundTag());
     	}
 
     	if (mob.level() instanceof ServerLevel lv && !hasTnt) {
         	for (Map.Entry<BlockPos, BlockState> entry : blocks.entrySet()) {
             	BlockPos pos = entry.getKey();
             	BlockState val = entry.getValue();
-            	VoxelShape shape2 = entry.getValue().getCollisionShape(lv, mob.blockPosition(), CollisionContext.of(mob));
-            	particle(lv, mob.getX() + pos.getX(), mob.getY() + pos.getY(), mob.getZ() + pos.getZ(), val, shape2);
+            	VoxelShape shape2 = val.getCollisionShape(lv, mob.blockPosition(), CollisionContext.of(mob));
+            	//particle(lv, mob.getX() + pos.getX(), mob.getY() + pos.getY(), mob.getZ() + pos.getZ(), val, shape2);
+                particle(lv, getRealBlockPos(mob_pl, pos), val, shape2);
             	SoundType soundtype = val.getSoundType();
                 lv.playSound(null, mob.blockPosition().offset(pos), soundtype.getBreakSound(), SoundSource.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
             }
@@ -459,15 +576,15 @@ public class MorphUtils {
    }
 
    public static Entity getEntityLookedAt(Player player, double distance, float c) {
-   	    EntityHitResult hit = getPlayerLookedResult(player, distance, c).getValue();
-   	    if (hit != null) {
-   	    	return hit.getEntity();
-   	    }
-   	    return null;
+        MorphedPlayerHit hit = getPlayerLookedResult(player, distance, c);
+        if (hit == null) return null;
+        return hit.hitResult().getEntity();
    }
 
    public static BlockPos getEntityPartLookedAt(Player player, double distance, float c) {
-   	    return getPlayerLookedResult(player, distance, c).getKey();
+       MorphedPlayerHit hit = getPlayerLookedResult(player, distance, c);
+       if (hit == null) return null;
+       return hit.blockOffset();
    }
 
    private static Direction calculateHitDirection(Vec3 hitVec, AABB boundingBox) {
@@ -504,18 +621,20 @@ public class MorphUtils {
            (f >= ab.minZ - tolerance && f <= ab.maxZ + tolerance);
    }
 
-   static void particle(ServerLevel world, double x, double y, double z, BlockState blockState, VoxelShape shape) {
+    protected static void particle(ServerLevel world, Vec3 startPos, BlockState blockState, VoxelShape shape) {
+       double x = startPos.x();
+       double y = startPos.y();
+       double z = startPos.z();
     if (!blockState.isAir()) {
-        VoxelShape voxelShape = shape;
         double d0 = 0.25D;
         
-        voxelShape.forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) -> {
+        shape.forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) -> {
             double d1 = Math.min(1.0D, maxX - minX);
             double d2 = Math.min(1.0D, maxY - minY);
             double d3 = Math.min(1.0D, maxZ - minZ);
-            int i = Math.max(2, Mth.ceil(d1 / 0.25D));
-            int j = Math.max(2, Mth.ceil(d2 / 0.25D));
-            int k = Math.max(2, Mth.ceil(d3 / 0.25D));
+            int i = Math.max(2, Mth.ceil(d1 / d0));
+            int j = Math.max(2, Mth.ceil(d2 / d0));
+            int k = Math.max(2, Mth.ceil(d3 / d0));
 
             for (int l = 0; l < i; ++l) {
                 for (int i1 = 0; i1 < j; ++i1) {
@@ -541,64 +660,138 @@ public class MorphUtils {
         });
     }
    }
+    /*protected static void particle(ServerLevel world, BlockState blockState, VoxelShape shape) {
+        if (!blockState.isAir()) {
+            double d0 = 0.25D;
 
-   @Environment(EnvType.CLIENT)
-   public static void crackBlock(PlayerAccessor player, Direction dir, BlockPos part) {
-      Entity pl = (Player)player;
-      Level level = pl.level();
-      BlockState blockstate;
-      if (part.equals(BlockPos.ZERO)) {
-          blockstate = player.getBlockState();
-      } else {
-          blockstate = player.getBlocks().get(part);
-          if (blockstate == null) {
-              blockstate = player.getBlockState();
-          }
-      }
-      if (blockstate.getRenderShape() != RenderShape.INVISIBLE && level instanceof ClientLevel lv) {
-         double i = pl.getX() + part.getX();
-         double j = pl.getY() + part.getY();
-         double k = pl.getZ() + part.getZ();
-         float f = 0.1F;
-         AABB aabb = blockstate.getShape(level, pl.blockPosition().offset(part)).bounds();
-         aabb = aabb.move(-0.5, 0, -0.5);
-         RandomSource random = RandomSource.create();
-         double d0 = i + random.nextDouble() * (aabb.maxX - aabb.minX - (double)0.2F) + f + aabb.minX;
-         double d1 = j + random.nextDouble() * (aabb.maxY - aabb.minY - (double)0.2F) + f + aabb.minY;
-         double d2 = k + random.nextDouble() * (aabb.maxZ - aabb.minZ - (double)0.2F) + f + aabb.minZ;
-         if (dir == Direction.DOWN) {
-            d1 = j + aabb.minY - f;
-         }
+            shape.forAllBoxes((minX, minY, minZ, maxX, maxY, maxZ) -> {
+                double d1 = Math.min(1.0D, maxX - minX);
+                double d2 = Math.min(1.0D, maxY - minY);
+                double d3 = Math.min(1.0D, maxZ - minZ);
+                int i = Math.max(2, Mth.ceil(d1 / d0));
+                int j = Math.max(2, Mth.ceil(d2 / d0));
+                int k = Math.max(2, Mth.ceil(d3 / d0));
 
-         if (dir == Direction.UP) {
-            d1 = j + aabb.maxY + f;
-         }
+                for (int l = 0; l < i; ++l) {
+                    for (int i1 = 0; i1 < j; ++i1) {
+                        for (int j1 = 0; j1 < k; ++j1) {
+                            double d4 = ((double) l + 0.5D) / (double) i;
+                            double d5 = ((double) i1 + 0.5D) / (double) j;
+                            double d6 = ((double) j1 + 0.5D) / (double) k;
+                            double particleX = minX + d4 * d1;  // MinX
+                            double particleY = minY + d5 * d2;  // MinY
+                            double particleZ = minZ + d6 * d3;  // MinZ
 
-         if (dir == Direction.NORTH) {
-            d2 = k + aabb.minZ - f;
-         }
+                            BlockParticleOption particleData = new BlockParticleOption(ParticleTypes.BLOCK, blockState);
+                            world.sendParticles(
+                                    particleData,
+                                    particleX, particleY, particleZ, // Теперь particleX, particleY, particleZ - мировые координаты
+                                    1,
+                                    d4 - 0.5D, d5 - 0.5D, d6 - 0.5D, // Нет смещения
+                                    0.25D
+                            );
+                        }
+                    }
+                }
+            });
+        }
+    }*/
 
-         if (dir == Direction.SOUTH) {
-            d2 = k + aabb.maxZ + f;
-         }
+    @OnlyIn(Dist.CLIENT)
+    public static void crackBlock(PlayerAccessor player, Direction dir, VoxelShape shape, BlockState blockstate) {
+        Entity pl = (Entity)player;
+        Level level = pl.level();
+        if (blockstate.getRenderShape() != RenderShape.INVISIBLE && level instanceof ClientLevel lv) {
 
-         if (dir == Direction.WEST) {
-            d0 = i + aabb.minX - f;
-         }
+            AABB aabb = shape.bounds();
 
-         if (dir == Direction.EAST) {
-            d0 = i + aabb.maxX + f;
-         }
+            float f = 0.1F;
+            RandomSource random = RandomSource.create();
 
-         Minecraft.getInstance().particleEngine.add((new TerrainParticle(lv, d0, d1, d2, 0.0D, 0.0D, 0.0D, blockstate)).setPower(0.2F).scale(0.6F));
-      }
-   }
+            double d0 = aabb.minX + random.nextDouble() * (aabb.maxX - aabb.minX - (double)0.2F) + f;
+            double d1 = aabb.minY + random.nextDouble() * (aabb.maxY - aabb.minY - (double)0.2F) + f;
+            double d2 = aabb.minZ + random.nextDouble() * (aabb.maxZ - aabb.minZ - (double)0.2F) + f;
 
-   private static record Hit(
+            if (dir == Direction.DOWN) {
+                d1 = aabb.minY - f;
+            }
+
+            if (dir == Direction.UP) {
+                d1 = aabb.maxY + f;
+            }
+
+            if (dir == Direction.NORTH) {
+                d2 = aabb.minZ - f;
+            }
+
+            if (dir == Direction.SOUTH) {
+                d2 = aabb.maxZ + f;
+            }
+
+            if (dir == Direction.WEST) {
+                d0 = aabb.minX - f;
+            }
+
+            if (dir == Direction.EAST) {
+                d0 = aabb.maxX + f;
+            }
+            Minecraft.getInstance().particleEngine.add((new TerrainParticle(lv, d0, d1, d2, 0.0D, 0.0D, 0.0D, blockstate)).setPower(0.2F).scale(0.6F));
+        }
+    }
+
+   private record Hit(
    	    Entity closestEntity,
         double closestDistance,
         Optional<Vec3> result,
         EntityHitResult hit2,
         BlockPos hitP
    ) {}
+
+
+   //DEBUG DO NOT DELETE!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+   /*public void setPlacedBy(Level level, BlockPos blockPos, BlockState blockState, LivingEntity livingEntity, ItemStack itemStack) {
+		BlockPos pos = BlockPos.ZERO.offset(1, 0, -1);
+		for (int x = 0; x < 3; x++) { // Увеличиваем по оси X
+			for (int z = 0; z < 3; z++) { // Увеличиваем по оси Z
+				BlockPos blockPos2 = pos.offset(x, 0, z); // Смещаем позицию
+				BlockState blockState2 = Blocks.STRIPPED_OAK_WOOD.defaultBlockState(); // Устанавливаем блок акации
+				level.setBlock(blockPos2, blockState2, 3); // Устанавливаем блок
+			}
+		}
+		BlockPos p2 = pos.offset(3, 0, 0);
+		for (int z = 0; z < 3; z++) {
+			level.setBlock(p2.offset(0, 0, z), Blocks.OAK_STAIRS.defaultBlockState().setValue(HorizontalDirectionalBlock.FACING, Direction.WEST), 3);
+		}
+		BlockPos p3 = pos.offset(0, 1, 0);
+		for (int y = 0; y < 3; y++) {
+			level.setBlock(p3.offset(0, y, 0), Blocks.SPRUCE_LOG.defaultBlockState(), 3);
+		}
+		p3 = p3.offset(0, 0, 2);
+		for (int y = 0; y < 3; y++) {
+			level.setBlock(p3.offset(0, y, 0), Blocks.SPRUCE_LOG.defaultBlockState(), 3);
+		}
+		for (int y = 0; y < 3; y++) {
+			level.setBlock(p3.offset(0, y, -1), Blocks.COMPOSTER.defaultBlockState(), 3);
+		}
+		for (int x = 0; x < 2; x++) { // Увеличиваем по оси X
+			for (int z = 0; z < 3; z++) { // Увеличиваем по оси Z
+				BlockPos blockPos2 = pos.offset(x, 4, z); // Смещаем позицию
+				BlockState blockState2 = Blocks.OAK_SLAB.defaultBlockState(); // Устанавливаем блок акации
+				level.setBlock(blockPos2, blockState2, 3); // Устанавливаем блок
+			}
+		}
+		level.setBlock(pos.offset(1, 1, 1), Blocks.WATER_CAULDRON.defaultBlockState().setValue(BlockStateProperties.LEVEL_CAULDRON, 2), 3);
+		level.setBlock(pos.offset(1, 3, 1), Blocks.LANTERN.defaultBlockState().setValue(BlockStateProperties.HANGING, true), 3);
+		BlockPos p4 = pos.offset(1, 1, 0);
+		BlockState st = Blocks.OAK_FENCE.defaultBlockState().setValue(PipeBlock.WEST, true);
+		for (int y = 0; y < 3; y++) {
+			level.setBlock(p4.offset(0, y, 0), st, 3);
+		}
+		for (int y = 0; y < 3; y++) {
+			level.setBlock(p4.offset(0, y, 2), st, 3);
+		}
+	}*/
+
 }

@@ -5,15 +5,21 @@ import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.blockomorph.utils.PlayerAccessor;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.RenderGuiEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
+@Mod.EventBusSubscriber({Dist.CLIENT})
 public class PlayerCrackOverlay {
-	public static void render(GuiGraphics guiGraphics, float tickDelta) {
-		int w = Minecraft.getInstance().getWindow().getGuiScaledWidth();
-		int h = Minecraft.getInstance().getWindow().getGuiScaledHeight();
+	@SubscribeEvent(priority = EventPriority.NORMAL)
+	public static void eventHandler(RenderGuiEvent.Pre event) {
+		int w = event.getWindow().getGuiScaledWidth();
+		int h = event.getWindow().getGuiScaledHeight();
 		Player entity = Minecraft.getInstance().player;
 		if (entity != null) {
 		    RenderSystem.disableDepthTest();
@@ -25,7 +31,7 @@ public class PlayerCrackOverlay {
 
 		    int k = ((PlayerAccessor)entity).getBiggestProgress();
 		    
-			if (k >= 0 && k < 10) guiGraphics.blit(new ResourceLocation("minecraft:textures/block/destroy_stage_" + k + ".png"), 0, 0, 16, 16, w, h, w, h);
+			if (k >= 0 && k < 10) event.getGuiGraphics().blit(new ResourceLocation("minecraft:textures/block/destroy_stage_" + k + ".png"), 0, 0, 16, 16, w, h, w, h);
 			
 		    RenderSystem.depthMask(true);
 		    RenderSystem.defaultBlendFunc();

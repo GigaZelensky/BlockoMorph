@@ -1,13 +1,11 @@
 
 package net.blockomorph.command;
 
-import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.BoolArgumentType;
-import net.blockomorph.utils.BlockAccessor;
+import net.blockomorph.utils.accessors.BlockAccessor;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
 import net.blockomorph.utils.config.Config;
-import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
@@ -18,15 +16,19 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.common.Mod;
 
 import java.util.Collection;
 import java.util.Collections;
 
+@Mod.EventBusSubscriber
 public class BlockmorphCommand {
-
-	public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext commandBuildContext, Commands.CommandSelection environment) {
-		dispatcher.register(
-				Commands.literal("blockmorph").requires(s -> s.hasPermission(2)).then(Commands.argument("block", BlockStateArgument.block(commandBuildContext)).then(Commands.argument("targets", EntityArgument.players()).executes(arguments -> {
+	@SubscribeEvent
+	public static void registerCommand(RegisterCommandsEvent event) {
+		event.getDispatcher().register(
+				Commands.literal("blockmorph").requires(s -> s.hasPermission(2)).then(Commands.argument("block", BlockStateArgument.block(event.getBuildContext())).then(Commands.argument("targets", EntityArgument.players()).executes(arguments -> {
 					return morphBlock(arguments.getSource(), 
 					BlockStateArgument.getBlock(arguments, "block").getState(), 
 					EntityArgument.getPlayers(arguments, "targets"), 
@@ -49,7 +51,8 @@ public class BlockmorphCommand {
 	}
 
 	private static int morphBlock(CommandSourceStack stack, BlockState blockstate, Collection<ServerPlayer> players, CompoundTag tag, boolean many, boolean mb, boolean mbUse) {
-        if (Config.getInstance() == null) {
+		Block state = blockstate.getBlock();
+		if (Config.getInstance() == null) {
 			stack.sendFailure(
 				Component.literal("Config not loaded, something works like that... :/")
 			);
@@ -67,11 +70,11 @@ public class BlockmorphCommand {
 			);
 			return 0;
 		}
-		Block state = blockstate.getBlock();
 		for (Entity entityiterator : players) {
 			if (entityiterator instanceof PlayerAccessor pl) {
 				if (mbUse) {
-					pl.applyBlockMorph(blockstate, tag, mb);
+					//pl.applyBlockMorph(blockstate, tag, mb);
+					pl.applyBlockMorph(blockstate, tag);
 				} else {
 					pl.applyBlockMorph(blockstate, tag);
 				}
@@ -79,18 +82,12 @@ public class BlockmorphCommand {
 		}
 		if (many) {
 			if (players.size() == 1) {
-				stack.sendSuccess(() -> {
-                return Component.translatable("commands.blockmorph.single", players.iterator().next().getDisplayName(), state.getName());
-                }, true);
+				stack.sendSuccess(() -> Component.translatable("commands.blockmorph.single", players.iterator().next().getDisplayName(), state.getName()), true);
 			} else {
-				stack.sendSuccess(() -> {
-                return Component.translatable("commands.blockmorph.many", players.size(), state.getName());
-                }, true);
+				stack.sendSuccess(() -> Component.translatable("commands.blockmorph.many", players.size(), state.getName()), true);
 			}
 		} else {
-			stack.sendSuccess(() -> {
-            return Component.translatable("commands.blockmorph.you", state.getName());
-            }, true);
+			stack.sendSuccess(() -> Component.translatable("commands.blockmorph.you", state.getName()), true);
 		}
 		return players.size();
 	}

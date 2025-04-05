@@ -4,19 +4,16 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.math.Axis;
-import net.blockomorph.core.MainBus;
 import net.blockomorph.network.ServerBoundBlockMorphPacket;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
 import net.blockomorph.utils.SavedBlock;
 import net.blockomorph.utils.config.Config;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -42,6 +39,7 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraftforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
 
 import java.util.ArrayList;
@@ -57,7 +55,7 @@ public class BlockMorphConfigScreen extends Screen {
    private final SoundManager sound = Minecraft.getInstance().getSoundManager();
    private BlockState playerState = Blocks.AIR.defaultBlockState();
    private CompoundTag playerTag = new CompoundTag();
-   private boolean mb = false;
+   private final boolean mb = true;
    private static final BlockPos AIR = new BlockPos(0, 512, 0); 
    private final Level world;
    private final Player entity;
@@ -81,7 +79,7 @@ public class BlockMorphConfigScreen extends Screen {
    	   this.init = init;
    	   this.world = Minecraft.getInstance().level;
 	   this.entity = Minecraft.getInstance().player;
-       MorphUtils.bmanager.load();
+           MorphUtils.bmanager.load();
    }
 
    @Override
@@ -126,7 +124,7 @@ public class BlockMorphConfigScreen extends Screen {
 		}
 		this.playerState = state;
 		this.playerTag = tag;
-		this.mb = ((PlayerAccessor)this.entity).isMultiBlock();
+		//this.mb = false;//((PlayerAccessor)this.entity).isMultiBlock();
 		this.validSave(savebox.getValue());
    }
 
@@ -147,10 +145,14 @@ public class BlockMorphConfigScreen extends Screen {
 		RenderSystem.disableBlend();
    }
 
-   private void renderMbButton(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
+   private void renderMbButton(GuiGraphics guiGraphics, float partialTicks, int x, int y) {
    	    if (Config.getInstance() != null && (boolean)Config.getInstance().getValue("advancedMode")) {
    	    	guiGraphics.blit(new ResourceLocation("blockomorph:textures/screens/mb_but.png"), this.leftPos + 93, this.topPos + 120, 0, this.mb ? 10:0, 67, 10, 67, 20);
    	    	guiGraphics.drawCenteredString(this.font, Component.translatable("gui.blockomorph.mb"), this.leftPos + 93 + 33, this.topPos + 121, -1);
+			if (x > this.leftPos + 93 && x < this.leftPos + 93 + 67 && y > this.topPos + 120 && y < this.topPos + 130) {
+				guiGraphics.renderTooltip(this.font, Component.translatable("gui.blockomorph.mb.deprecated1"), x, y);
+				guiGraphics.renderTooltip(this.font, Component.translatable("gui.blockomorph.mb.deprecated2"), x, y + 20);
+			}
    	    }
    }
 
@@ -299,11 +301,11 @@ public class BlockMorphConfigScreen extends Screen {
    	       if (type > 0 && value < intes.get(ints.size() - 1)) {
    	    	  state = state.setValue(prop, value + 1);
    	    	  sound.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
-           } else if (type < 0 && value > intes.getFirst()) {
+           } else if (type < 0 && value > intes.get(0)) {
               state = state.setValue(prop, value - 1);
               sound.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
            }
-           this.send(state, this.playerTag);
+            this.send(state, this.playerTag);
    	    }
    	    return true;
    }
@@ -409,30 +411,6 @@ public class BlockMorphConfigScreen extends Screen {
       }
    }
 
-   private void send(BlockState blockState, CompoundTag tag) {
-   	    MorphUtils.sendServer(ServerBoundBlockMorphPacket.create(blockState, tag));
-   }
-
-   private void validSave(String s) {
-   	    if (s.isEmpty() || !tagException.isEmpty()) {
-   	    	this.edit.active = false;
-   	    	this.editButBucket = false;
-   	    	return;
-   	    }
-   	    if (MorphUtils.bmanager.get().containsKey(s)) {
-   	    	if (MorphUtils.bmanager.get().get(s).equals(new SavedBlock(this.playerState, this.playerTag, s))) {
-   	    		this.editButBucket = true;
-   	    		this.edit.active = true;
-   	    	} else {
-   	    		this.edit.active = false;
-   	    		this.editButBucket = false;
-   	    	}
-   	    } else {
-   	    	this.edit.active = true;
-   	    	this.editButBucket = false;
-   	    }
-   }
-
    private void updateNbt(String s) {
    	    try {
    	    	CompoundTag tag = TagParser.parseTag(s);
@@ -444,6 +422,10 @@ public class BlockMorphConfigScreen extends Screen {
    	    }
    }
 
+   private void send(BlockState blockState, CompoundTag tag) {
+   	    MorphUtils.sendServer(ServerBoundBlockMorphPacket.create(blockState, tag));
+
+   }
 
    @Override
    public void init() {
@@ -463,7 +445,7 @@ public class BlockMorphConfigScreen extends Screen {
 		this.addRenderableWidget(tagsBox);
 		this.addRenderableWidget(this.savebox);
 		this.playerState = ((PlayerAccessor)this.entity).getBlockState();
-		this.mb = ((PlayerAccessor)this.entity).isMultiBlock();
+		//this.mb = false;//((PlayerAccessor)this.entity).isMultiBlock();
 		BlockState blockState = this.playerState;
 		if (blockState.getBlock() instanceof EntityBlock) {
 			this.setInitialFocus(tagsBox);
@@ -492,10 +474,29 @@ public class BlockMorphConfigScreen extends Screen {
 		this.validSave(savebox.getValue());
    }
 
+   private void validSave(String s) {
+   	    if (s.isEmpty() || !tagException.isEmpty()) {
+   	    	this.edit.active = false;
+   	    	this.editButBucket = false;
+   	    	return;
+   	    }
+   	    if (MorphUtils.bmanager.get().containsKey(s)) {
+   	    	if (MorphUtils.bmanager.get().get(s).equals(new SavedBlock(this.playerState, this.playerTag, s))) {
+   	    		this.editButBucket = true;
+   	    		this.edit.active = true;
+   	    	} else {
+   	    		this.edit.active = false;
+   	    		this.editButBucket = false;
+   	    	}
+   	    } else {
+   	    	this.edit.active = true;
+   	    	this.editButBucket = false;
+   	    }
+   }
+
    public void tick() {
    	    super.tick();
    	    tagsBox.tick();
-   	    savebox.tick();
    }
 
    @Override
@@ -518,12 +519,12 @@ public class BlockMorphConfigScreen extends Screen {
         poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
         poseStack.mulPose(Axis.YP.rotationDegrees(225.0F)); 
         BlockPos pos = AIR;
-        BlockState blockstate = this.playerState;
-        RandomSource random = RandomSource.create(blockstate.getSeed(pos));
-        var model = this.dispatcher.getBlockModel(blockstate);
-        var renderType = ItemBlockRenderTypes.getMovingBlockRenderType(blockstate);
-        this.dispatcher.getModelRenderer().tesselateBlock(world, model, blockstate, pos, poseStack, bufferSource.getBuffer(renderType), false, RandomSource.create(), blockstate.getSeed(pos), OverlayTexture.NO_OVERLAY);
-        this.renderBlockEntity(blockstate, ticks, poseStack, bufferSource);
+        BlockState blockState = this.playerState;
+        RandomSource random = RandomSource.create(blockState.getSeed(pos));
+        var model = this.dispatcher.getBlockModel(blockState);
+        for (var renderType : model.getRenderTypes(blockState, random, ModelData.EMPTY))
+            this.dispatcher.getModelRenderer().tesselateBlock(world, model, blockState, pos, poseStack, bufferSource.getBuffer(renderType), false, RandomSource.create(), blockState.getSeed(pos), OverlayTexture.NO_OVERLAY, ModelData.EMPTY, renderType);
+        this.renderBlockEntity(blockState, ticks, poseStack, bufferSource);
         poseStack.popPose();
    }
 

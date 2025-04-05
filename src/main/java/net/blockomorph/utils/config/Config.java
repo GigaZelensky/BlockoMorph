@@ -1,17 +1,12 @@
 package net.blockomorph.utils.config;
 
 import com.google.gson.*;
-import net.blockomorph.core.MainBus;
 import net.blockomorph.network.ClientBoundConfigUpdatePacket;
 import net.blockomorph.utils.MorphUtils;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerPlayer;
+import net.minecraftforge.fml.loading.FMLPaths;
 
-import javax.print.DocFlavor;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -22,24 +17,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Config {
-   private static final String configDir = FabricLoader.getInstance().getGameDir() + "\\config\\blockomorph.json";
+   private static final String configDir = FMLPaths.GAMEDIR.get() + "\\config\\blockomorph.json";
    public final List<ConfigInstance<?>> options = List.of(
    	   new EnumConfig("listMode", Mode.NONE), 
    	   new BooleanConfig("solidBlocksOnly", false),
    	   new ListConfig("allowedBlocks", new ArrayList<>()),
    	   new ListConfig("bannedBlocks", new ArrayList<>()),
    	   new BooleanConfig("playerDieAfterDestroy", true),
-   	   new BooleanConfig("advancedMode", true, Component.translatable("gui.blockomorph.advTooltip")),
+       new BooleanConfig("advancedMode", true, Component.translatable("gui.blockomorph.advTooltip")),
    	   new BooleanConfig("canOperatorModifyConfig", true)
    );
    static Config INSTANCE;
-   static MinecraftServer server;
 
    private Config() {
-   }
-
-   public static MinecraftServer getServer() {
-	   return server;
    }
 
    public <T> T getValue(String option) {
@@ -56,8 +46,8 @@ public class Config {
    }
 
    public void makeDirty() {
-   	  write();
-	  MorphUtils.sendAll(new ClientBoundConfigUpdatePacket(this));
+	   write();
+	   MorphUtils.sendAll(new ClientBoundConfigUpdatePacket(this));
    }
 
    public void parse(String op, String val, boolean isPacket) {
@@ -79,23 +69,19 @@ public class Config {
    }
 
    public static Config readFromBufer(FriendlyByteBuf buf) {
-		Config cfg = new Config();
-		for (ConfigInstance<?> con : cfg.options) {
-			con.readBufer(buf);
-		}
-		return cfg;
+   	  Config cfg = new Config();
+   	  for (ConfigInstance<?> con : cfg.options) {
+   	  	con.readBufer(buf);
+   	  }
+	  return cfg;
    }
 
    public static Config getInstance() {
    	  return INSTANCE;
    }
 
-   public static void setServer(MinecraftServer s) {
-   	  server = s;
-   }
-
    public static void load(Config cfg) {
-		INSTANCE = cfg;
+	   INSTANCE = cfg;
    }
 
    public static Config load() {

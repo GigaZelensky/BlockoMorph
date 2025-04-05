@@ -11,6 +11,7 @@ public class ServerBoundUseBlockPacket implements BlockMorphPacket {
     public static final String ID = "server_bound_use_block_packet";
     BlockHitResult hit;
     InteractionHand hand;
+
     public ServerBoundUseBlockPacket(BlockHitResult bl, InteractionHand h) {
         this.hit = bl;
         this.hand = h;

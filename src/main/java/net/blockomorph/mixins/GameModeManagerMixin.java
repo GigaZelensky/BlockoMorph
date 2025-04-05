@@ -1,6 +1,6 @@
 package net.blockomorph.mixins;
 
-import net.blockomorph.utils.GamemodeAccessor;
+import net.blockomorph.utils.accessors.GamemodeAccessor;
 import net.blockomorph.utils.MorphUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
@@ -19,7 +19,7 @@ public abstract class GameModeManagerMixin implements GamemodeAccessor {
    @Inject(method = "destroyBlock", at = @At(value = "TAIL"), cancellable = true)
    public void stopMine(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
     Minecraft mc = Minecraft.getInstance();
-    MorphUtils.onPick();
+    MorphUtils.onPick(null);
     mc.gameRenderer.pick(1.0F);
    }
 

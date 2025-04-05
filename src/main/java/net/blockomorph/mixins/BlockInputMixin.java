@@ -1,6 +1,6 @@
 package net.blockomorph.mixins;
 
-import net.blockomorph.utils.BlockAccessor;
+import net.blockomorph.utils.accessors.BlockAccessor;
 import net.minecraft.commands.arguments.blocks.BlockInput;
 import net.minecraft.nbt.CompoundTag;
 import org.spongepowered.asm.mixin.Final;

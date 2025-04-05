@@ -4,11 +4,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.mojang.brigadier.builder.ArgumentBuilder;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import net.blockomorph.command.EnumArgument;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraftforge.server.command.EnumArgument;
 
 public class EnumConfig<T extends Enum<T>> extends ConfigInstance<T> {
     private final Class<T> classType;
@@ -33,7 +33,7 @@ public class EnumConfig<T extends Enum<T>> extends ConfigInstance<T> {
 
     public ArgumentBuilder work(LiteralArgumentBuilder b, CommandBuildContext c) {
    	  return b.then(Commands.argument("value", EnumArgument.enumArgument(this.classType)).executes(args -> {
-   	  	 this.value = EnumArgument.getEnum(args, this.classType, "value");
+   	  	 this.value = args.getArgument("value", this.classType);
    	  	 Config.getInstance().getOption(this.getName()).setValue(this.value);
    	  	 Config.getInstance().makeDirty();
    	  	 args.getSource().sendSuccess(() -> {

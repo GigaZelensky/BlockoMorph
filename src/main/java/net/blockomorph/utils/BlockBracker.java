@@ -28,7 +28,7 @@ public class BlockBracker {
     private final BlockState blockstate;
     private final EntityDataAccessor<CompoundTag> PROGRESSES;
     private final SynchedEntityData entityData;
-    public List<Player> players = new CopyOnWriteArrayList<>();
+    public final List<Player> players = new CopyOnWriteArrayList<>();
     private Player attacker; 
     private boolean braking;
     private boolean brake;
@@ -52,17 +52,17 @@ public class BlockBracker {
 
     public void tick() {
     	if (this.braking) {
-			if (player.getTnt() != null) {
-				this.stopDestroy();
-				return;
-			}
+    		if (player.getTnt() != null) {
+    			this.stopDestroy();
+    			return;
+    		}
    		    //progressCount
       	    if (this.brake) {
                 this.progress += 1 / this.pie;
                 while (this.progress >= 1.0f) {
                 	this.setProgress(this.getProgress() + 1);
                     if (this.getProgress() > 9) {
-						this.destroy(this.getAttacker());
+                        this.destroy(this.getAttacker());
                     }
                     this.progress -= 1;
                 }
@@ -73,13 +73,13 @@ public class BlockBracker {
       	    for (Player pl : this.players) {
                 //Player pl = iterator.next();
                 PlayerAccessor pla = (PlayerAccessor)pl;
-                AbstractMap.SimpleEntry<BlockPos, EntityHitResult> hit = MorphUtils.getPlayerLookedResult(pl, -1, 1);
+                MorphUtils.MorphedPlayerHit hit = MorphUtils.getPlayerLookedResult(pl, -1, 1);
                 if (pla.readyForDestroy()) {
-                	if (hit.getValue() == null || hit.getValue().getEntity() != owner) {
+                	if (hit == null || hit.hitResult().getEntity() != owner) {
                 		//iterator.remove();
                 	    this.players.remove(pl);
                 	} else {
-                		BlockPos pos = hit.getKey();
+                		BlockPos pos = hit.blockOffset();
                 		if (!pos.equals(this.offset)) {
                 			this.removePlayer(pl);
                 			this.player.addPlayer(pos, pl);
@@ -116,31 +116,28 @@ public class BlockBracker {
        }
     }
 
-    private String getKey() {
-    	return this.offset.getX() +
-    		" " +
-    		this.offset.getY() +
-    		" " +
-    		this.offset.getZ();
-    }
-
-	private void destroy(Player attacker) {
-		BlockState st = player.getBlockState();
-		if (st.getBlock() instanceof TntBlock && player.getTnt() == null && st.getValue(BlockStateProperties.UNSTABLE)) {
-			player.setTnt();
-			if (owner.level() instanceof ServerLevel lv) {
-				BlockPos pos = this.offset;
-				BlockState val = this.blockstate;
-				Player mob = this.owner;
-				VoxelShape shape2 = val.getCollisionShape(lv, mob.blockPosition(), CollisionContext.of(mob));
-				MorphUtils.particle(lv, mob.getX() + pos.getX(), mob.getY() + pos.getY(), mob.getZ() + pos.getZ(), val, shape2);
-				SoundType soundtype = val.getSoundType();
-				lv.playSound(null, mob.blockPosition().offset(pos), soundtype.getBreakSound(), SoundSource.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
-			}
-			return;
-		}
-		MorphUtils.destroy(player, attacker);
+	private String getKey() {
+		return MorphUtils.getBlockPos(this.offset);
 	}
+
+    private void destroy(Player attacker) {
+    	BlockState st = player.getBlockState();
+    	if (st.getBlock() instanceof TntBlock && player.getTnt() == null && st.getValue(BlockStateProperties.UNSTABLE)) {
+    		player.setTnt();
+    		if (owner.level() instanceof ServerLevel lv) {
+    			BlockPos pos = this.offset;
+                BlockState val = this.blockstate;
+                Player mob = this.owner;
+                VoxelShape shape2 = val.getCollisionShape(lv, mob.blockPosition(), CollisionContext.of(mob));
+                //MorphUtils.particle(lv, mob.getX() + pos.getX(), mob.getY() + pos.getY(), mob.getZ() + pos.getZ(), val, shape2);
+				MorphUtils.particle(lv, MorphUtils.getRealBlockPos(this.player, pos), val, shape2);
+                SoundType soundtype = val.getSoundType();
+                lv.playSound(null, mob.blockPosition().offset(pos), soundtype.getBreakSound(), SoundSource.BLOCKS, (soundtype.getVolume() + 1.0F) / 2.0F, soundtype.getPitch() * 0.8F);
+    		}
+    		return;
+    	}
+    	MorphUtils.destroy(player, attacker);
+    }
 
     private void setProgress(int i) {
     	CompoundTag tag = this.entityData.get(PROGRESSES);
@@ -165,7 +162,7 @@ public class BlockBracker {
     }
 
     public synchronized void removePlayer(Player pl) {
-        if (this.players.contains(pl)) this.players.remove(pl);
+        this.players.remove(pl);
     }
 
     @Nullable
@@ -177,19 +174,18 @@ public class BlockBracker {
         float progress = blockState.getDestroyProgress(pl, pl.level(), blockPos);
         if (Float.isInfinite(progress) || progress == 0) {
         	if (Float.isInfinite(progress)) {
-				this.destroy(pl);
+        		this.destroy(pl);
         		pl.swing(InteractionHand.MAIN_HAND, true);
         	}
         	return -1;
         }
-        return (float)(0.1F / progress);
+        return 0.1F / progress;
     }
 
     private float getTime(BlockState blockState, BlockPos blockPos, Player pl) {
    	    float cooldown = this.getCoolDown(blockState, blockPos, pl);
     	if (cooldown == -1) return cooldown;
-    	float time = cooldown / 20;
-    	return time;
+        return cooldown / 20;
     }
 
     private void setTimeFloat(float time2) {

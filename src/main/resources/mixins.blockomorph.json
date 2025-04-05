@@ -1,23 +1,33 @@
 {
   "required": true,
   "package": "net.blockomorph.mixins",
+  "minVersion": "0.8",
   "compatibilityLevel": "JAVA_17",
   "mixins": [
+    "BlockEntityMixin",
     "BlockInputMixin",
+    "CombinerMenuMixin",
+    "DebugMixin",
     "EntityGetterMixin",
     "EntityMixin",
+    "MenuMixin",
     "PlayerMixin",
-    "ServerMoveMixin",
-    "ServerPlayerMixin"
+    "ServerPacketListenerMixin",
+    "ServerPlayerMixin",
+    "blockUseFeatureFix.BlockPosMixin",
+    "blockUseFeatureFix.LivingEntityMixin",
+    "blockUseFeatureFix.ParotMixin",
+    "blockUseFeatureFix.ServerEntityMixin"
   ],
   "client": [
     "ClientPacketListenerMixin",
+    "DebugScreenMixin",
     "EntityRendererMixin",
     "GameModeManagerMixin",
     "GameRendererMixin",
-    "HudMixin",
-    "MinecraftMixin",
-    "PlayerRendererMixin"
-  ],
-  "minVersion": "0.8"
+    "LevelRenderMixin",
+    "PlayerRendererMixin",
+    "blockUseFeatureFix.HumanoidModelMixin",
+    "blockUseFeatureFix.SignFixMixin"
+  ]
 }

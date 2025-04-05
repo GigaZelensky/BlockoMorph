@@ -45,14 +45,15 @@ public class ServerBoundBlockMorphPacket implements BlockMorphPacket {
                 if (reason == null) {
                     CompoundTag nbt = tag.getCompound("Tags");
                     if (tag.contains("MultiBlock", 1) && (boolean) Config.getInstance().getValue("advancedMode")) {
-                        mob.applyBlockMorph(blockstate, nbt, tag.getBoolean("MultiBlock"));
+                        mob.applyBlockMorph(blockstate, nbt);
+                        //mob.applyBlockMorph(blockstate, nbt, tag.getBoolean("MultiBlock"));
                     } else {
                         mob.applyBlockMorph(blockstate, nbt);
                     }
                 } else throw new IllegalArgumentException(reason.reason());
             }
         } catch (Exception e) {
-            throw new IllegalArgumentException("Invalid block morph nbt from player " + player + ": " + e.getMessage());
+            throw e;//new IllegalArgumentException("Invalid block morph nbt from player " + player + ": " + e.getMessage());
         }
     }
 

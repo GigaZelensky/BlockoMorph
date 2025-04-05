@@ -1,11 +1,9 @@
 package net.blockomorph.screens;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import net.blockomorph.core.MainBus;
 import net.blockomorph.network.ServerBoundConfigUpdatePacket;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.*;
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -112,7 +110,7 @@ public class ConfigScreen extends Screen {
    }
 
    private void send(ServerBoundConfigUpdatePacket p) {
-   	    MorphUtils.sendServer(p);
+	   MorphUtils.sendServer(p);
    }
 
    private boolean isMouseOver(double mouseX, double mouseY, int x, int y, int width, int height) {

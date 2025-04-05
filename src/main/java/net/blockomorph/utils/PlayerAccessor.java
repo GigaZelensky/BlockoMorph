@@ -1,5 +1,7 @@
 package net.blockomorph.utils;
 
+import net.blockomorph.utils.use.UseController;
+import net.blockomorph.utils.use.fix.BedController;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
@@ -8,29 +10,36 @@ import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.List;
 
 public interface PlayerAccessor {
-    void applyBlockMorph(BlockState state, CompoundTag tag, boolean mb);
-    void applyBlockMorph(BlockState state, CompoundTag tag);
-    InteractionResult clickPlayer(Player clicker, BlockHitResult hiter, InteractionHand hand);
-    BlockState getBlockState();
-    CompoundTag getTag();
-    boolean isActive();
-    CompoundTag getProgress();
-    void addPlayer(BlockPos pos, Player player);
-    void removePlayer(BlockPos pos, Player pl);
-    VoxelShape getShape();
-    VoxelShape getRenderShape(BlockPos pos);
-    boolean readyForDestroy();
-    void setReady(boolean flag);
-    HashMap<BlockPos, BlockState> getBlocks();
-    int getBiggestProgress();
-    boolean isMultiBlock();
-    BlockPos minPos();
-    boolean isFullActive();
-    PrimedTnt getTnt();
-    void setTnt();
+	void applyBlockMorph(BlockState state, CompoundTag tag);
+	InteractionResult clickPlayer(Player clicker, BlockHitResult hiter, InteractionHand hand);
+	BlockState getBlockState();
+	CompoundTag getTag();
+	boolean isActive();
+	boolean isFullActive();
+	CompoundTag getProgress();
+	void addPlayer(BlockPos pos, Player player);
+	void removePlayer(BlockPos pos, Player pl);
+	VoxelShape getShape(BlockPos offset, @Nullable Vec3 realPos);
+	VoxelShape getRenderShape(BlockPos pos);
+	boolean readyForDestroy();
+	void setReady(boolean flag);
+	HashMap<BlockPos, BlockState> getBlocks();
+	int getBiggestProgress();
+	BlockPos minPos();
+	BlockPos maxPos();
+	PrimedTnt getTnt();
+	void setTnt();
+	void enableBlockOverrides(HashMap<BlockPos, SavedBlock> blocks);
+	HashMap<BlockPos, UseController> getUseControllers();
+	void saveBlockEntities();
+	BedController getBedController();
+	HashMap<BlockPos, BlockInPlayer> getBlocksData();
 }

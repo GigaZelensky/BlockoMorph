@@ -3,6 +3,7 @@ package net.blockomorph.mixins;
 import com.google.common.collect.ImmutableList;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
+import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.player.Player;
@@ -11,12 +12,14 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -40,12 +43,23 @@ public abstract class EntityGetterMixin implements LevelAccessor, CollisionGette
 
             for(Entity entity : list) {
                if (entity instanceof PlayerAccessor pl) {
-               	  VoxelShape shape = pl.getShape();
-        
-                  shape = MorphUtils.centerVoxelShape(shape, pl);
 
-                  if (pl.isFullActive())
-               	      builder.add(shape);
+                  AABB cube = Shapes.block().bounds();
+                  List<VoxelShape> blocks = new ArrayList<>();
+                  AABB aabbPl = p_186452_.inflate(1.0E-7);
+
+                  if (pl.isFullActive()) {
+                     for (BlockPos offset : pl.getBlocksData().keySet()) {
+                        Vec3 realpos = MorphUtils.getRealBlockPos(pl, offset);
+                        AABB movedCube = cube.move(realpos);
+                        if (aabbPl.intersects(movedCube)) {
+                           blocks.add(pl.getShape(offset, realpos));
+                        }
+                     }
+                     for (VoxelShape shp : blocks) {
+                        builder.add(shp);
+                     }
+                  }
                } else {
                   builder.add(Shapes.create(entity.getBoundingBox()));
                }
