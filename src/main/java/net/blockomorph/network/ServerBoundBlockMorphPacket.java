@@ -36,16 +36,16 @@ public class ServerBoundBlockMorphPacket implements BlockMorphPacket {
         try {
             if (player instanceof PlayerAccessor mob) {
                 if (tag == null) throw new IllegalArgumentException("Nbt is null!");
-                if (tag.contains("fuse", 1)) {
+                if (tag.contains("fuse")) {
                     mob.setTnt();
                     return;
                 }
-                BlockState blockstate = NbtUtils.readBlockState(player.level().holderLookup(Registries.BLOCK), tag.getCompound("BlockState"));
+                BlockState blockstate = NbtUtils.readBlockState(player.level().holderLookup(Registries.BLOCK), tag.getCompound("BlockState").orElse(new CompoundTag()));
                 MorphUtils.BannedBlock reason = MorphUtils.isBannedBlock(blockstate, player);
                 if (reason == null) {
-                    CompoundTag nbt = tag.getCompound("Tags");
-                    if (tag.contains("MultiBlock", 1) && (boolean) Config.getInstance().getValue("advancedMode")) {
-                        mob.applyBlockMorph(blockstate, nbt, tag.getBoolean("MultiBlock"));
+                    CompoundTag nbt = tag.getCompound("Tags").orElse(new CompoundTag());
+                    if (tag.contains("MultiBlock") && (boolean) Config.getInstance().getValue("advancedMode")) {
+                        mob.applyBlockMorph(blockstate, nbt, tag.getBoolean("MultiBlock").orElse(false));
                     } else {
                         mob.applyBlockMorph(blockstate, nbt);
                     }

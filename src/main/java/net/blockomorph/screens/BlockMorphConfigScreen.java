@@ -4,7 +4,9 @@ import net.blockomorph.utils.*;
 import net.blockomorph.network.*;
 import net.blockomorph.utils.config.*;
 
+import net.minecraft.client.Camera;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.client.Minecraft;
@@ -153,15 +155,12 @@ public class BlockMorphConfigScreen extends Screen {
 
    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
 		RenderSystem.setShaderColor(1, 1, 1, 1);
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
 		guiGraphics.blit(RenderType::guiTextured, texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
 		if (!tagsBox.canConsumeInput()) 
 		    guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/morph_gui_icons.png"), this.leftPos + 7, this.topPos + 139, 0, 0, 162, 19, 162, 19);
 		guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/exit_tabs.png"), this.leftPos + 4, this.topPos - 19, 0, 23, 80, 22, 80, 46);
 		this.renderMbButton(guiGraphics, partialTicks, gx, gy);
 		this.renderProp(guiGraphics, gx, gy);
-		RenderSystem.disableBlend();
    }
 
    private void renderMbButton(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
@@ -452,7 +451,7 @@ public class BlockMorphConfigScreen extends Screen {
 
    private void updateNbt(String s) {
    	    try {
-   	    	CompoundTag tag = TagParser.parseTag(s);
+   	    	CompoundTag tag = TagParser.parseCompoundFully(s);
    	    	BlockState blockState = this.playerState;
    	    	this.send(blockState, tag);
    	    	this.tagException = "";
@@ -533,9 +532,9 @@ public class BlockMorphConfigScreen extends Screen {
         BlockPos pos = AIR;
         BlockState blockstate = this.playerState;
         RandomSource random = RandomSource.create(blockstate.getSeed(pos));
-        var model = this.dispatcher.getBlockModel(blockstate);
         var renderType = ItemBlockRenderTypes.getMovingBlockRenderType(blockstate);
-        this.dispatcher.getModelRenderer().tesselateBlock(world, model, blockstate, pos, poseStack, bufferSource.getBuffer(renderType), false, RandomSource.create(), blockstate.getSeed(pos), OverlayTexture.NO_OVERLAY);
+	    List<BlockModelPart> list = this.dispatcher.getBlockModel(blockstate).collectParts(random);
+        this.dispatcher.getModelRenderer().tesselateBlock(world, list, blockstate, pos, poseStack, bufferSource.getBuffer(renderType), false, OverlayTexture.NO_OVERLAY);
         this.renderBlockEntity(blockstate, ticks, poseStack, bufferSource);
         poseStack.popPose();
    }
@@ -550,7 +549,8 @@ public class BlockMorphConfigScreen extends Screen {
                 BlockEntityRenderer renderer = blockEntityRenderDispatcher.getRenderer(blockEntity);
                 if (renderer != null) {
            	        posestack.pushPose();
-                    renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY);
+					Camera cam = Minecraft.getInstance().getBlockEntityRenderDispatcher().camera;
+                    renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY, cam.getPosition());
                     posestack.popPose();
                 }
               } catch (Exception e) {

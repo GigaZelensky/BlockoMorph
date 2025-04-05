@@ -22,17 +22,6 @@ import net.minecraft.client.renderer.entity.state.EntityRenderState;
 public abstract class EntityRendererMixin {
 
    @Inject(
-      method = {"renderHitbox"},
-      at = {@At("HEAD")},
-      cancellable = true
-   )
-   private static void renderHitbox(PoseStack poseStack, VertexConsumer vertexConsumer, Entity entity, float f, float g, float h, float i, CallbackInfo ci) {
-   	  if (entity instanceof PlayerAccessor pl) {
-   	  	if (pl.isFullActive()) ci.cancel();
-   	  }
-   }
-
-   @Inject(
       method = {"renderFlame"},
       at = {@At("HEAD")},
       cancellable = true

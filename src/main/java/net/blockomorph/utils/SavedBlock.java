@@ -38,8 +38,8 @@ public class SavedBlock {
    }
 
    public static SavedBlock fromTag(CompoundTag tag, String k) {
-   	   CompoundTag nbt = tag.getCompound("Tag");
-   	   BlockState state = NbtUtils.readBlockState(Minecraft.getInstance().level.holderLookup(Registries.BLOCK), tag.getCompound("BlockState"));
+   	   CompoundTag nbt = tag.getCompound("Tag").orElse(new CompoundTag());
+   	   BlockState state = NbtUtils.readBlockState(Minecraft.getInstance().level.holderLookup(Registries.BLOCK), tag.getCompound("BlockState").orElse(new CompoundTag()));
    	   return new SavedBlock(state, nbt, k);
    }
 
