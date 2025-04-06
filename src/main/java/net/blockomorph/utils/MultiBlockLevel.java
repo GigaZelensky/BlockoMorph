@@ -74,7 +74,9 @@ extends Level {
     	return this.blocks;
     }
 
-
+    public Level getRealLevel() {
+        return this.realLevel;
+    }
 
 
 
@@ -87,10 +89,6 @@ extends Level {
 
     public <T extends Entity> void getEntities(EntityTypeTest<Entity, T> test, AABB ab, Predicate<? super T> p, List<? super T> l, int i) {
         realLevel.getEntities(test, ab, p, l, i);
-    }
-
-    public Level getRealLevel() {
-        return this.realLevel;
     }
 
     @Override
@@ -108,9 +106,9 @@ extends Level {
 
     public void sendBlockUpdated(BlockPos var1, BlockState var2, BlockState var3, int var4) {}
 
-    public void playSeededSound(@Nullable Player var1, double var2, double var4, double var6, Holder<SoundEvent> var8, SoundSource var9, float var10, float var11, long var12) {}
+    public void playSeededSound(@Nullable Entity var1, double var2, double var4, double var6, Holder<SoundEvent> var8, SoundSource var9, float var10, float var11, long var12) {}
 
-    public void playSeededSound(@Nullable Player var1, Entity var2, Holder<SoundEvent> var3, SoundSource var4, float var5, float var6, long var7) {}
+    public void playSeededSound(@Nullable Entity var1, Entity var2, Holder<SoundEvent> var3, SoundSource var4, float var5, float var6, long var7) {}
 
     public void explode(@Nullable Entity var1, @Nullable DamageSource var2, @Nullable ExplosionDamageCalculator var3, double var4, double var6, double var8, float var10, boolean var11, ExplosionInteraction var12, ParticleOptions var13, ParticleOptions var14, Holder<SoundEvent> var15) {}
 
@@ -121,13 +119,6 @@ extends Level {
     @Nullable
     public MapItemSavedData getMapData(MapId var1) {
     	return realLevel.getMapData(var1);
-    }
-
-    public void setMapData(MapId var1, MapItemSavedData var2) {}
-
-    @Override
-    public MapId getFreeMapId() {
-        return realLevel.getFreeMapId();
     }
 
     public RecipeAccess recipeAccess() {
@@ -169,11 +160,11 @@ extends Level {
 
     public void gameEvent(Holder<GameEvent> var1, Vec3 var2, GameEvent.Context var3) {}
 
-    public void playSound(@Nullable Player var1, BlockPos var2, SoundEvent var3, SoundSource var4, float var5, float var6) {}
+    public void playSound(@Nullable Entity var1, BlockPos var2, SoundEvent var3, SoundSource var4, float var5, float var6) {}
 
     public void addParticle(ParticleOptions var1, double var2, double var4, double var6, double var8, double var10, double var12) {}
 
-    public void levelEvent(@Nullable Player var1, int var2, BlockPos var3, int var4) {}
+    public void levelEvent(@Nullable Entity var1, int var2, BlockPos var3, int var4) {}
 
     public ChunkSource getChunkSource() {
     	return realLevel.getChunkSource();

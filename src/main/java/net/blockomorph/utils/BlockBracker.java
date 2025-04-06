@@ -154,8 +154,7 @@ public class BlockBracker {
 
     public int getProgress() {
     	CompoundTag tag = this.entityData.get(PROGRESSES);
-    	if (!tag.contains(this.getKey(), 3)) return -1;
-    	return tag.getInt(this.getKey());
+    	return tag.getInt(this.getKey()).orElse(-1);
     }
 
     public void stopDestroy() {

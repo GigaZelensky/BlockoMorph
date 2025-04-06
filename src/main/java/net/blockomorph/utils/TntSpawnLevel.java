@@ -39,7 +39,7 @@ public class TntSpawnLevel extends MultiBlockLevel {
 		return false;
 	}
 
-	public void playSound(@Nullable Player pl, BlockPos bp, SoundEvent se, SoundSource ss, float sp1, float sp2) {
+	public void playSound(@Nullable Entity pl, BlockPos bp, SoundEvent se, SoundSource ss, float sp1, float sp2) {
 		this.realLevel.playSound(pl, bp, se, ss, sp1, sp2);
 	}
 
@@ -52,7 +52,7 @@ public class TntSpawnLevel extends MultiBlockLevel {
 	}
 
 	public void playSeededSound(
-		@Nullable Player a1, 
+		@Nullable Entity a1,
 		double a2, 
 		double a3, 
 		double a4, 
@@ -71,17 +71,6 @@ public class TntSpawnLevel extends MultiBlockLevel {
 			return true;
 		}
 		return false;
-	}
-
-	public Explosion explode(
-		@Nullable Entity a1, 
-		@Nullable DamageSource a2, 
-		@Nullable ExplosionDamageCalculator a3, 
-		double a4, double a5, double a6, float a7, boolean a8, 
-		ExplosionInteraction a9,
-		boolean a10
-	) {
-		return null;
 	}
 
     @Override

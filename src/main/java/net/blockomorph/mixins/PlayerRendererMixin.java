@@ -1,5 +1,6 @@
 package net.blockomorph.mixins;
 
+import net.minecraft.client.Camera;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.state.TntRenderState;
 import net.minecraft.world.entity.item.PrimedTnt;
@@ -75,6 +76,10 @@ extends EntityRenderer<T, S> {
    public void extractRenderState(T abstractClientPlayer, S playerRenderState, float f, CallbackInfo ci) {
    	  if (playerRenderState instanceof PlayerRenderState r)
    	      this.getPl(r).loadPlayer((AbstractClientPlayer)abstractClientPlayer);
+      if (abstractClientPlayer instanceof PlayerAccessor pl && pl.isFullActive()) {
+          playerRenderState.serverHitboxesRenderState = null;
+          playerRenderState.hitboxesRenderState = null;
+      }
    }
    
    @Inject(
@@ -149,7 +154,7 @@ extends EntityRenderer<T, S> {
    	    posestack.pushPose();
         var model = this.dispatcher.getBlockModel(blockstate);
         var renderType = ItemBlockRenderTypes.getMovingBlockRenderType(blockstate);
-        this.dispatcher.getModelRenderer().tesselateBlock(level, model, blockstate, pos, posestack, buffer.getBuffer(renderType), false, RandomSource.create(), blockstate.getSeed(pos), OverlayTexture.NO_OVERLAY);
+        this.dispatcher.getModelRenderer().tesselateBlock(level, model.collectParts(RandomSource.create(blockstate.getSeed(player.blockPosition()))), blockstate, pos, posestack, buffer.getBuffer(renderType), false, OverlayTexture.NO_OVERLAY);
         posestack.popPose();
    }
 
@@ -176,7 +181,8 @@ extends EntityRenderer<T, S> {
                 BlockEntityRenderer renderer = blockEntityRenderDispatcher.getRenderer(blockEntity);
                 if (renderer != null) {
            	        posestack.pushPose();
-                    renderer.render(blockEntity, partialticks, posestack, buffer, light, OverlayTexture.NO_OVERLAY);
+                    Camera cam = Minecraft.getInstance().getBlockEntityRenderDispatcher().camera;
+                    renderer.render(blockEntity, partialticks, posestack, buffer, light, OverlayTexture.NO_OVERLAY, cam.getPosition());
                     posestack.popPose();
                 }
               } catch (Exception e) {
@@ -193,7 +199,7 @@ extends EntityRenderer<T, S> {
 
    private void renderBreak(AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer, PlayerAccessor pl) {
    	    CompoundTag k = pl.getProgress();
-   	    for (String key : k.getAllKeys()) {
+   	    for (String key : k.keySet()) {
             if (key.equals("fuse")) continue;
    	    	posestack.pushPose();
    	    	
@@ -206,7 +212,7 @@ extends EntityRenderer<T, S> {
    	    	}
    	    	if (pos != null && state != null) {
    	    		posestack.translate(pos.getX(), pos.getY(), pos.getZ());
-   	    		this.renderBreak(k.getInt(key), state, player, posestack, buffer);
+   	    		this.renderBreak(k.getInt(key).orElse(-1), state, player, posestack, buffer);
    	    	}
 
    	    	posestack.popPose();

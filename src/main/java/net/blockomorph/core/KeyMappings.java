@@ -16,7 +16,7 @@ import java.util.ArrayList;
 
 @EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD, value = {Dist.CLIENT})
 public class KeyMappings {
-    private static final Minecraft mc = Minecraft.getInstance();
+    private static Minecraft mc = Minecraft.getInstance();
 	private static final ArrayList<KeyMapping> KEYS = new ArrayList<>();
 
 	public static final KeyMapping MORPH = new HandlerKeymapping("key.blockomorph.morph_menu", GLFW.GLFW_KEY_Y, () ->
@@ -56,6 +56,7 @@ public class KeyMappings {
 		@Override
 		public void setDown(boolean isDown) {
 			super.setDown(isDown);
+			if (mc == null) mc = Minecraft.getInstance();
 			if (isDown && mc.screen == null) {
 				this.action.run();
 			}

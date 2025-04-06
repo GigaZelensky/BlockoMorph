@@ -1,8 +1,8 @@
 package net.blockomorph.utils;
 
-import java.io.File;
 import java.util.HashMap;
-import net.minecraft.nbt.CompoundTag;
+
+import net.blockomorph.Blockomorph;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 import java.util.Map;
@@ -19,17 +19,17 @@ public class SavedBlockManager {
 
    public void load() {
    	  if (!init)
-   	  try {
-   	    CompoundTag tag = NbtIo.read(this.gameDir);
-   	    if (tag != null) {
-   	      for (String key : tag.getAllKeys()) {
-   	  	    this.blocks.put(key, SavedBlock.fromTag(tag.getCompound(key), key));
-   	      }
-   	    }
-   	    init = true;
-   	  } catch (Exception e) {
-   		e.printStackTrace();
-   	  }
+		  try {
+			  CompoundTag tag = NbtIo.read(this.gameDir);
+			  if (tag != null) {
+				  for (String key : tag.keySet()) {
+					  this.blocks.put(key, SavedBlock.fromTag(tag.getCompound(key).orElse(new CompoundTag()), key));
+				  }
+			  }
+			  init = true;
+		  } catch (Exception e) {
+			  Blockomorph.LOGGER.error("An error occurred while trying to load your favorite blocks: ", e);
+		  }
    }
 
    public HashMap<String, SavedBlock> get() {
@@ -64,7 +64,7 @@ public class SavedBlockManager {
    	    }
    	    NbtIo.write(tag, this.gameDir);
    	  } catch (Exception e) {
-   		e.printStackTrace();
+   		Blockomorph.LOGGER.error("An error occurred while trying to save your favorite blocks: ", e);
    	  }
    }
 }

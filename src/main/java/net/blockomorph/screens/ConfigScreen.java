@@ -63,14 +63,11 @@ public class ConfigScreen extends Screen {
 
    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
 		RenderSystem.setShaderColor(1, 1, 1, 1);
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
 		guiGraphics.blit(RenderType::guiTextured, texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
 		this.renderConfigs(guiGraphics, gx, gy);
 		guiGraphics.drawString(this.font, Component.translatable("menu.options"), this.leftPos + 8, this.topPos + 6, 4210752, false);
 		//scroller always locked in this mod version
 		guiGraphics.blitSprite(RenderType::guiTextured, ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller_disabled"), this.leftPos + 158, this.topPos + 16, 12, 15);
-		RenderSystem.disableBlend();
    }
 
    public ConfigInstance<?> getProp(double x, double y) {

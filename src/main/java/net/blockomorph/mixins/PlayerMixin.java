@@ -86,7 +86,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
    @Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
    public void readAdditionalSaveData(CompoundTag tag, CallbackInfo ci) {
     	if (tag.contains("BlockMorph")) {
-    	    this.entityData.set(DATA_BlockMorph, tag.getCompound("BlockMorph"), true);
+    	    this.entityData.set(DATA_BlockMorph, tag.getCompound("BlockMorph").orElse(new CompoundTag()), true);
     	} else {
     		CompoundTag morphblocktag = new CompoundTag();
             morphblocktag.put("BlockState", NbtUtils.writeBlockState(Blocks.AIR.defaultBlockState()));
@@ -146,13 +146,13 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
    }
 
    @Inject(method = "causeFallDamage", at = @At("HEAD"), cancellable = true)
-   public void causeFallDamage(float f, float g, DamageSource damageSource, CallbackInfoReturnable<Boolean> cir) {
+   public void causeFallDamage(double damage, float p_150093_, DamageSource p_150095_, CallbackInfoReturnable<Boolean> cir) {
    	   if (this.isActive()) {
    	   	cir.cancel();
         if (!(this.getBlockState().getBlock() instanceof AnvilBlock)) {
             return;
         }
-        int i = Mth.ceil(f - 1.0f);
+        int i = Mth.ceil(damage - 1.0f);
         if (i < 0) {
             return;
         }
@@ -201,7 +201,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
    }
 
    public BlockState getBlockState() {
-        BlockState blockstate = NbtUtils.readBlockState(this.level().holderLookup(Registries.BLOCK), this.entityData.get(DATA_BlockMorph).getCompound("BlockState"));
+        BlockState blockstate = NbtUtils.readBlockState(this.level().holderLookup(Registries.BLOCK), this.entityData.get(DATA_BlockMorph).getCompound("BlockState").orElse(new CompoundTag()));
         return blockstate;
    }
 
@@ -270,7 +270,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
    }
 
    public CompoundTag getTag() {
-   	  return this.entityData.get(DATA_BlockMorph).getCompound("Tags");
+   	  return this.entityData.get(DATA_BlockMorph).getCompound("Tags").orElse(new CompoundTag());
    }
 
    public boolean isActive() {
@@ -314,7 +314,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
    }
 
    public boolean isMultiBlock() {
-   	    return this.entityData.get(DATA_BlockMorph).getBoolean("MultiBlock");
+   	    return this.entityData.get(DATA_BlockMorph).getBoolean("MultiBlock").orElse(false);
    }
 
    public BlockPos minPos() {
@@ -465,7 +465,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
          this.refreshDimensions();
          if (this.level().isClientSide()) this.clientUpdate();
       } else if (this.level().isClientSide() && BRAKE_PROGRESS.equals(p_20059_)) {
-          int i = this.entityData.get(BRAKE_PROGRESS).getInt("fuse");
+          int i = this.entityData.get(BRAKE_PROGRESS).getInt("fuse").orElse(-1);
           if (i < 0) {
               this.tnt = null;
           } else {

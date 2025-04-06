@@ -1,10 +1,14 @@
 package net.blockomorph.screens;
 
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.blockomorph.utils.*;
 import net.blockomorph.utils.config.*;
 import net.blockomorph.network.*;
 
+import net.minecraft.client.Camera;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.renderer.block.model.BlockStateModel;
+import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.client.Minecraft;
@@ -40,6 +44,7 @@ import com.mojang.math.Axis;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import net.neoforged.neoforge.client.RenderTypeHelper;
 import org.joml.Matrix4f;
 
 import java.util.Optional;
@@ -530,9 +535,8 @@ public class BlockMorphConfigScreen extends Screen {
         BlockPos pos = AIR;
         BlockState blockState = this.playerState;
         RandomSource random = RandomSource.create(blockState.getSeed(pos));
-        var model = this.dispatcher.getBlockModel(blockState);
-        for (var renderType : model.getRenderTypes(blockState, random, ModelData.EMPTY))
-            this.dispatcher.getModelRenderer().tesselateBlock(world, model, blockState, pos, poseStack, bufferSource.getBuffer(renderType), false, RandomSource.create(), blockState.getSeed(pos), OverlayTexture.NO_OVERLAY, ModelData.EMPTY, renderType);
+        BlockStateModel model = this.dispatcher.getBlockModel(blockState);
+        this.dispatcher.getModelRenderer().tesselateBlock(world, model.collectParts(random), blockState, pos, poseStack, (renderType) -> bufferSource.getBuffer(RenderTypeHelper.getMovingBlockRenderType(renderType)), false, OverlayTexture.NO_OVERLAY);
         this.renderBlockEntity(blockState, ticks, poseStack, bufferSource);
         poseStack.popPose();
    }
@@ -547,7 +551,8 @@ public class BlockMorphConfigScreen extends Screen {
                 BlockEntityRenderer renderer = blockEntityRenderDispatcher.getRenderer(blockEntity);
                 if (renderer != null) {
            	        posestack.pushPose();
-                    renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY);
+					Camera cam = Minecraft.getInstance().getBlockEntityRenderDispatcher().camera;
+                    renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY, cam.getPosition());
                     posestack.popPose();
                 }
               } catch (Exception e) {
