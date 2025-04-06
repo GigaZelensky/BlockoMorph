@@ -195,7 +195,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
    }
 
    @Inject(method = "causeFallDamage", at = @At("HEAD"), cancellable = true)
-   public void causeFallDamage(double d, float f, DamageSource damageSource, CallbackInfoReturnable<Boolean> cir) {
+   public void causeFallDamage(double f, float d, DamageSource damageSource, CallbackInfoReturnable<Boolean> cir) {
    	   if (this.isActive()) {
    	   	cir.cancel();
         if (!(this.getBlockState().getBlock() instanceof AnvilBlock)) {
