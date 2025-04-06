@@ -40,9 +40,6 @@ import com.mojang.math.Axis;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
-import net.neoforged.neoforge.client.model.data.ModelData;
-import net.neoforged.neoforge.network.PacketDistributor;
-
 import org.joml.Matrix4f;
 
 import java.util.Optional;
@@ -155,15 +152,12 @@ public class BlockMorphConfigScreen extends Screen {
 
    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
 		RenderSystem.setShaderColor(1, 1, 1, 1);
-		RenderSystem.enableBlend();
-		RenderSystem.defaultBlendFunc();
 		guiGraphics.blit(RenderType::guiTextured, texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
 		if (!tagsBox.canConsumeInput()) 
 		    guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/morph_gui_icons.png"), this.leftPos + 7, this.topPos + 139, 0, 0, 162, 19, 162, 19);
 		guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/exit_tabs.png"), this.leftPos + 4, this.topPos - 19, 0, 23, 80, 22, 80, 46);
 		this.renderMbButton(guiGraphics, partialTicks, gx, gy);
 		this.renderProp(guiGraphics, gx, gy);
-		RenderSystem.disableBlend();
    }
 
    private void renderMbButton(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
@@ -456,7 +450,7 @@ public class BlockMorphConfigScreen extends Screen {
 
    private void updateNbt(String s) {
    	    try {
-   	    	CompoundTag tag = TagParser.parseTag(s);
+   	    	CompoundTag tag = TagParser.parseCompoundFully(s);
    	    	BlockState blockState = this.playerState;
    	    	this.send(blockState, tag);
    	    	this.tagException = "";
