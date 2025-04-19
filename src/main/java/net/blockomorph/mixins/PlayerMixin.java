@@ -1,6 +1,5 @@
 package net.blockomorph.mixins;
 
-import com.ibm.icu.impl.Pair;
 import net.blockomorph.Blockomorph;
 import net.blockomorph.network.blockFix.ClientBoundBlockEventPacket;
 import net.blockomorph.screens.BlockMorphConfigScreen;
@@ -31,12 +30,10 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -48,17 +45,16 @@ import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
-import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import oshi.jna.platform.mac.SystemB;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Predicate;
 
 @Mixin(Player.class)
@@ -66,7 +62,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	@Shadow public AbstractContainerMenu containerMenu;
 	@Shadow public abstract void closeContainer();
 	@Shadow @Final public InventoryMenu inventoryMenu;
-
 	@Shadow public abstract int getSleepTimer();
 
 	private static final EntityDataAccessor<CompoundTag> DATA_BlockMorph = SynchedEntityData.defineId(Player.class, EntityDataSerializers.COMPOUND_TAG);
@@ -244,7 +239,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
                     blockEntityTag.merge(tag);
 				}
 			} catch (Exception e) {
-				Blockomorph.LOGGER.warn("When receiving original tags from the block entity of the player " + this + " an error occurred: " + e);
+				Blockomorph.LOGGER.warn("When receiving original tags from the block entity of the player " + this + " an error occurred: ", e);
 				blockEntityTag = new CompoundTag();
 				blockEntityTag.merge(tag);
 			}
@@ -256,10 +251,17 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		mainTag.getCompound("Blocks").put("0 0 0", morphblocktag);
 		this.entityData.set(DATA_BlockMorph, mainTag, true);
 		TNT_HANDLER.setFuse(-1);
-		TNT_HANDLER.setTnt(null);
+		TNT_HANDLER.setTnt((PrimedTnt) null);
+		HashMap<BlockPos, BlockState> runUpdate = new HashMap<>();
+		runUpdate.put(BlockPos.ZERO, state);
+		this.neightbourUpdate(runUpdate);
 	}
 
 	public void enableBlockOverrides(HashMap<BlockPos, SavedBlock> blocks) {
+		this.enableBlockOverrides(blocks, true);
+	}
+
+	private void enableBlockOverrides(HashMap<BlockPos, SavedBlock> blocks, boolean update) {
 		if (!this.isFullActive() || blocks.isEmpty()) return;
 		if (blocks.containsKey(BlockPos.ZERO)) {
 			if (blocks.get(BlockPos.ZERO).getState().getBlock() == Blocks.AIR) {
@@ -273,6 +275,8 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		morphblocktag.putInt("UpdateFlag", 0);
 		CompoundTag elemets = new CompoundTag();
 
+		HashMap<BlockPos, BlockState> updatingBlocks = new HashMap<>();
+
 		for (Map.Entry<BlockPos, SavedBlock> bl : blocks.entrySet()) {
 			SavedBlock block = bl.getValue();
 			if (block.getState() != null && block.getTag() != null) {
@@ -281,20 +285,44 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 				tg.put("Tags", block.getTag());
 				elemets.put(MorphUtils.getBlockPos(bl.getKey()), tg);
 			}
+			updatingBlocks.put(bl.getKey(), block.getState());
 		}
 		CompoundTag now = new CompoundTag();
 		now.put("Blocks", elemets);
 		morphblocktag.merge(now);
 		this.entityData.set(DATA_BlockMorph, morphblocktag, true);
 		this.saveBlockEntities();
+		if (update)
+			this.neightbourUpdate(updatingBlocks);
 	}
 
 	private void neightbourUpdate(HashMap<BlockPos, BlockState> blocks) {
+		HashMap<BlockPos, BlockState> updatedBlocks = new HashMap<>();
 		for (Map.Entry<BlockPos, BlockState> block : blocks.entrySet()) {
 			BlockPos offset = block.getKey();
-			BlockState state = block.getValue();
-			while (true) {
+			this.updateBlock(offset, blocks, updatedBlocks);
+		}
+		HashMap<BlockPos, SavedBlock> finalUpdated = new HashMap<>();
+		for (Map.Entry<BlockPos, BlockState> block : updatedBlocks.entrySet()) {
+			finalUpdated.put(block.getKey(), new SavedBlock(block.getValue(), new CompoundTag(), ""));
+		}
+		this.enableBlockOverrides(finalUpdated, false);
+	}
 
+	private void updateBlock(BlockPos pos, HashMap<BlockPos, BlockState> banned, HashMap<BlockPos, BlockState> updating) {
+		for (Direction updDir : Direction.values()) {
+			BlockPos offsetted = pos.relative(updDir);
+			if (this.getUseControllers().containsKey(offsetted) && !banned.containsKey(offsetted) && !updating.containsKey(offsetted)) {
+				BlockState ctr = this.getUseControllers().get(offsetted).getBlockState();
+				MultiBlockLevel lv = new MultiBlockLevel(this.level(), false);
+				lv.getBlocks().putAll(this.getBlocks());
+
+				BlockState ctr2 = ctr.getBlock().updateShape(ctr, updDir.getOpposite(), this.getUseControllers().get(pos).getBlockState(), lv, offsetted, pos);
+
+				if (!ctr.equals(ctr2)) {
+					updating.put(offsetted, ctr2);
+					this.updateBlock(offsetted, banned, updating);
+				}
 			}
 		}
 	}
@@ -502,9 +530,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 				this.clientUpdate();
 		} else if (BRAKE_PROGRESS.equals(data)) {
 			TNT_HANDLER.onClientUpdater();
-		} else if (DATA_POSE.equals(data)) {
-			if (this.getPose() == Pose.SITTING)
-				throw new RuntimeException("DEDECT!!!");
 		} else if (BED_DATA.equals(data)) {
 			BED_CONTROLLER.syncData();
 		}
@@ -512,7 +537,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 
 	@OnlyIn(Dist.CLIENT)
 	public void clientUpdate() {
-		if (Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc)
+		if (Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc && Minecraft.getInstance().player == (Player)(Object)this)
 			sc.morphUpdate(this.getBlockState());
 	}
 
@@ -529,7 +554,9 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	public VoxelShape getShape(BlockPos offset, @Nullable Vec3 realPos) {
 		BlockInPlayer ctr = this.getBlocksData().get(offset);
 		if (ctr == null) return Shapes.empty();
-		VoxelShape shp = ctr.getBlockState().getCollisionShape(this.level(), this.blockPosition(), CollisionContext.of(this));
+		BlockEntity ent = ctr.getUseController().getBlockEntity();
+		Level lv = ent == null ? this.level() : ent.getLevel();
+		VoxelShape shp = ctr.getBlockState().getCollisionShape(lv, offset, CollisionContext.of(this));
 		Vec3 rl;
 		if (realPos != null) {
 			rl = realPos;
@@ -539,7 +566,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		return shp.move(rl.x, rl.y, rl.z);
 	}
 
-	public VoxelShape getRenderShape(BlockPos pos) { //смещённый
+	public VoxelShape getRenderShape(BlockPos pos) {
 		boolean flag = pos.equals(BlockPos.ZERO);
 		if (this.getBlocks().containsKey(pos) || flag) {
 			BlockState state;
@@ -548,7 +575,10 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 			} else {
 				state = this.getBlocks().get(pos);
 			}
-			VoxelShape shape = state.getShape(this.level(), this.blockPosition(), CollisionContext.of(this));
+			BlockInPlayer ctr = this.getBlocksData().get(pos);
+			BlockEntity ent = ctr.getUseController().getBlockEntity();
+			Level lv = ent == null ? this.level() : ent.getLevel();
+			VoxelShape shape = state.getShape(lv, pos, CollisionContext.of(this));
             return shape.move(pos.getX(), pos.getY(), pos.getZ());
 		}
 		return null;

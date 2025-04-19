@@ -26,6 +26,7 @@
     "GameModeManagerMixin",
     "GameRendererMixin",
     "LevelRenderMixin",
+    "MinecraftMixin",
     "PlayerRendererMixin",
     "blockUseFeatureFix.HumanoidModelMixin",
     "blockUseFeatureFix.SignFixMixin"

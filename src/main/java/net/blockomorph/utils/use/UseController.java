@@ -59,6 +59,7 @@ public class UseController {
         return new UseController(this.pl, this.offset, state);
     }
 
+    @Nullable
     public BlockEntity getBlockEntity() {
         return this.blockEntity;
     }
@@ -103,7 +104,7 @@ public class UseController {
         if (this.owner.isSpectator()) {
             if (this.owner.level().isClientSide)
                 return InteractionResult.SUCCESS;
-            MenuProvider menuprovider = this.blockState.getMenuProvider(lv, this.owner.blockPosition());
+            MenuProvider menuprovider = this.blockState.getMenuProvider(lv, hiter.getBlockPos());
             if (menuprovider != null) {
                 clicker.openMenu(menuprovider);
                 this.ejectChanges(lv, clicker);
@@ -151,15 +152,7 @@ public class UseController {
             for (Map.Entry<BlockPos, BlockState> blocks : blocksMain.entrySet()) {
                 BlockPos pos = blocks.getKey();
                 BlockState state = blocks.getValue();
-                SavedBlock bl = null;
-                if (state.getBlock() instanceof EntityBlock) {
-                    CompoundTag tag = null;//blocks.get(pos).getTag();
-                    if (tag == null) tag = new CompoundTag();
-                    bl = new SavedBlock(state, tag, "");
-                } else {
-                    bl = new SavedBlock(state, new CompoundTag(), "");
-                }
-                bls.put(pos, bl);
+                bls.put(pos, new SavedBlock(state, new CompoundTag(), ""));
             }
             this.pl.enableBlockOverrides(bls);
         }

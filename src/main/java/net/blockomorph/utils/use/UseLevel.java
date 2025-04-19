@@ -16,6 +16,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.Shapes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,7 +37,10 @@ public class UseLevel extends MultiBlockLevel {
 
     @Override
     public @Nullable BlockEntity getBlockEntity(BlockPos bl) {
-        return this.useController.getBlockEntity();
+        BlockPos pos = this.calculateRealPos(bl);
+        UseController ctr = this.useController.getPl().getUseControllers().get(pos);
+        if (ctr == null) return null;
+        return ctr.getBlockEntity();
     }
 
     @Override
@@ -116,7 +121,6 @@ public class UseLevel extends MultiBlockLevel {
             if (!this.realLevel.isClientSide)
                 MorphUtils.sendAll(ClientBoundBlockEventPacket.blockEvent(this.useController.getOwner().getId(), this.useController.getOffset(), a, b));
         }
-        System.out.println(this.realLevel.isClientSide + " bp: " + this.useController.getOffset() + " st: " + this.useController.getBlockState().getBlock());
     }
 
     public void levelEvent(@Nullable Player player, int a, BlockPos blockPos, int b) {
@@ -130,6 +134,14 @@ public class UseLevel extends MultiBlockLevel {
                 MorphUtils.sendPlayer(packet, pl);
             }
         }//else ?
+    }
+
+    @Override
+    public boolean noCollision(AABB input) {
+        if (input.getCenter().distanceToSqr(this.useController.getOffset().getCenter()) < 64) {
+            input = input.move(this.useController.getRealPos().add(-0.5, -0.5, -0.5));
+        }
+        return realLevel.noCollision(input);
     }
 
     private BlockPos calculateRealPos(BlockPos blockPos) {

@@ -44,7 +44,7 @@ public abstract class EntityGetterMixin implements LevelAccessor, CollisionGette
             for(Entity entity : list) {
                if (entity instanceof PlayerAccessor pl) {
 
-                  AABB cube = Shapes.block().bounds();
+                  AABB cube = Shapes.block().bounds().inflate(1);
                   List<VoxelShape> blocks = new ArrayList<>();
                   AABB aabbPl = p_186452_.inflate(1.0E-7);
 
