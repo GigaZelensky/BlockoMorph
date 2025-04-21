@@ -32,6 +32,8 @@ public class Config {
    private Config() {
    }
 
+
+
    public <T> T getValue(String option) {
    	  return (T) this.getOption(option).getValue();
    }

@@ -149,7 +149,12 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 			CompoundTag entry = storage.getCompound(MorphUtils.getBlockPos(bls.getKey()));
 			BlockState state = bls.getValue().getBlockState();
 			if (state.getBlock() instanceof EntityBlock) {
-				entry.put("Tags", bls.getValue().getUseController().getBlockEntity().saveWithoutMetadata());
+				BlockEntity blockEntity = bls.getValue().getUseController().getBlockEntity();
+				if (blockEntity != null) {
+					entry.put("Tags", blockEntity.saveWithoutMetadata());
+				} else {
+					entry.remove("Tags");
+				}
 			} else {
 				entry.remove("Tags");
 			}

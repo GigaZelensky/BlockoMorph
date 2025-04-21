@@ -43,6 +43,7 @@ public class UseController {
         this.owner = (Player) pl;
         this.offset = offset;
         this.blockState = state;
+        ((BlockPosAccessor)this.offset).setUseController(this);
         this.initBlockEntity();
         this.initTicker();
     }

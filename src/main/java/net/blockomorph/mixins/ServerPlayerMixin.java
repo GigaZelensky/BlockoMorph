@@ -56,10 +56,12 @@ public abstract class ServerPlayerMixin extends Player {
             argsOnly = true
     )
     private BlockPos modifyBlockPos(BlockPos originalPos) {
-        UseController ctr = ((BlockPosAccessor)originalPos).getController();
-        if (ctr != null) {
-            this.forcePos = true;
-            return BlockPos.containing(ctr.getRealPos());
+        if (originalPos instanceof BlockPosAccessor acc) {
+            UseController ctr = acc.getController();
+            if (ctr != null) {
+                this.forcePos = true;
+                return BlockPos.containing(ctr.getRealPos());
+            }
         }
         return originalPos;
     }

@@ -47,38 +47,13 @@ minecraft {
     }
 }
 
-/*shadowJar {
-    relocate 'org.spongepowered.mixin', 'shadow.org.spongepowered.mixin'
-
-
-    dependencies {
-        include(dependency('org.spongepowered:mixin:0.8.7'))
-        // include(dependency('org.spongepowered:mixin:0.8.+'))
-    }
-
-}*/
-
-/*configurations.configureEach {
-    resolutionStrategy {
-        force 'org.spongepowered:mixin:0.8.7'
-    }
-}
-
-repositories {
-    maven {
-        name = "Fabric"
-        url = "https://maven.fabricmc.net/"
-    }
-}*/
-
 dependencies {
     minecraft "net.minecraftforge:forge:1.20.1-47.2.0"
-    //implementation(annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.5"))
-    //implementation(include("io.github.llamalad7:mixinextras-forge:0.3.5"))
-    //annotationProcessor("net.fabricmc:sponge-mixin:0.12.5+mixin.0.8.5")
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 }
 
 mixin {
+    add sourceSets.main, 'mixins.blockomorph.refmap.json'
     config 'mixins.blockomorph.json'
 
     debug.verbose = true

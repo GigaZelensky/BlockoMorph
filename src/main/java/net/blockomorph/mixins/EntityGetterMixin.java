@@ -3,6 +3,8 @@ package net.blockomorph.mixins;
 import com.google.common.collect.ImmutableList;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
+import net.blockomorph.utils.accessors.BlockPosAccessor;
+import net.blockomorph.utils.use.UseController;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
@@ -10,6 +12,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.CollisionGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.border.WorldBorder;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -17,6 +21,9 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -96,5 +103,21 @@ public abstract class EntityGetterMixin implements LevelAccessor, CollisionGette
    private VoxelShape borderCollision(Entity p_186441_, AABB p_186442_) {
       WorldBorder worldborder = this.getWorldBorder();
       return worldborder.isInsideCloseToBorder(p_186441_, p_186442_) ? worldborder.getCollisionShape() : null;
+   }
+
+   @Inject(method = "getBlockEntity", at = @At(value = "HEAD"))
+   public void ridirectGetterBlockEntity(BlockPos blockPos, CallbackInfoReturnable<BlockEntity> cir) {
+      UseController ctr = MorphUtils.getControllerFromPos(blockPos);
+      if (ctr != null) {
+         cir.setReturnValue(ctr.getBlockEntity());
+      }
+   }
+
+   @Inject(method = "getBlockState", at = @At(value = "HEAD"))
+   public void redirectGetterBlockState(BlockPos blockPos, CallbackInfoReturnable<BlockState> cir) {
+      UseController ctr = MorphUtils.getControllerFromPos(blockPos);
+      if (ctr != null) {
+         cir.setReturnValue(ctr.getBlockState());
+      }
    }
 }

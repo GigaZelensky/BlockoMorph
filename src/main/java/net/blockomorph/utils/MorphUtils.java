@@ -3,8 +3,10 @@ package net.blockomorph.utils;
 import com.mojang.blaze3d.platform.Window;
 import net.blockomorph.Blockomorph;
 import net.blockomorph.network.*;
+import net.blockomorph.utils.accessors.BlockPosAccessor;
 import net.blockomorph.utils.accessors.GamemodeAccessor;
 import net.blockomorph.utils.config.Config;
+import net.blockomorph.utils.use.UseController;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -134,6 +136,11 @@ public class MorphUtils {
         } catch (NumberFormatException e) {
             return null;
         }
+    }
+
+    public static UseController getControllerFromPos(BlockPos pos) {
+        if (pos == null) return null;
+        return ((BlockPosAccessor)pos).getController();
     }
 
     public static String getBlockPos(BlockPos offset) {
