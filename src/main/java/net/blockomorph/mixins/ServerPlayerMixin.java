@@ -33,8 +33,8 @@ public abstract class ServerPlayerMixin extends Player {
         if (signBlockEntity instanceof BlockEntityAccessor acc) {
             UseController ctr = acc.getController();
             if (ctr != null) {
-                ci.cancel();
-                MorphUtils.sendPlayer(ClientBoundBlockEventPacket.levelEvent(ctr.getOwner().getId(), ctr.getOffset(), -1, front ? 1 : 0), (ServerPlayer) (Object) this);
+                //ci.cancel();
+                //MorphUtils.sendPlayer(ClientBoundBlockEventPacket.levelEvent(ctr.getOwner().getId(), ctr.getOffset(), -1, front ? 1 : 0), (ServerPlayer) (Object) this);
             }
         }
     }

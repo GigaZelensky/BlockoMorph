@@ -90,14 +90,6 @@ public class ClientBoundBlockEventPacket implements BlockMorphPacket {
             ctr = accessor.getUseControllers().get(this.offset);
         }
         switch (this.paramA) {
-            case -1:
-                if (ctr != null) {
-                    BlockEntity ent = ctr.getBlockEntity();
-                    if (ent instanceof SignBlockEntity signBlockEntity) {
-                        Minecraft.getInstance().player.openTextEdit(signBlockEntity, this.paramB != 0);
-                    }
-                }
-                return true;
             case -2:
                 if (ctr != null) {
                     PlayerJukeboxSoundInstance.play(ctr, this.paramB);

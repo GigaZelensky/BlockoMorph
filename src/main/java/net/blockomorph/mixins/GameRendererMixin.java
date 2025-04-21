@@ -16,7 +16,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 @Mixin(GameRenderer.class)
 public abstract class GameRendererMixin {
  
-   @ModifyVariable(method = "pick", at = @At(value = "STORE", ordinal = 0), ordinal = 0)
+   @ModifyVariable(method = "pick", at = @At(value = "STORE", ordinal = 0))
    public EntityHitResult onPick(EntityHitResult hit) {
      if (hit != null && hit.getEntity() instanceof PlayerAccessor pl && pl.isFullActive()) {
      	Minecraft mc = Minecraft.getInstance();

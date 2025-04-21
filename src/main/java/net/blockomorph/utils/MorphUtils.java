@@ -27,6 +27,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
@@ -68,6 +69,7 @@ import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDrownEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLPaths;
@@ -143,6 +145,33 @@ public class MorphUtils {
         return ((BlockPosAccessor)pos).getController();
     }
 
+    @Nullable
+    public static UseController getControllerFromNetwork(UUID id, BlockPos offset) {
+        MinecraftServer sv = Config.getServer();
+        PlayerAccessor pl = null;
+        if (sv != null) {
+            for (ServerLevel lv : sv.getAllLevels()) {
+                if (lv.getEntity(id) instanceof PlayerAccessor playerAccessor) {
+                    pl = playerAccessor;
+                    break;
+                }
+            }
+        } else {
+            for (Entity ent : Minecraft.getInstance().level.entitiesForRendering()) {
+                if (ent.getUUID().equals(id)) {
+                    if (ent instanceof PlayerAccessor playerAccessor) {
+                        pl = playerAccessor;
+                        break;
+                    }
+                }
+            }
+        }
+        if (pl != null) {
+            return pl.getUseControllers().get(offset);
+        }
+        return null;
+    }
+
     public static String getBlockPos(BlockPos offset) {
         return offset.getX() +
                 " " +
@@ -161,6 +190,11 @@ public class MorphUtils {
             event.getEntity().load(tag);
             event.getEntity().refreshDimensions();
         }
+    }
+
+    @SubscribeEvent
+    public static void run(ServerStartingEvent event) {
+        Config.setServer(event.getServer());
     }
 
     @SubscribeEvent

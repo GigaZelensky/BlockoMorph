@@ -3,7 +3,6 @@ package net.blockomorph.mixins;
 import com.google.common.collect.ImmutableList;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
-import net.blockomorph.utils.accessors.BlockPosAccessor;
 import net.blockomorph.utils.use.UseController;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
@@ -105,15 +104,15 @@ public abstract class EntityGetterMixin implements LevelAccessor, CollisionGette
       return worldborder.isInsideCloseToBorder(p_186441_, p_186442_) ? worldborder.getCollisionShape() : null;
    }
 
-   @Inject(method = "getBlockEntity", at = @At(value = "HEAD"))
-   public void ridirectGetterBlockEntity(BlockPos blockPos, CallbackInfoReturnable<BlockEntity> cir) {
+   @Inject(method = "getBlockEntity", at = @At(value = "HEAD"), cancellable = true)
+   public void redirectGetterBlockEntity(BlockPos blockPos, CallbackInfoReturnable<BlockEntity> cir) {
       UseController ctr = MorphUtils.getControllerFromPos(blockPos);
       if (ctr != null) {
          cir.setReturnValue(ctr.getBlockEntity());
       }
    }
 
-   @Inject(method = "getBlockState", at = @At(value = "HEAD"))
+   @Inject(method = "getBlockState", at = @At(value = "HEAD"), cancellable = true)
    public void redirectGetterBlockState(BlockPos blockPos, CallbackInfoReturnable<BlockState> cir) {
       UseController ctr = MorphUtils.getControllerFromPos(blockPos);
       if (ctr != null) {

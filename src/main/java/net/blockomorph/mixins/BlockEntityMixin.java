@@ -1,6 +1,7 @@
 package net.blockomorph.mixins;
 
 import net.blockomorph.utils.accessors.BlockEntityAccessor;
+import net.blockomorph.utils.accessors.BlockPosAccessor;
 import net.blockomorph.utils.use.UseController;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
@@ -18,7 +19,10 @@ public class BlockEntityMixin implements BlockEntityAccessor {
 
     @Inject(method = "getBlockPos", at = @At(value = "HEAD"), cancellable = true)
     public void getPos(CallbackInfoReturnable<BlockPos> cir) {
-        if (this.controller != null) cir.setReturnValue(BlockPos.containing(this.controller.getRealPos()));
+        if (this.controller != null) {
+            BlockPos pos = BlockPos.containing(this.controller.getRealPos());
+            cir.setReturnValue(((BlockPosAccessor)pos).setUseController(this.controller));
+        }
     }
 
     public void setUseController(UseController ctr) {

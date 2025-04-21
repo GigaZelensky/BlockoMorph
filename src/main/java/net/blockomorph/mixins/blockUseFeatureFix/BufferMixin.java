@@ -1,15 +1,17 @@
 package net.blockomorph.mixins.blockUseFeatureFix;
 
 import net.blockomorph.utils.MorphUtils;
-import net.blockomorph.utils.config.Config;
+import net.blockomorph.utils.accessors.BlockPosAccessor;
 import net.blockomorph.utils.use.UseController;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.MinecraftServer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @Mixin(FriendlyByteBuf.class)
 public class BufferMixin {
@@ -19,13 +21,22 @@ public class BufferMixin {
         UseController ctr = MorphUtils.getControllerFromPos(pos);
         FriendlyByteBuf buf = (FriendlyByteBuf) (Object) this;
         if (ctr != null) {
-            buf.writeUUID(ctr.getOwner().getUUID());
+            buf.writeOptional(Optional.of(ctr.getOwner().getUUID()), FriendlyByteBuf::writeUUID);
             buf.writeLong(ctr.getOffset().asLong());
+        } else {
+            buf.writeOptional(Optional.empty(), FriendlyByteBuf::writeUUID);
         }
     }
 
-    @Inject(method = "readBlockPos", at = @At(value = "RETURN"))
+    @Inject(method = "readBlockPos", at = @At(value = "RETURN"), cancellable = true)
     public void readPos(CallbackInfoReturnable<BlockPos> cir) {
-        MinecraftServer sv = null;
+        FriendlyByteBuf buf = (FriendlyByteBuf) (Object) this;
+        Optional<UUID> uuid = buf.readOptional(FriendlyByteBuf::readUUID);
+        if (uuid.isPresent()) {
+            UUID id = uuid.get();
+            BlockPos offset = BlockPos.of(buf.readLong());
+            UseController ctr = MorphUtils.getControllerFromNetwork(id, offset);
+            cir.setReturnValue(((BlockPosAccessor)offset).setUseController(ctr));
+        }
     }
 }

@@ -6,6 +6,7 @@ import net.blockomorph.utils.MultiBlockLevel;
 import net.blockomorph.utils.PlayerAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -154,5 +155,10 @@ public class UseLevel extends MultiBlockLevel {
             return new BlockPos(x, y, z);
         }
         return blockPos;
+    }
+
+    public ServerLevel getMinecraftWorld() {
+        if (this.realLevel instanceof ServerLevel lv) return lv;
+        return null;
     }
 }
