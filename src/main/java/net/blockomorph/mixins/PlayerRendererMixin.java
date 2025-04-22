@@ -35,6 +35,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.client.model.data.ModelData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -153,8 +154,9 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
    	    BlockPos pos = offset;
    	    posestack.pushPose();
         var model = this.dispatcher.getBlockModel(blockstate);
-        var renderType = ItemBlockRenderTypes.getMovingBlockRenderType(blockstate);
-        this.dispatcher.getModelRenderer().tesselateBlock(level, model, blockstate, pos, posestack, buffer.getBuffer(renderType), false, RandomSource.create(), blockstate.getSeed(pos), OverlayTexture.NO_OVERLAY);
+        RandomSource random = RandomSource.create(blockstate.getSeed(pos));
+        for (var renderType : model.getRenderTypes(blockstate, random, ModelData.EMPTY))
+            this.dispatcher.getModelRenderer().tesselateBlock(level, model, blockstate, pos, posestack, buffer.getBuffer(renderType), false, RandomSource.create(), blockstate.getSeed(pos), OverlayTexture.NO_OVERLAY);
         posestack.popPose();
    }
 

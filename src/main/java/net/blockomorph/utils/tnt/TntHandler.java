@@ -5,6 +5,7 @@ import net.blockomorph.utils.BlockInPlayer;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
 import net.blockomorph.utils.SavedBlock;
+import net.blockomorph.utils.accessors.EntityAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -123,7 +124,7 @@ public class TntHandler {
                 this.tnt = primedtnt;
             } else
                 this.tnt = TNT;
-            this.tnt.level();
+            ((EntityAccessor)this.tnt).forceLevelChange(this.player.level());
             if (spawn == null) {
                 this.tnt.setNoGravity(true);
                 if (this.player.level().isClientSide()) {

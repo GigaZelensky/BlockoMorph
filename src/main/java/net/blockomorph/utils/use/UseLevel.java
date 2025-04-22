@@ -4,6 +4,7 @@ import net.blockomorph.network.blockFix.ClientBoundBlockEventPacket;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.MultiBlockLevel;
 import net.blockomorph.utils.PlayerAccessor;
+import net.blockomorph.utils.accessors.EntityAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.server.level.ServerLevel;
@@ -83,6 +84,7 @@ public class UseLevel extends MultiBlockLevel {
 
     @Override
     public boolean addFreshEntity(Entity ent) {
+        ((EntityAccessor)ent).forceLevelChange(realLevel);
         return realLevel.addFreshEntity(ent);
     }
 

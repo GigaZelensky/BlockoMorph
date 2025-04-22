@@ -3,14 +3,17 @@ package net.blockomorph.mixins;
 import com.google.common.collect.ImmutableList;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
+import net.blockomorph.utils.SavedBlock;
 import net.blockomorph.utils.use.UseController;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.CollisionGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.border.WorldBorder;
@@ -19,18 +22,24 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.checkerframework.checker.units.qual.A;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
 
 @Mixin(Level.class)
 public abstract class EntityGetterMixin implements LevelAccessor, CollisionGetter {
+
+   @Shadow @Final public boolean isClientSide;
 
    @Override
    public List<VoxelShape> getEntityCollisions(@Nullable Entity p_186451_, AABB p_186452_) {
@@ -106,17 +115,26 @@ public abstract class EntityGetterMixin implements LevelAccessor, CollisionGette
 
    @Inject(method = "getBlockEntity", at = @At(value = "HEAD"), cancellable = true)
    public void redirectGetterBlockEntity(BlockPos blockPos, CallbackInfoReturnable<BlockEntity> cir) {
-      UseController ctr = MorphUtils.getControllerFromPos(blockPos);
-      if (ctr != null) {
+      MorphUtils.doActionFromBounedBlockPos(blockPos, (ctr) -> {
          cir.setReturnValue(ctr.getBlockEntity());
-      }
+      });
    }
 
    @Inject(method = "getBlockState", at = @At(value = "HEAD"), cancellable = true)
    public void redirectGetterBlockState(BlockPos blockPos, CallbackInfoReturnable<BlockState> cir) {
-      UseController ctr = MorphUtils.getControllerFromPos(blockPos);
-      if (ctr != null) {
+      MorphUtils.doActionFromBounedBlockPos(blockPos, (ctr) -> {
          cir.setReturnValue(ctr.getBlockState());
-      }
+      });
+   }
+
+   @Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z", at = @At(value = "HEAD"), cancellable = true)
+   public void redirectSetBlock(BlockPos pos, BlockState st, int p_46607_, int p_46608_, CallbackInfoReturnable<Boolean> cir) {
+      MorphUtils.doActionFromBounedBlockPos(pos, (ctr) -> {
+         cir.setReturnValue(true);
+         if (pos.equals(BlockPos.ZERO) && st.getBlock() == Blocks.AIR || this.isClientSide) return;
+         HashMap<BlockPos, SavedBlock> setBlock = new HashMap<>();
+         setBlock.put(pos, new SavedBlock(st, new CompoundTag(), ""));
+         ctr.getPl().enableBlockOverrides(setBlock);
+      });
    }
 }

@@ -78,6 +78,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 @Mod.EventBusSubscriber
@@ -140,9 +141,14 @@ public class MorphUtils {
         }
     }
 
-    public static UseController getControllerFromPos(BlockPos pos) {
-        if (pos == null) return null;
-        return ((BlockPosAccessor)pos).getController();
+    public static boolean doActionFromBounedBlockPos(BlockPos pos, Consumer<UseController> action) {
+        if (pos == null || action == null) return false;
+        UseController ctr = ((BlockPosAccessor)pos).getController();
+        if (ctr != null) {
+            action.accept(ctr);
+            return true;
+        }
+        return false;
     }
 
     @Nullable
