@@ -62,7 +62,7 @@ public abstract class ServerLevelMixin implements ServerLevelAccessor {
         initArgs.add(stem);
     }
 
-    @Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;forceSynchronousWrites()Z"), cancellable = true)
+    /*@Inject(method = "<init>", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/MinecraftServer;forceSynchronousWrites()Z"), cancellable = true)
     public void init2(
             MinecraftServer sv,
             Executor runnable,
@@ -80,7 +80,7 @@ public abstract class ServerLevelMixin implements ServerLevelAccessor {
     ) {
         initArgs.add(stem);
         ci.cancel();
-    }
+    }*/
 
     @Override
     public List<Object> getInitArgs() {
