@@ -13,6 +13,7 @@
     "EntityMixin",
     "MenuMixin",
     "PlayerMixin",
+    "ServerLevelMixin",
     "ServerPacketListenerMixin",
     "ServerPlayerMixin",
     "blockUseFeatureFix.BlockPosMixin",
