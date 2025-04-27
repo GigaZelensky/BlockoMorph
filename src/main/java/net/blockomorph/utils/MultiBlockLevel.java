@@ -35,8 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Predicate;
 
-public class MultiBlockLevel 
-extends Level {
+public class MultiBlockLevel extends Level {
     private final HashMap<BlockPos, BlockState> blocks = new HashMap<>();
     protected final Level realLevel;
     
@@ -47,20 +46,17 @@ extends Level {
 
     @Override
     public boolean setBlock(BlockPos blockPos, BlockState blockState, int i, int j) {
-    	this.blocks.put(blockPos, blockState);
-    	return true;
+        this.blocks.put(blockPos, blockState);
+        return true;
     }
 
     public HashMap<BlockPos, BlockState> getBlocks() {
-    	return this.blocks;
+        return this.blocks;
     }
 
     public Level getRealLevel() {
-    	return this.realLevel;
+        return this.realLevel;
     }
-
-
-
 
     //suppliers
 
@@ -72,17 +68,17 @@ extends Level {
     }
 
     public RecipeManager getRecipeManager() {
-    	return realLevel.getRecipeManager();
+        return realLevel.getRecipeManager();
     }
 
     public MapItemSavedData getMapData(String s) {
-    	return realLevel.getMapData(s);
+        return realLevel.getMapData(s);
     }
 
     public void setMapData(String s, MapItemSavedData d) {}
 
     public int getFreeMapId() {
-    	return realLevel.getFreeMapId();
+        return realLevel.getFreeMapId();
     }
 
     public void sendBlockUpdated(BlockPos var1, BlockState var2, BlockState var3, int var4) {}
@@ -92,30 +88,30 @@ extends Level {
     public void playSeededSound(@Nullable Player var1, Entity var2, Holder<SoundEvent> var3, SoundSource var4, float var5, float var6, long var7) {}
 
     public String gatherChunkSourceStats() {
-    	return realLevel.gatherChunkSourceStats();
+        return realLevel.gatherChunkSourceStats();
     }
 
     @Nullable
     public Entity getEntity(int var1) {
-    	return realLevel.getEntity(var1);
+        return realLevel.getEntity(var1);
     }
 
     protected LevelEntityGetter<Entity> getEntities() {
-    	return null;
+        return null;
     }
 
     public List<Entity> getEntities(@Nullable Entity e, AABB ab, Predicate<? super Entity> p) {
-    	return realLevel.getEntities(e, ab, p);
+        return realLevel.getEntities(e, ab, p);
     }
 
     public <T extends Entity> void getEntities(EntityTypeTest<Entity, T> test, AABB ab, Predicate<? super T> p, List<? super T> l, int i) {
-    	realLevel.getEntities(test, ab, p, l, i);
+        realLevel.getEntities(test, ab, p, l, i);
     }
 
     public void destroyBlockProgress(int var1, BlockPos var2, int var3) {}
 
     public Scoreboard getScoreboard() {
-    	return realLevel.getScoreboard();
+        return realLevel.getScoreboard();
     }
 
     //levelAccessor
@@ -125,57 +121,56 @@ extends Level {
     public void playSound(@Nullable Player var1, BlockPos var2, SoundEvent var3, SoundSource var4, float var5, float var6) {}
 
     public void addParticle(ParticleOptions var1, double var2, double var4, double var6, double var8, double var10, double var12) {
-    	realLevel.addParticle(var1, var2, var4, var6, var8, var10, var12);
+        realLevel.addParticle(var1, var2, var4, var6, var8, var10, var12);
     }
 
     public void levelEvent(@Nullable Player var1, int var2, BlockPos var3, int var4) {}
 
     public ChunkSource getChunkSource() {
-    	return realLevel.getChunkSource();
+        return realLevel.getChunkSource();
     }
 
     //entityGetter
 
     public List<? extends Player> players() {
-    	return realLevel.players();
+        return realLevel.players();
     }
 
     //levelReader
 
     public FeatureFlagSet enabledFeatures() {
-    	return realLevel.enabledFeatures();
+        return realLevel.enabledFeatures();
     }
 
     public int getSeaLevel() {
-    	return realLevel.getSeaLevel();
+        return realLevel.getSeaLevel();
     }
 
     public Holder<Biome> getUncachedNoiseBiome(int var1, int var2, int var3) {
-    	return realLevel.getUncachedNoiseBiome(var1, var2, var3);
+        return realLevel.getUncachedNoiseBiome(var1, var2, var3);
     }
 
     //blockAndTintGetter
 
     public float getShade(Direction var1, boolean var2) {
-    	return realLevel.getShade(var1, var2);
+        return realLevel.getShade(var1, var2);
     }
 
     public LevelLightEngine getLightEngine() {
-    	return realLevel.getLightEngine();
+        return realLevel.getLightEngine();
     }
 
     public int getBlockTint(BlockPos var1, ColorResolver var2) {
-    	return realLevel.getBlockTint(var1, var2);
+        return realLevel.getBlockTint(var1, var2);
     }
 
     //scheduledTickAcceess
 
     public LevelTickAccess<Block> getBlockTicks() {
-    	return realLevel.getBlockTicks();
+        return realLevel.getBlockTicks();
     }
 
     public LevelTickAccess<Fluid> getFluidTicks() {
-    	return realLevel.getFluidTicks();
+        return realLevel.getFluidTicks();
     }
-
 }

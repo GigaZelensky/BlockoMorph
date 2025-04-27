@@ -25,8 +25,8 @@ public abstract class BlockPosMixin implements BlockPosAccessor {
 
     @Override
     public String toString() {
-        BlockPos pos = (BlockPos) (Object) this;
         if (this.controller != null) {
+            BlockPos pos = this.controller.getOffset();
             return "Morphed player " + this.controller.getOwner() + " bounded blockpos, position in local coordinate system: " + pos.getX() + " " + pos.getY() + " " + pos.getZ();
         }
         return super.toString();

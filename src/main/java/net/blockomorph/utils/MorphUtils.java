@@ -7,6 +7,7 @@ import net.blockomorph.utils.accessors.BlockPosAccessor;
 import net.blockomorph.utils.accessors.GamemodeAccessor;
 import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.use.UseController;
+import net.blockomorph.utils.use.UseServerLevel;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -78,6 +79,7 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -141,11 +143,11 @@ public class MorphUtils {
         }
     }
 
-    public static boolean doActionFromBounedBlockPos(BlockPos pos, Consumer<UseController> action) {
+    public static boolean doActionFromBounedBlockPos(BlockPos pos, BiConsumer<UseController, BlockPos> action) {
         if (pos == null || action == null) return false;
         UseController ctr = ((BlockPosAccessor)pos).getController();
         if (ctr != null) {
-            action.accept(ctr);
+            action.accept(ctr, ctr.getOffset());
             return true;
         }
         return false;

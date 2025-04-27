@@ -13,6 +13,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.SignBlockEntity;
 import net.minecraft.world.phys.AABB;
@@ -71,8 +72,7 @@ public class ClientBoundBlockEventPacket implements BlockMorphPacket {
             if (pl instanceof PlayerAccessor accessor) {
                 UseController ctr = accessor.getUseControllers().get(this.offset);
                 if (ctr != null) {
-                    UseLevel lv2 = new UseLevel(ctr.getOwner().level(), ctr.getOwner().level().isClientSide, ctr);
-                    ctr.getBlockState().triggerEvent(lv2, ctr.getOffset(), this.paramA, this.paramB);
+                    ctr.getBlockState().triggerEvent(ctr.getUseLevel(), ctr.getOffset(), this.paramA, this.paramB);
                 }
             }
         } else {

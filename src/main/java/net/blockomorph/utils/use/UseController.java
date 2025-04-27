@@ -16,6 +16,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -37,6 +38,8 @@ public class UseController {
     private BlockEntity blockEntity;
     private BlockEntityTicker ticker;
     private boolean valid = true;
+    private Level useLevel;
+    private Level tickingLevel;
 
     public UseController(PlayerAccessor pl, BlockPos offset, BlockState state) {
         this.pl = pl;
@@ -44,6 +47,7 @@ public class UseController {
         this.offset = offset;
         this.blockState = state;
         ((BlockPosAccessor)this.offset).setUseController(this);
+        this.doChangeDimension();
         this.initBlockEntity();
         this.initTicker();
     }
@@ -81,26 +85,29 @@ public class UseController {
         return this.pl;
     }
 
+    public Level getUseLevel() {
+        return this.useLevel;
+    }
+
     private void initBlockEntity() {
         if (this.blockState.getBlock() instanceof EntityBlock ent) {
             this.blockEntity = ent.newBlockEntity(this.offset, this.blockState);
             if (blockEntity != null) {
                 ((BlockEntityAccessor) this.blockEntity).setUseController(this);
-                UseLevel lv = new UseLevel(this.owner.level(), owner.level().isClientSide, this);
-                this.blockEntity.setLevel(lv);
+                this.blockEntity.setLevel(this.useLevel);
             }
         }
     }
 
     private void initTicker() {
         if (this.blockState.getBlock() instanceof EntityBlock ent && blockEntity != null) {
-            this.ticker = ent.getTicker(blockEntity.getLevel(), this.blockState, blockEntity.getType());
+            this.ticker = ent.getTicker(this.tickingLevel, this.blockState, blockEntity.getType());
         }
     }
 
     public InteractionResult use(Player clicker, BlockHitResult hiter, InteractionHand hand) {
         ((BlockPosAccessor)hiter.getBlockPos()).setUseController(this);
-        UseLevel lv = new UseLevel(clicker.level(), clicker.level().isClientSide, this);
+        Level lv = this.useLevel;
         ItemStack itemstack = clicker.getItemInHand(hand);
         if (this.owner.isSpectator()) {
             if (this.owner.level().isClientSide)
@@ -137,31 +144,28 @@ public class UseController {
         return interactionresult1;
     }
 
-    private void ejectChanges(UseLevel lv, @Nullable Player clicker) {
-        if (!this.owner.level().isClientSide) {
+    private void ejectChanges(Level lv, @Nullable Player clicker) {
+        if (lv instanceof UseServerLevel lv2) {
             if (clicker != null && clicker.containerMenu instanceof MenuAccessor acc && clicker.containerMenu != clicker.inventoryMenu) {
                 acc.boundToPlayer(this);
             }
             HashMap<BlockPos, SavedBlock> bls = new HashMap<>();
-            HashMap<BlockPos, BlockState> blocksMain = new HashMap<>(lv.getBlocks());
-            if (this.blockEntity != null) {
-                if (this.blockEntity.getLevel() instanceof UseLevel level) {
-                    blocksMain.putAll(level.getBlocks());
-                    level.getBlocks().clear();
-                }
-            }
+            HashMap<BlockPos, BlockState> blocksMain = new HashMap<>(lv2.getBlocks());
+            lv2.getBlocks().clear();
             for (Map.Entry<BlockPos, BlockState> blocks : blocksMain.entrySet()) {
                 BlockPos pos = blocks.getKey();
                 BlockState state = blocks.getValue();
                 bls.put(pos, new SavedBlock(state, new CompoundTag(), ""));
             }
             this.pl.enableBlockOverrides(bls);
+        } else if (lv instanceof UseLevel acc) {
+            acc.getBlocks().clear();
         }
     }
 
     public void checkChanges() {
         if (this.blockEntity != null) {
-            this.ejectChanges((UseLevel) this.blockEntity.getLevel(), null);
+            this.ejectChanges(this.useLevel, null);
             this.pl.saveBlockEntities();
         }
     }
@@ -187,23 +191,41 @@ public class UseController {
     }
 
     public void tick() {
+        if (useLevel.dimension() != this.owner.level().dimension()) this.doChangeDimension();
         if (this.blockEntity != null) {
             if (this.ticker != null) {
-                UseLevel lv = new UseLevel(owner.level(), owner.level().isClientSide, this);
-                lv.setRealBlockPosMode(true);
+                Level lv = this.tickingLevel;
                 try {
-                    ticker.tick(lv, BlockPos.containing(this.getRealPos()), this.blockState, this.blockEntity);
+                    BlockPos ps = BlockPos.containing(this.getRealPos());
+                    ((BlockPosAccessor)ps).setUseController(this);
+                    ticker.tick(lv, ps, this.blockState, this.blockEntity);
                 } catch (Exception e) {
                     this.ticker = null;
                     Blockomorph.LOGGER.error(
                             "An unexpected exception occurred while ticking a block entity in a transformed player with username " +
                                     this.owner.getName() +
-                                    ": ",
-                            e
+                                    ": ", e
                     );
                 }
                 this.ejectChanges(lv, null);
             }
+        }
+        if (this.useLevel instanceof UseAccessor acc) {
+            if (!acc.getBlocks().isEmpty()) {
+                this.ejectChanges(this.useLevel, null);
+            }
+        }
+    }
+
+    private void doChangeDimension() {
+        this.useLevel =  UseLevel.getUseLevel(this);
+        this.tickingLevel = UseLevel.getUseLevel(this);
+        if (this.tickingLevel instanceof UseAccessor lv) {
+            lv.setRealBlockPosMode(true);
+        }
+        if (this.blockEntity != null) {
+            this.blockEntity.setLevel(this.useLevel);
+            this.initTicker();
         }
     }
 

@@ -3,7 +3,6 @@ package net.blockomorph.utils.use;
 import net.blockomorph.network.blockFix.ClientBoundBlockEventPacket;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.MultiBlockLevel;
-import net.blockomorph.utils.PlayerAccessor;
 import net.blockomorph.utils.accessors.EntityAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -19,22 +18,27 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.shapes.Shapes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class UseLevel extends MultiBlockLevel {
+public class UseLevel extends MultiBlockLevel implements UseAccessor {
     protected final UseController useController;
     private boolean realBlockPosMode;
-    private final BlockPos offset;
 
-    public UseLevel(Level lv, boolean client, UseController ctr) {
-        super(lv, client);
+    private UseLevel(Level lv, UseController ctr) {
+        super(lv, true);
         this.useController = ctr;
-        this.offset = ctr.getOffset();
+    }
+
+    public static Level getUseLevel(UseController ctr) {
+        Player pl = ctr.getOwner();
+        if (pl instanceof ServerPlayer pl2) {
+            return new UseServerLevel(pl2.serverLevel(), ctr);
+        }
+        return new UseLevel(pl.level(), ctr);
     }
 
     @Override
@@ -56,6 +60,16 @@ public class UseLevel extends MultiBlockLevel {
     }
 
     @Override
+    public boolean isRealPosMode() {
+        return this.realBlockPosMode;
+    }
+
+    @Override
+    public UseController getController() {
+        return this.useController;
+    }
+
+    @Override
     public @NotNull List<? extends Player> players() {
         ArrayList<? extends Player> pls = new ArrayList<>(realLevel.players());
         pls.remove(this.useController.getOwner());
@@ -66,7 +80,7 @@ public class UseLevel extends MultiBlockLevel {
     public BlockState getBlockState(BlockPos blockPos) {
         BlockPos pos = this.calculateRealPos(blockPos);
         if (this.realBlockPosMode) {
-            if (pos.equals(this.offset)) {
+            if (pos.equals(this.useController.getOffset())) {
                 return this.useController.getBlockState();
             } else {
                 return realLevel.getBlockState(blockPos);
@@ -120,23 +134,13 @@ public class UseLevel extends MultiBlockLevel {
     }
 
     public void blockEvent(BlockPos blockPos, Block block, int a, int b) {
-        if (this.useController.getBlockState().triggerEvent(this, this.offset, a, b)) {
-            if (!this.realLevel.isClientSide)
-                MorphUtils.sendAll(ClientBoundBlockEventPacket.blockEvent(this.useController.getOwner().getId(), this.useController.getOffset(), a, b));
-        }
+        this.useController.getBlockState().triggerEvent(this, this.useController.getOffset(), a, b);
     }
 
     public void levelEvent(@Nullable Player player, int a, BlockPos blockPos, int b) {
         if (a == 1010) a = -2;
         if (a == 1011) a = -3;
-        if (!this.realLevel.isClientSide) {
-            ClientBoundBlockEventPacket packet = ClientBoundBlockEventPacket.levelEvent(this.useController.getOwner().getId(), this.useController.getOffset(), a, b);
-            if (player == null) {
-                MorphUtils.sendAll(packet);
-            } else if (player instanceof ServerPlayer pl){
-                MorphUtils.sendPlayer(packet, pl);
-            }
-        }//else ?
+        ClientBoundBlockEventPacket.levelEvent(this.useController.getOwner().getId(), this.useController.getOffset(), a, b).handle(null);
     }
 
     @Override
@@ -147,20 +151,7 @@ public class UseLevel extends MultiBlockLevel {
         return realLevel.noCollision(input);
     }
 
-    private BlockPos calculateRealPos(BlockPos blockPos) {
-        BlockPos rp = BlockPos.containing(this.useController.getRealPos());
-        if (this.realBlockPosMode || blockPos.equals(rp)) {
-            BlockPos rp2 = BlockPos.containing(MorphUtils.getCetneredRealBlockPos(this.useController.getPl(), BlockPos.ZERO));
-            int x = blockPos.getX() - rp2.getX();
-            int y = blockPos.getY() - rp2.getY();
-            int z = blockPos.getZ() - rp2.getZ();
-            return new BlockPos(x, y, z);
-        }
-        return blockPos;
-    }
-
     public ServerLevel getMinecraftWorld() {
-        if (this.realLevel instanceof ServerLevel lv) return lv;
         return null;
     }
 }

@@ -19,9 +19,9 @@ public class BufferMixin {
     @Inject(method = "writeBlockPos", at = @At(value = "RETURN"))
     public void writePos(BlockPos pos, CallbackInfoReturnable<FriendlyByteBuf> cir) {
         FriendlyByteBuf buf = (FriendlyByteBuf) (Object) this;
-        if (!MorphUtils.doActionFromBounedBlockPos(pos, (ctr) -> {
+        if (!MorphUtils.doActionFromBounedBlockPos(pos, (ctr, realPos) -> {
             buf.writeOptional(Optional.of(ctr.getOwner().getUUID()), FriendlyByteBuf::writeUUID);
-            buf.writeLong(ctr.getOffset().asLong());
+            buf.writeLong(realPos.asLong());
         })) {
             buf.writeOptional(Optional.empty(), FriendlyByteBuf::writeUUID);
         }

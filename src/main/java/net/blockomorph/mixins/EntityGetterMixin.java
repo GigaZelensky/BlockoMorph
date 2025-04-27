@@ -115,25 +115,25 @@ public abstract class EntityGetterMixin implements LevelAccessor, CollisionGette
 
    @Inject(method = "getBlockEntity", at = @At(value = "HEAD"), cancellable = true)
    public void redirectGetterBlockEntity(BlockPos blockPos, CallbackInfoReturnable<BlockEntity> cir) {
-      MorphUtils.doActionFromBounedBlockPos(blockPos, (ctr) -> {
+      MorphUtils.doActionFromBounedBlockPos(blockPos, (ctr, pos) -> {
          cir.setReturnValue(ctr.getBlockEntity());
       });
    }
 
    @Inject(method = "getBlockState", at = @At(value = "HEAD"), cancellable = true)
    public void redirectGetterBlockState(BlockPos blockPos, CallbackInfoReturnable<BlockState> cir) {
-      MorphUtils.doActionFromBounedBlockPos(blockPos, (ctr) -> {
+      MorphUtils.doActionFromBounedBlockPos(blockPos, (ctr, pos) -> {
          cir.setReturnValue(ctr.getBlockState());
       });
    }
 
    @Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z", at = @At(value = "HEAD"), cancellable = true)
    public void redirectSetBlock(BlockPos pos, BlockState st, int p_46607_, int p_46608_, CallbackInfoReturnable<Boolean> cir) {
-      MorphUtils.doActionFromBounedBlockPos(pos, (ctr) -> {
+      MorphUtils.doActionFromBounedBlockPos(pos, (ctr, realPos) -> {
          cir.setReturnValue(true);
-         if (pos.equals(BlockPos.ZERO) && st.getBlock() == Blocks.AIR || this.isClientSide) return;
+         if (realPos.equals(BlockPos.ZERO) && st.getBlock() == Blocks.AIR || this.isClientSide) return;
          HashMap<BlockPos, SavedBlock> setBlock = new HashMap<>();
-         setBlock.put(pos, new SavedBlock(st, new CompoundTag(), ""));
+         setBlock.put(realPos, new SavedBlock(st, new CompoundTag(), ""));
          ctr.getPl().enableBlockOverrides(setBlock);
       });
    }
