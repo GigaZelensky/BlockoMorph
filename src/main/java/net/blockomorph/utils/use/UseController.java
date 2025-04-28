@@ -24,6 +24,7 @@ import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -40,6 +41,8 @@ public class UseController {
     private boolean valid = true;
     private Level useLevel;
     private Level tickingLevel;
+    //client only
+    private ModelData data;
 
     public UseController(PlayerAccessor pl, BlockPos offset, BlockState state) {
         this.pl = pl;
@@ -87,6 +90,15 @@ public class UseController {
 
     public Level getUseLevel() {
         return this.useLevel;
+    }
+
+    public void updateModelData(ModelData dat) {
+        this.data = dat;
+    }
+
+    public ModelData getData() {
+        if (this.data == null) return ModelData.EMPTY;
+        return this.data;
     }
 
     private void initBlockEntity() {

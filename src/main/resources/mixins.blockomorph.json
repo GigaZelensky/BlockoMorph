@@ -19,6 +19,7 @@
     "blockUseFeatureFix.BlockPosMixin",
     "blockUseFeatureFix.BufferMixin",
     "blockUseFeatureFix.LivingEntityMixin",
+    "blockUseFeatureFix.ModelDataManagerMixin",
     "blockUseFeatureFix.ParotMixin",
     "blockUseFeatureFix.ServerEntityMixin"
   ],

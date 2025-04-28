@@ -3,8 +3,6 @@ package net.blockomorph.utils;
 import net.blockomorph.utils.use.UseController;
 import net.minecraft.world.level.block.state.BlockState;
 
-import javax.annotation.Nullable;
-
 public class BlockInPlayer {
     private final BlockState blockState;
     private final BlockBracker blockBracker;

@@ -42,48 +42,49 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
 import java.util.Map;
 
 @Mixin(PlayerRenderer.class)
 public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractClientPlayer, PlayerModel<AbstractClientPlayer>> {
-   private final BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
-   private final EntityRenderDispatcher entityDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
-   private final BlockEntityRenderDispatcher blockEntityRenderDispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
-   private final ItemInHandRenderer itemRenderer = Minecraft.getInstance().getEntityRenderDispatcher().getItemInHandRenderer();
-   private final BlockPos AIR = new BlockPos(0, 512, 0); 
+    private final BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
+    private final EntityRenderDispatcher entityDispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
+    private final BlockEntityRenderDispatcher blockEntityRenderDispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
+    private final ItemInHandRenderer itemRenderer = Minecraft.getInstance().getEntityRenderDispatcher().getItemInHandRenderer();
+    private final BlockPos AIR = new BlockPos(0, 512, 0);
 
-   private final Minecraft mc = Minecraft.getInstance();
+    private final Minecraft mc = Minecraft.getInstance();
 
-   public PlayerRendererMixin(EntityRendererProvider.Context p_174557_, boolean p_174558_) {
-      super(p_174557_, new PlayerModel<>(p_174557_.bakeLayer(p_174558_ ? ModelLayers.PLAYER_SLIM : ModelLayers.PLAYER), p_174558_), 0.5F);
-   }
-   
-   @Inject(
-      method = {"render"},
-      at = {@At("HEAD")},
-      cancellable = true
-   )
-   public void render(AbstractClientPlayer player, float anim, float partialticks, PoseStack posestack, MultiBufferSource buffer, int light, CallbackInfo info) {
-      if (player instanceof PlayerAccessor pl) {
-      	if (pl.isFullActive()) { 
-      	   info.cancel();
-      	   posestack.pushPose();
-      	   this.adjustMatrixForPlayer(posestack, pl, player);
-      	   this.renderBlock(player, posestack, buffer, pl);
-           this.renderBlockEntity(player, partialticks, posestack, buffer, light, pl);
-           this.renderBreak(player, posestack, buffer, pl);
-           this.renderFrame(player, posestack, buffer, pl);
-           posestack.popPose();
-           this.shadowRadius = 0.0f;
-      	} else {
-      		if (pl.getTnt() != null) {
-      			info.cancel();
-      			this.renderTnt(player, anim, partialticks, posestack, buffer, light, pl);
-      		}
-        	this.shadowRadius = 0.5f;
+    public PlayerRendererMixin(EntityRendererProvider.Context p_174557_, boolean p_174558_) {
+        super(p_174557_, new PlayerModel<>(p_174557_.bakeLayer(p_174558_ ? ModelLayers.PLAYER_SLIM : ModelLayers.PLAYER), p_174558_), 0.5F);
+    }
+
+    @Inject(
+            method = {"render"},
+            at = {@At("HEAD")},
+            cancellable = true
+    )
+    public void render(AbstractClientPlayer player, float anim, float partialticks, PoseStack posestack, MultiBufferSource buffer, int light, CallbackInfo info) {
+        if (player instanceof PlayerAccessor pl) {
+            if (pl.isFullActive()) {
+                info.cancel();
+                posestack.pushPose();
+                this.adjustMatrixForPlayer(posestack, pl, player);
+                this.renderBlock(player, posestack, buffer, pl);
+                this.renderBlockEntity(player, partialticks, posestack, buffer, light, pl);
+                this.renderBreak(player, posestack, buffer, pl);
+                this.renderFrame(player, posestack, buffer, pl);
+                posestack.popPose();
+                this.shadowRadius = 0.0f;
+            } else {
+                if (pl.getTnt() != null) {
+                    info.cancel();
+                    this.renderTnt(player, anim, partialticks, posestack, buffer, light, pl);
+                }
+                this.shadowRadius = 0.5f;
+            }
         }
-      }
-   }
+    }
 
    /*private void rotate(PoseStack poseStack, Direction dir) {
     	switch (dir) {
@@ -113,18 +114,18 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
    	    posestack.popPose();
    }*/
 
-   private void renderTnt(AbstractClientPlayer player, float anim, float partialticks, PoseStack posestack, MultiBufferSource buffer, int light, PlayerAccessor pl) {
-   	    PrimedTnt tnt = pl.getTnt();
-   	    EntityRenderer rend = entityDispatcher.getRenderer(pl.getTnt());
-      	try {
-      		rend.render(tnt, anim, partialticks, posestack, buffer, light);
-      	} catch (Exception e) {
-           	if (player == Minecraft.getInstance().player && Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc)	
-           	    sc.tagException = e.getMessage();
+    private void renderTnt(AbstractClientPlayer player, float anim, float partialticks, PoseStack posestack, MultiBufferSource buffer, int light, PlayerAccessor pl) {
+        PrimedTnt tnt = pl.getTnt();
+        EntityRenderer rend = entityDispatcher.getRenderer(pl.getTnt());
+        try {
+            rend.render(tnt, anim, partialticks, posestack, buffer, light);
+        } catch (Exception e) {
+            if (player == Minecraft.getInstance().player && Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc)
+                sc.tagException = e.getMessage();
         }
-   }
-  
-   private void adjustMatrixForPlayer(PoseStack poseStack, PlayerAccessor pl, AbstractClientPlayer player) {
+    }
+
+    private void adjustMatrixForPlayer(PoseStack poseStack, PlayerAccessor pl, AbstractClientPlayer player) {
         BlockPos minpos = pl.minPos();
         AABB hitbox = player.getBoundingBox();
         Vec3 playerCenter = player.position();
@@ -135,115 +136,122 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
         double offsetZ = hitbox.minZ - (playerCenter.z + minpos.getZ());
 
         poseStack.translate(offsetX, 0.0, offsetZ);
-   }
+    }
 
-   private void renderBlock(AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer, PlayerAccessor pl) {
-      	BlockState blockstate = pl.getBlockState();
-      	this.renderBlock(player, blockstate, posestack, buffer, player.blockPosition());
-      	for (Map.Entry<BlockPos, BlockState> entry : pl.getBlocks().entrySet()) {
-      		BlockPos pos = entry.getKey();
-      		posestack.pushPose();
+    private ModelData getData(PlayerAccessor pl, BlockPos offset) {
+        UseController ctr = pl.getUseControllers().get(offset);
+        if (ctr != null) return ctr.getData();
+        return null;
+    }
+
+    private void renderBlock(AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer, PlayerAccessor pl) {
+        //BlockState blockstate = pl.getBlockState();
+        //this.renderBlock(player, blockstate, posestack, buffer, player.blockPosition(), this.getData(pl, ));
+        for (Map.Entry<BlockPos, BlockState> entry : pl.getBlocks().entrySet()) {
+            BlockPos pos = entry.getKey();
+            posestack.pushPose();
             posestack.translate(pos.getX(), pos.getY(), pos.getZ());
-            this.renderBlock(player, entry.getValue(), posestack, buffer, player.blockPosition().offset(pos));
-      		posestack.popPose();
-      	}
-   }
+            this.renderBlock(player, entry.getValue(), posestack, buffer, player.blockPosition().offset(pos), this.getData(pl, pos));
+            posestack.popPose();
+        }
+    }
 
-   private void renderBlock(AbstractClientPlayer player, BlockState blockstate, PoseStack posestack, MultiBufferSource buffer, BlockPos offset) {
-   	    Level level = player.level();
-   	    BlockPos pos = offset;
-   	    posestack.pushPose();
+    private void renderBlock(AbstractClientPlayer player, BlockState blockstate, PoseStack posestack, MultiBufferSource buffer, BlockPos offset, ModelData data) {
+        Level level = player.level();
+        BlockPos pos = offset;
+        posestack.pushPose();
         var model = this.dispatcher.getBlockModel(blockstate);
         RandomSource random = RandomSource.create(blockstate.getSeed(pos));
         for (var renderType : model.getRenderTypes(blockstate, random, ModelData.EMPTY))
-            this.dispatcher.getModelRenderer().tesselateBlock(level, model, blockstate, pos, posestack, buffer.getBuffer(renderType), false, RandomSource.create(), blockstate.getSeed(pos), OverlayTexture.NO_OVERLAY);
+            this.dispatcher.getModelRenderer().tesselateBlock(level, model, blockstate, pos, posestack, buffer.getBuffer(renderType), false, RandomSource.create(), blockstate.getSeed(pos), OverlayTexture.NO_OVERLAY, data, renderType);
         posestack.popPose();
-   }
+    }
 
-   private void renderBlockEntity(AbstractClientPlayer player, float partialticks, PoseStack posestack, MultiBufferSource buffer, int light, PlayerAccessor pl) {
-   	    this.renderBlockEntity(BlockPos.ZERO, player, partialticks, posestack, buffer, light, pl);
-   	    for (Map.Entry<BlockPos, BlockState> entry : pl.getBlocks().entrySet()) {
-   	    	BlockPos pos = entry.getKey();
-      		posestack.pushPose();
+    private void renderBlockEntity(AbstractClientPlayer player, float partialticks, PoseStack posestack, MultiBufferSource buffer, int light, PlayerAccessor pl) {
+        this.renderBlockEntity(BlockPos.ZERO, player, partialticks, posestack, buffer, light, pl);
+        for (Map.Entry<BlockPos, BlockState> entry : pl.getBlocks().entrySet()) {
+            BlockPos pos = entry.getKey();
+            posestack.pushPose();
             posestack.translate(pos.getX(), pos.getY(), pos.getZ());
             BlockPos offset = player.blockPosition().offset(pos);
             this.renderBlockEntity(entry.getKey(), player, partialticks, posestack, buffer, this.getRenderLight(player, offset), pl);
-      		posestack.popPose();
-   	    }
-   }
+            posestack.popPose();
+        }
+    }
 
-   private void renderBlockEntity(BlockPos offset, AbstractClientPlayer player, float partialticks, PoseStack posestack, MultiBufferSource buffer, int light, PlayerAccessor pl) {
-       BlockEntity blockEntity = pl.getUseControllers().get(offset).getBlockEntity();
-       if (blockEntity != null) {
-           posestack.pushPose();
-           try {
-               BlockEntityRenderer renderer = blockEntityRenderDispatcher.getRenderer(blockEntity);
-               if (renderer != null) {
-                   renderer.render(blockEntity, partialticks, posestack, buffer, light, OverlayTexture.NO_OVERLAY);
-               }
-           } catch (Exception e) {
-               if (player == Minecraft.getInstance().player && Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc)
-                   sc.tagException = e.getMessage() == null ? e.getClass().toString() : e.getMessage();
-           } finally {
-               posestack.popPose();
-           }
-       }
-   }
+    private void renderBlockEntity(BlockPos offset, AbstractClientPlayer player, float partialticks, PoseStack posestack, MultiBufferSource buffer, int light, PlayerAccessor pl) {
+        BlockEntity blockEntity = pl.getUseControllers().get(offset).getBlockEntity();
+        if (blockEntity != null) {
+            posestack.pushPose();
+            try {
+                BlockEntityRenderer renderer = blockEntityRenderDispatcher.getRenderer(blockEntity);
+                if (renderer != null) {
+                    renderer.render(blockEntity, partialticks, posestack, buffer, light, OverlayTexture.NO_OVERLAY);
+                }
+            } catch (Exception e) {
+                if (player == Minecraft.getInstance().player && Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc)
+                    sc.tagException = e.getMessage() == null ? e.getClass().toString() : e.getMessage();
+            } finally {
+                posestack.popPose();
+            }
+        }
+    }
 
-   protected int getRenderLight(AbstractClientPlayer entity, BlockPos blockPos) {
+    protected int getRenderLight(AbstractClientPlayer entity, BlockPos blockPos) {
         return LightTexture.pack(this.getBlockLightLevel(entity, blockPos), this.getSkyLightLevel(entity, blockPos));
-   }
+    }
 
-   private void renderBreak(AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer, PlayerAccessor pl) {
-   	    CompoundTag k = pl.getProgress();
-   	    for (String key : k.getAllKeys()) {
-   	    	if (key.equals("fuse")) continue;
-   	    	posestack.pushPose();
-   	    	
-   	    	BlockPos pos = MorphUtils.parseBlockPos(key);
-   	    	BlockState state;
-   	    	if (pos.equals(new BlockPos(0,0,0))) {
-   	    		state = pl.getBlockState();
-   	    	} else {
-   	    		state = pl.getBlocks().get(pos);
-   	    	}
-   	    	if (pos != null && state != null) {
-   	    		posestack.translate(pos.getX(), pos.getY(), pos.getZ());
-   	    		this.renderBreak(k.getInt(key), state, player, posestack, buffer);
-   	    	}
+    private void renderBreak(AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer, PlayerAccessor pl) {
+        CompoundTag k = pl.getProgress();
+        for (String key : k.getAllKeys()) {
+            if (key.equals("fuse")) continue;
+            posestack.pushPose();
 
-   	    	posestack.popPose();
-   	    }
-   }
+            BlockPos pos = MorphUtils.parseBlockPos(key);
+            BlockState state = pl.getBlocks().get(pos);
+            //if (pos == null) continue;
+            /*if (pos.equals(new BlockPos(0, 0, 0))) {
+                state = pl.getBlockState();
+            } else {
+                state = pl.getBlocks().get(pos);
+            }*/
+            if (state != null && pos != null) {
+                posestack.translate(pos.getX(), pos.getY(), pos.getZ());
+                this.renderBreak(k.getInt(key), state, player, posestack, buffer, this.getData(pl, pos));
+            }
 
-   private void renderBreak(int k, BlockState blockstate, AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer) {
+            posestack.popPose();
+        }
+    }
+
+    private void renderBreak(int k, BlockState blockstate, AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer, ModelData data) {
         posestack.pushPose();
         PoseStack.Pose posestack$pose1 = posestack.last();
         if (k > -1 && k < 10) {
             VertexConsumer vertexconsumer1 = new SheetedDecalTextureGenerator(buffer.getBuffer(ModelBakery.DESTROY_TYPES.get(k)), posestack$pose1.pose(), posestack$pose1.normal(), 1.0F);
-            this.dispatcher.renderBreakingTexture(blockstate, AIR, player.level(), posestack, vertexconsumer1);
+            this.dispatcher.renderBreakingTexture(blockstate, AIR, player.level(), posestack, vertexconsumer1, data);
         }
- 
-        posestack.popPose();
-   }
 
-   private void renderFrame(AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer, PlayerAccessor pl) {
-   	Minecraft mc = Minecraft.getInstance();
-   	if (player == MorphUtils.hitEntity && 
-   	    !mc.player.isSpectator() && 
-   	    mc.gameMode.getPlayerMode() != GameType.ADVENTURE && 
-   	    !mc.options.hideGui &&
-   	    MorphUtils.hitPart != null
-   	) {
-   	    posestack.pushPose();
-   	    VoxelShape shape = pl.getRenderShape(MorphUtils.hitPart);
-   	    if (shape == null) {
-   	    	posestack.popPose();
-   	    	return;
-   	    }
-        ((LevelRendererAccessor)mc.levelRenderer).renderBlockHitbox(posestack, buffer.getBuffer(RenderType.lines()), shape, 0, 0, 0, 0f, 0f, 0f, 0.4f);
         posestack.popPose();
-   	}
-   }
+    }
+
+    private void renderFrame(AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer, PlayerAccessor pl) {
+        Minecraft mc = Minecraft.getInstance();
+        if (player == MorphUtils.hitEntity &&
+                !mc.player.isSpectator() &&
+                mc.gameMode.getPlayerMode() != GameType.ADVENTURE &&
+                !mc.options.hideGui &&
+                MorphUtils.hitPart != null
+        ) {
+            posestack.pushPose();
+            VoxelShape shape = pl.getRenderShape(MorphUtils.hitPart);
+            if (shape == null) {
+                posestack.popPose();
+                return;
+            }
+            ((LevelRendererAccessor) mc.levelRenderer).renderBlockHitbox(posestack, buffer.getBuffer(RenderType.lines()), shape, 0, 0, 0, 0f, 0f, 0f, 0.4f);
+            posestack.popPose();
+        }
+    }
 
 }

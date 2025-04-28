@@ -11,6 +11,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ServerScoreboard;
@@ -295,7 +296,12 @@ public class UseServerLevel extends ServerLevel implements UseAccessor {
         return realLevel.getFreeMapId();
     }
 
-    public void sendBlockUpdated(BlockPos var1, BlockState var2, BlockState var3, int var4) {}
+    public void sendBlockUpdated(BlockPos var1, BlockState var2, BlockState var3, int var4) {
+        MorphUtils.doActionFromBounedBlockPos(var1, (ctr, realPos) -> {
+            if (ctr.getBlockEntity() != null)
+                this.getChunkSource().broadcastAndSend(ctr.getOwner(), ClientboundBlockEntityDataPacket.create(ctr.getBlockEntity()));
+        });
+    }
 
     public void playSeededSound(@Nullable Player var1, Entity var2, Holder<SoundEvent> var3, SoundSource var4, float var5, float var6, long var7) {}
 

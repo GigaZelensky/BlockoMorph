@@ -398,7 +398,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	public HashMap<BlockPos, BlockState> getBlocks() {
 		HashMap<BlockPos, BlockState> bls = new HashMap<>();
 		for (Map.Entry<BlockPos, BlockInPlayer> bl : this.blocks.entrySet()) {
-			bls.put(bl.getKey(), bl.getValue().getBlockState()	);
+			bls.put(bl.getKey(), bl.getValue().getBlockState());
 		}
 		return bls;
 	}
