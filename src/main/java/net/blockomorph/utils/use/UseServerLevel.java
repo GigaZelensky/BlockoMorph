@@ -1,6 +1,7 @@
 package net.blockomorph.utils.use;
 
 
+import net.blockomorph.Blockomorph;
 import net.blockomorph.network.blockFix.ClientBoundBlockEventPacket;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.accessors.EntityAccessor;
@@ -11,6 +12,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -46,6 +48,7 @@ import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.ticks.LevelTicks;
+import org.apache.logging.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -142,7 +145,7 @@ public class UseServerLevel extends ServerLevel implements UseAccessor {
 
     @Override
     public void blockEntityChanged(BlockPos p_151544_) {
-        this.useController.checkChanges();
+        //this.useController.checkChanges();
     }
 
     @Override
@@ -298,8 +301,10 @@ public class UseServerLevel extends ServerLevel implements UseAccessor {
 
     public void sendBlockUpdated(BlockPos var1, BlockState var2, BlockState var3, int var4) {
         MorphUtils.doActionFromBounedBlockPos(var1, (ctr, realPos) -> {
-            if (ctr.getBlockEntity() != null)
-                this.getChunkSource().broadcastAndSend(ctr.getOwner(), ClientboundBlockEntityDataPacket.create(ctr.getBlockEntity()));
+            BlockEntity ent = ctr.getBlockEntity();
+            if (ent != null && ent.getUpdatePacket() != null) {
+                this.getChunkSource().broadcastAndSend(ctr.getOwner(), ent.getUpdatePacket());
+            }
         });
     }
 

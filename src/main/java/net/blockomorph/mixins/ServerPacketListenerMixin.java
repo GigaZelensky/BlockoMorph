@@ -1,7 +1,5 @@
 package net.blockomorph.mixins;
 
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.protocol.game.ServerboundSignUpdatePacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.level.LevelReader;
@@ -12,7 +10,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ServerGamePacketListenerImpl.class)
@@ -24,7 +21,6 @@ public abstract class ServerPacketListenerMixin {
     	
         AABB movedBox = player.getBoundingBox().move(moveX - player.getX(), moveY - player.getY(), moveZ - player.getZ());
         Iterable<VoxelShape> collisions = levelReader.getCollisions(player, movedBox.deflate((double)1.0E-5F));
-        VoxelShape playerShape = Shapes.create(playerBox.deflate((double)1.0E-5F));
 
         boolean isAlreadyInsideShape = false;
         boolean isTryingToEnterShape = false;

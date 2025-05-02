@@ -25,7 +25,7 @@ public class DebugScreenMixin {
     @Redirect(method = "getSystemInformation", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/phys/HitResult;getType()Lnet/minecraft/world/phys/HitResult$Type;", ordinal = 0))
     private HitResult.Type redirectGetType(HitResult instance) {
         if (instance.getType() == HitResult.Type.MISS) {
-            if (MorphUtils.hit != null) {
+            if (MorphUtils.playerHitResult != null) {
                 return HitResult.Type.BLOCK;
             }
         }
@@ -34,8 +34,8 @@ public class DebugScreenMixin {
 
     @Redirect(method = "getSystemInformation", at = @At(value = "INVOKE", target = "Ljava/util/List;add(Ljava/lang/Object;)Z", ordinal = 1))
     public boolean redirectAdd(List<String> instance, Object e) {
-        if (MorphUtils.hitEntity instanceof PlayerAccessor pl) {
-            Vec3 posittion = MorphUtils.getRealBlockPos(pl, MorphUtils.hitPart);
+        if (MorphUtils.playerHitResult != null) {
+            Vec3 posittion = MorphUtils.getRealBlockPos(MorphUtils.hitEntity, MorphUtils.hitPart);
             String x = this.formatCoordinate(posittion.x);
             String y = this.formatCoordinate(posittion.y);
             String z = this.formatCoordinate(posittion.z);
@@ -55,8 +55,8 @@ public class DebugScreenMixin {
 
     @ModifyVariable(method = "getSystemInformation", at = @At(value = "STORE", ordinal = 0))
     private BlockState modifyBlockState(BlockState value) {
-        if (MorphUtils.hitEntity instanceof PlayerAccessor pl) {
-            return pl.getBlocks().get(MorphUtils.hitPart);
+        if (MorphUtils.playerHitResult != null) {
+            return MorphUtils.hitEntity.getBlocks().get(MorphUtils.hitPart);
         }
         return value;
     }

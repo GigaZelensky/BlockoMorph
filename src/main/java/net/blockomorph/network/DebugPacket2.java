@@ -2,6 +2,7 @@ package net.blockomorph.network;
 
 import net.blockomorph.utils.PlayerAccessor;
 import net.blockomorph.utils.SavedBlock;
+import net.blockomorph.utils.use.UseServerLevel;
 import net.blockomorph.utils.use.fix.BedController;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -11,7 +12,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.HashMap;
 import java.util.Optional;
@@ -42,10 +45,10 @@ public class DebugPacket2 implements BlockMorphPacket {
 
     @Override
     public void handle(Player player) {
-        Entity ent = player.level().getEntity(this.id);
-        if (ent != null) {
-            player.startRiding(ent, true);
-        }
+        //Entity ent = player.level().getEntity(this.id);
+        //if (ent != null) {
+            //player.startRiding(ent, true);
+        //}
         /*HashMap<BlockPos, SavedBlock> blocks = new HashMap<>();
         blocks.put(new BlockPos(0, 1, 0), new SavedBlock(Blocks.COBBLESTONE.defaultBlockState(), new CompoundTag(), ""));
         blocks.put(new BlockPos(0, 2, 0), new SavedBlock(Blocks.TORCH.defaultBlockState(), new CompoundTag(), ""));
@@ -53,6 +56,11 @@ public class DebugPacket2 implements BlockMorphPacket {
         //blocks.put(BlockPos.ZERO, new SavedBlock(Blocks.COBBLESTONE.defaultBlockState(), new CompoundTag(), ""));
         ((PlayerAccessor)player).enableBlockOverrides(blocks);
         //player.setPose(Pose.SLEEPING);*/
-
+        if (player instanceof PlayerAccessor pl) {
+            BlockEntity bl = pl.getUseControllers().get(BlockPos.ZERO).getBlockEntity();
+            if (bl != null&&bl.getLevel() instanceof UseServerLevel LV2) {
+                LV2.sendBlockUpdated(bl.getBlockPos(), null, null, 0);
+            }
+        }
     }
 }

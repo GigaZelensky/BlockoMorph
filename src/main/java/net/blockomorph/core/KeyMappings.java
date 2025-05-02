@@ -54,10 +54,10 @@ public class KeyMappings {
 	});
 
 	public static final KeyMapping db3 = new HandlerKeymapping("key.blockomorph.config_menu223", GLFW.GLFW_KEY_V, () -> {
-		if (Minecraft.getInstance().hitResult instanceof EntityHitResult ent) {
-            MorphUtils.sendServer(new DebugPacket2(ent.getEntity().getId()));
-		//MorphUtils.sendServer(new DebugPacket2(-1));
-        }
+		//if (Minecraft.getInstance().hitResult instanceof EntityHitResult ent) {
+        //    MorphUtils.sendServer(new DebugPacket2(ent.getEntity().getId()));
+		MorphUtils.sendServer(new DebugPacket2(-1));
+        //}
 	});
 
 	@SubscribeEvent

@@ -121,13 +121,14 @@ public class UseController {
         ((BlockPosAccessor)hiter.getBlockPos()).setUseController(this);
         Level lv = this.useLevel;
         ItemStack itemstack = clicker.getItemInHand(hand);
-        if (this.owner.isSpectator()) {
+        Blockomorph.LOGGER.info("test!");
+        if (clicker.isSpectator()) {
             if (this.owner.level().isClientSide)
                 return InteractionResult.SUCCESS;
             MenuProvider menuprovider = this.blockState.getMenuProvider(lv, hiter.getBlockPos());
             if (menuprovider != null) {
                 clicker.openMenu(menuprovider);
-                this.ejectChanges(lv, clicker);
+                this.boundMenu(clicker);
                 return InteractionResult.SUCCESS;
             } else {
                 return InteractionResult.PASS;
@@ -145,7 +146,7 @@ public class UseController {
             return interactionresult;
         }
         InteractionResult interactionresult1;
-        if (this.owner.isCreative()) {
+        if (clicker.isCreative()) {
             int i = itemstack.getCount();
             interactionresult1 = itemstack.useOn(ctx);
             itemstack.setCount(i);
@@ -156,11 +157,15 @@ public class UseController {
         return interactionresult1;
     }
 
+    private void boundMenu(Player clicker) {
+        if (clicker != null && clicker.containerMenu instanceof MenuAccessor acc && clicker.containerMenu != clicker.inventoryMenu) {
+            acc.boundToPlayer(this);
+        }
+    }
+
     private void ejectChanges(Level lv, @Nullable Player clicker) {
         if (lv instanceof UseServerLevel lv2) {
-            if (clicker != null && clicker.containerMenu instanceof MenuAccessor acc && clicker.containerMenu != clicker.inventoryMenu) {
-                acc.boundToPlayer(this);
-            }
+            this.boundMenu(clicker);
             HashMap<BlockPos, SavedBlock> bls = new HashMap<>();
             HashMap<BlockPos, BlockState> blocksMain = new HashMap<>(lv2.getBlocks());
             lv2.getBlocks().clear();
@@ -175,17 +180,11 @@ public class UseController {
         }
     }
 
-    public void checkChanges() {
-        if (this.blockEntity != null) {
-            this.ejectChanges(this.useLevel, null);
-            this.pl.saveBlockEntities();
-        }
-    }
-
     public UseController loadTag(CompoundTag tag) {
         if (this.blockEntity != null) {
             try {
                 this.blockEntity.load(tag);
+                this.blockEntity.onLoad();
             } catch (Exception ignored) {}
         }
         return this;
@@ -197,6 +196,7 @@ public class UseController {
                 CompoundTag tg = this.blockEntity.saveWithoutMetadata();
                 tg.merge(tag);
                 this.blockEntity.load(tg);
+                this.blockEntity.onLoad();
             } catch (Exception ignored) {}
         }
         return this;

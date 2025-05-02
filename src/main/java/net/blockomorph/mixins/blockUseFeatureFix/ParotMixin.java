@@ -1,5 +1,6 @@
 package net.blockomorph.mixins.blockUseFeatureFix;
 
+import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.accessors.BlockPosAccessor;
 import net.blockomorph.utils.use.UseController;
 import net.minecraft.core.BlockPos;
@@ -24,10 +25,10 @@ public abstract class ParotMixin extends LivingEntity {
 
     @Inject(method = "setRecordPlayingNearby", at = @At(value = "HEAD"), cancellable = true)
     public void setRecordPlayingNearby(BlockPos pos, boolean act, CallbackInfo ci) {
-        if (((BlockPosAccessor)pos).getController() != null) {
+        MorphUtils.doActionFromBounedBlockPos(pos, (ctr, rP) -> {
             ci.cancel();
-            this.controller = ((BlockPosAccessor)pos).getController();
-        }
+            this.controller = ctr;
+        });
     }
 
     @Inject(method = "aiStep", at = @At(value = "TAIL"))

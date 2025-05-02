@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraftforge.client.model.data.ModelDataManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,6 +28,7 @@ import java.util.List;
 public class UseLevel extends MultiBlockLevel implements UseAccessor {
     protected final UseController useController;
     private boolean realBlockPosMode;
+    private final ModelDataManager MODEL_DATA_MANAGER = new ModelDataManager(this);
 
     private UseLevel(Level lv, UseController ctr) {
         super(lv, true);
@@ -93,7 +95,7 @@ public class UseLevel extends MultiBlockLevel implements UseAccessor {
 
     @Override
     public void blockEntityChanged(BlockPos p_151544_) {
-        this.useController.checkChanges();
+        //this.useController.checkChanges();
     }
 
     @Override
@@ -151,7 +153,8 @@ public class UseLevel extends MultiBlockLevel implements UseAccessor {
         return realLevel.noCollision(input);
     }
 
-    public ServerLevel getMinecraftWorld() {
-        return null;
+    @Override
+    public net.minecraftforge.client.model.data.ModelDataManager getModelDataManager() {
+        return MODEL_DATA_MANAGER;
     }
 }

@@ -461,7 +461,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		//soft block sync
 		if (this.getUpdateFlag() == 1) {
 			for (String key : blocks.getAllKeys()) {
-				UseController controller = null;
+				UseController controller;
 				BlockPos pos = MorphUtils.parseBlockPos(key);
 				CompoundTag xyz = blocks.getCompound(key);
 				BlockState state3 = NbtUtils.readBlockState(this.level().holderLookup(Registries.BLOCK), xyz.getCompound("BlockState"));
@@ -557,11 +557,10 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	}
 
 	public VoxelShape getShape(BlockPos offset, @Nullable Vec3 realPos) {
-		BlockInPlayer ctr = this.getBlocksData().get(offset);
-		if (ctr == null) return Shapes.empty();
-		BlockEntity ent = ctr.getUseController().getBlockEntity();
-		Level lv = ent == null ? this.level() : ent.getLevel();
-		VoxelShape shp = ctr.getBlockState().getCollisionShape(lv, offset, CollisionContext.of(this));
+		BlockInPlayer block = this.getBlocksData().get(offset);
+		if (block == null) return Shapes.empty();
+		UseController ctr = block.getUseController();
+		VoxelShape shp = ctr.getBlockState().getCollisionShape(ctr.getUseLevel(), ctr.getOffset(), CollisionContext.of(this));
 		Vec3 rl;
 		if (realPos != null) {
 			rl = realPos;
@@ -580,16 +579,13 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 			} else {
 				state = this.getBlocks().get(pos);
 			}
-			BlockInPlayer ctr = this.getBlocksData().get(pos);
-			BlockEntity ent = ctr.getUseController().getBlockEntity();
-			Level lv = ent == null ? this.level() : ent.getLevel();
-			VoxelShape shape = state.getShape(lv, pos, CollisionContext.of(this));
+			BlockInPlayer block = this.getBlocksData().get(pos);
+			UseController ctr = block.getUseController();
+			VoxelShape shape = state.getShape(ctr.getUseLevel(), ctr.getOffset(), CollisionContext.of(this));
             return shape.move(pos.getX(), pos.getY(), pos.getZ());
 		}
-		return null;
+		return Shapes.empty();
 	}
-
-
 
 	@Override
 	public boolean isAttackable() {

@@ -20,14 +20,14 @@ public class MinecraftMixin {
 
     @Inject(method = "startUseItem()V", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z", shift = At.Shift.BEFORE, ordinal = 1), cancellable = true, locals = LocalCapture.CAPTURE_FAILEXCEPTION)
     private void redirectClick(CallbackInfo ci, InteractionHand[] var1, int var2, int var3, InteractionHand interactionhand) {
-        if (MorphUtils.hit != null && MorphUtils.hit.getEntity() instanceof PlayerAccessor pl && pl.isFullActive()) {
-            for (BlockInPlayer br : pl.getBlocksData().values()) {
+        if (MorphUtils.playerHitResult != null && MorphUtils.hitEntity.isFullActive()) {
+            for (BlockInPlayer br : MorphUtils.hitEntity.getBlocksData().values()) {
                 if (br.getBlockBracker().players.contains(this.player)) {
                     ci.cancel();
                     return;
                 }
             }
-            if (MorphUtils.performClientUse(pl, interactionhand)) {
+            if (MorphUtils.performClientUse(MorphUtils.hitEntity, interactionhand)) {
                 ci.cancel();
             }
         }

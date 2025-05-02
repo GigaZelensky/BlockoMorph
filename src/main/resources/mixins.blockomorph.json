@@ -32,6 +32,7 @@
     "LevelRenderMixin",
     "MinecraftMixin",
     "PlayerRendererMixin",
+    "blockUseFeatureFix.GuiMixin",
     "blockUseFeatureFix.HumanoidModelMixin"
   ]
 }

@@ -73,13 +73,13 @@ public class BlockBracker {
       	    for (Player pl : this.players) {
                 //Player pl = iterator.next();
                 PlayerAccessor pla = (PlayerAccessor)pl;
-                MorphUtils.MorphedPlayerHit hit = MorphUtils.getPlayerLookedResult(pl, -1, 1);
+                MorphUtils.MorphedPlayerHitResult hit = MorphUtils.getMorphedPlayerHitResult(pl, -1, 1);
                 if (pla.readyForDestroy()) {
-                	if (hit == null || hit.hitResult().getEntity() != owner) {
+                	if (hit == null || hit.player() != owner) {
                 		//iterator.remove();
                 	    this.players.remove(pl);
                 	} else {
-                		BlockPos pos = hit.blockOffset();
+                		BlockPos pos = hit.offset();
                 		if (!pos.equals(this.offset)) {
                 			this.removePlayer(pl);
                 			this.player.addPlayer(pos, pl);
