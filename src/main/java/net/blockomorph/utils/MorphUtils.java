@@ -390,9 +390,12 @@ public class MorphUtils {
             }
         }
 
-        Vec3 blockhit = looker.level().clip(new ClipContext(eyePosition, reachVector, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, looker)).getLocation();
-        HitResult entityHit = ProjectileUtil.getHitResultOnMoveVector(looker, EntitySelector.NO_SPECTATORS);
-        if (eyePosition.distanceTo(blockhit) < distanceToPartOfBlock || (entityHit instanceof EntityHitResult && eyePosition.distanceTo(entityHit.getLocation()) < distanceToPartOfBlock)) return null; //TODO
+        //Vec3 blockhit = looker.level().clip(new ClipContext(eyePosition, reachVector, ClipContext.Block.OUTLINE, ClipContext.Fluid.NONE, looker)).getLocation();
+        HitResult hit = ProjectileUtil.getHitResultOnViewVector(looker, EntitySelector.NO_SPECTATORS, 1);
+        //if (eyePosition.distanceTo(blockhit) < distanceToPartOfBlock || (entityHit instanceof EntityHitResult && eyePosition.distanceTo(entityHit.getLocation()) < distanceToPartOfBlock)) return null; //TODO
+        if (hit.getType() != HitResult.Type.MISS) {
+            if (eyePosition.distanceTo(hit.getLocation()) < distanceToPartOfBlock) return null;
+        }
 
         return result;
     }
