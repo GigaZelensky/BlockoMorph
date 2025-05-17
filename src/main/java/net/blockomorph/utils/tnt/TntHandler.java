@@ -118,8 +118,8 @@ public class TntHandler {
             TNT = lv.extractTnt();
             if (TNT == null) {
                 BlockPos ps = this.player.blockPosition();
-                PrimedTnt primedtnt = new PrimedTnt(this.player.level(), (double)ps.getX() + 0.5D, (double)ps.getY(), (double)ps.getZ() + 0.5D, null);
-                this.player.level().playSound((Player)null, primedtnt.getX(), primedtnt.getY(), primedtnt.getZ(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
+                PrimedTnt primedtnt = new PrimedTnt(this.player.level(), (double)ps.getX() + 0.5D, ps.getY(), (double)ps.getZ() + 0.5D, null);
+                this.player.level().playSound((Player) null, primedtnt.getX(), primedtnt.getY(), primedtnt.getZ(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
                 this.player.level().gameEvent(null, GameEvent.PRIME_FUSE, ps);
                 this.tnt = primedtnt;
             } else
@@ -138,9 +138,7 @@ public class TntHandler {
                     Vec3 posToExit = spawn.getUseController().getRealPos().add(0, -0.5, 0);
                     tntOut.setPosRaw(posToExit.x, posToExit.y, posToExit.z);
                     this.player.level().addFreshEntity(tntOut);
-                    HashMap<BlockPos, SavedBlock> setBlock = new HashMap<>();
-                    setBlock.put(res.getBlockPos(), new SavedBlock(Blocks.AIR.defaultBlockState(), new CompoundTag(), ""));
-                    this.pl.enableBlockOverrides(setBlock);
+                    this.pl.enableBlockOverrides(SavedBlock.getSetBlockMap(res.getBlockPos(), Blocks.AIR.defaultBlockState()));
                 }
             }
         }

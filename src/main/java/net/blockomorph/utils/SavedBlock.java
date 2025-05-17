@@ -1,15 +1,18 @@
 package net.blockomorph.utils;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.HashMap;
+
 public class SavedBlock {
-   private BlockState blockstate;
-   private CompoundTag nbt;
-   private String key;
+   private final BlockState blockstate;
+   private final CompoundTag nbt;
+   private final String key;
    
    public SavedBlock(BlockState state, CompoundTag nbt, String k) {
    	   this.blockstate = state;
@@ -34,6 +37,12 @@ public class SavedBlock {
    	   tag.put("BlockState", NbtUtils.writeBlockState(this.blockstate));
    	   tag.put("Tag", this.nbt);
    	   return tag;
+   }
+
+   public static HashMap<BlockPos, SavedBlock> getSetBlockMap(BlockPos bp, BlockState st) {
+       HashMap<BlockPos, SavedBlock> map = new HashMap<>();
+       map.put(bp, new SavedBlock(st, new CompoundTag(), ""));
+       return map;
    }
 
    public static SavedBlock fromTag(CompoundTag tag, String k) {

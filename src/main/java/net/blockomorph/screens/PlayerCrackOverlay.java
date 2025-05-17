@@ -29,7 +29,7 @@ public class PlayerCrackOverlay {
 		    RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 		    RenderSystem.setShaderColor(1, 1, 1, 1);
 
-		    int k = ((PlayerAccessor)entity).getBiggestProgress();
+		    int k = PlayerAccessor.of(entity).getBiggestProgress();
 		    
 			if (k >= 0 && k < 10) event.getGuiGraphics().blit(new ResourceLocation("minecraft:textures/block/destroy_stage_" + k + ".png"), 0, 0, 16, 16, w, h, w, h);
 			

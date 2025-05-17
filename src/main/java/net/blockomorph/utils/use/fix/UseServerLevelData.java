@@ -1,6 +1,5 @@
 package net.blockomorph.utils.use.fix;
 
-import net.blockomorph.utils.use.UseServerLevel;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Difficulty;

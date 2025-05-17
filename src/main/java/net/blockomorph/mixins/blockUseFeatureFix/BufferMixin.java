@@ -35,7 +35,7 @@ public class BufferMixin {
             UUID id = uuid.get();
             BlockPos offset = BlockPos.of(buf.readLong());
             UseController ctr = MorphUtils.getControllerFromNetwork(id, offset);
-            cir.setReturnValue(((BlockPosAccessor)offset).setUseController(ctr));
+            cir.setReturnValue(BlockPosAccessor.of(offset).setUseController(ctr));
         }
     }
 }

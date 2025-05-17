@@ -4,10 +4,12 @@ import net.blockomorph.Blockomorph;
 import net.blockomorph.network.blockFix.ClientBoundBlockEventPacket;
 import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.utils.*;
+import net.blockomorph.utils.accessors.BlockPosAccessor;
 import net.blockomorph.utils.accessors.MenuAccessor;
 import net.blockomorph.utils.tnt.TntHandler;
 import net.blockomorph.utils.use.UseController;
 import net.blockomorph.utils.use.fix.BedController;
+import net.blockomorph.utils.use.fix.ChairController;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -30,7 +32,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -50,7 +51,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import oshi.jna.platform.mac.SystemB;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -67,9 +67,11 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	private static final EntityDataAccessor<CompoundTag> DATA_BlockMorph = SynchedEntityData.defineId(Player.class, EntityDataSerializers.COMPOUND_TAG);
 	private static final EntityDataAccessor<CompoundTag> BRAKE_PROGRESS = SynchedEntityData.defineId(Player.class, EntityDataSerializers.COMPOUND_TAG);
 	private static final EntityDataAccessor<CompoundTag> BED_DATA = SynchedEntityData.defineId(Player.class, EntityDataSerializers.COMPOUND_TAG);
+	private static final EntityDataAccessor<CompoundTag> SIT_DATA = SynchedEntityData.defineId(Player.class, EntityDataSerializers.COMPOUND_TAG);
 	private final TntHandler TNT_HANDLER = new TntHandler(this, this.entityData, BRAKE_PROGRESS);
 	private final HitBoxCalculator HITBOX_HANDLER = new HitBoxCalculator(this);
 	private final BedController BED_CONTROLLER = new BedController(this, this.entityData, BED_DATA);
+	private final ChairController CHAIR_CONTROLLER = new ChairController(this, this.entityData, SIT_DATA);
 	private final ConcurrentHashMap<BlockPos, BlockInPlayer> blocks = new ConcurrentHashMap<>() {
 		@Override
 		public void clear() {
@@ -98,6 +100,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		this.entityData.define(DATA_BlockMorph, this.getEmptyData());
 		this.entityData.define(BRAKE_PROGRESS, new CompoundTag());
 		this.entityData.define(BED_DATA, new CompoundTag());
+		this.entityData.define(SIT_DATA, new CompoundTag());
 	}
 
 	@Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
@@ -179,6 +182,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 			this.containerMenu = this.inventoryMenu;
 		}
 		BED_CONTROLLER.tick();
+		CHAIR_CONTROLLER.tick();
 	}
 
 	private boolean isPlayerContainerInvalid() {
@@ -221,7 +225,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 			mainTag.putInt("UpdateFlag", 2);
 			CompoundTag elements = new CompoundTag();
 			MultiBlockLevel lv = new MultiBlockLevel(this.level(), false);
-			state.getBlock().setPlacedBy(lv, BlockPos.ZERO, state, (LivingEntity) (Object) this, ItemStack.EMPTY);
+			state.getBlock().setPlacedBy(lv, BlockPos.ZERO, state, (LivingEntity) (Object) this, new ItemStack(state.getBlock()));
 			for (Map.Entry<BlockPos, BlockState> bls : lv.getBlocks().entrySet()) {
 				CompoundTag tg = new CompoundTag();
 				tg.put("BlockState", NbtUtils.writeBlockState(bls.getValue()));
@@ -321,6 +325,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 				BlockState ctr = this.getUseControllers().get(offsetted).getBlockState();
 				MultiBlockLevel lv = new MultiBlockLevel(this.level(), false);
 				lv.getBlocks().putAll(this.getBlocks());
+				lv.getBlocks().putAll(updating);
 
 				BlockState ctr2 = ctr.getBlock().updateShape(ctr, updDir.getOpposite(), this.getUseControllers().get(pos).getBlockState(), lv, offsetted, pos);
 
@@ -338,7 +343,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		if (ctr.getBlockState().getBlock() instanceof TntBlock) {
 			return TNT_HANDLER.clckTnt(clicker, hiter, hand);
 		} else if (ctr.getBlockState().getBlock() instanceof BedBlock) {
-			return ((PlayerAccessor)clicker).getBedController().clckBed(this, hiter);
+			return PlayerAccessor.of(clicker).getBedController().clckBed(this, hiter);
 		}
 		return ctr.use(clicker, hiter, hand);
 	}
@@ -353,6 +358,10 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 
 	public BedController getBedController() {
 		return BED_CONTROLLER;
+	}
+
+	public ChairController getChairController() {
+		return CHAIR_CONTROLLER;
 	}
 
 	public BlockState getBlockState() {
@@ -537,6 +546,8 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 			TNT_HANDLER.onClientUpdater();
 		} else if (BED_DATA.equals(data)) {
 			BED_CONTROLLER.syncData();
+		} else if (SIT_DATA.equals(data)) {
+			CHAIR_CONTROLLER.syncData();
 		}
 	}
 
@@ -560,7 +571,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		BlockInPlayer block = this.getBlocksData().get(offset);
 		if (block == null) return Shapes.empty();
 		UseController ctr = block.getUseController();
-		VoxelShape shp = ctr.getBlockState().getCollisionShape(ctr.getUseLevel(), ctr.getOffset(), CollisionContext.of(this));
+		VoxelShape shp = ctr.getBlockState().getCollisionShape(ctr.getUseLevel(), BlockPosAccessor.of(BlockPos.containing(ctr.getRealPos())).setUseController(ctr), CollisionContext.of(this));
 		Vec3 rl;
 		if (realPos != null) {
 			rl = realPos;
@@ -581,7 +592,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 			}
 			BlockInPlayer block = this.getBlocksData().get(pos);
 			UseController ctr = block.getUseController();
-			VoxelShape shape = state.getShape(ctr.getUseLevel(), ctr.getOffset(), CollisionContext.of(this));
+			VoxelShape shape = state.getShape(ctr.getUseLevel(), BlockPosAccessor.of(BlockPos.containing(ctr.getRealPos())).setUseController(ctr), CollisionContext.of(this));
             return shape.move(pos.getX(), pos.getY(), pos.getZ());
 		}
 		return Shapes.empty();
@@ -682,6 +693,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	protected void positionRider(@NotNull Entity passanger, @NotNull MoveFunction setPosition) {
 		if (this.hasPassenger(passanger) && passanger instanceof PlayerAccessor plPass) {
 			BedController bd = plPass.getBedController();
+			ChairController ch = plPass.getChairController();
 			UseController ctr = bd.getTarget();
 			if (ctr != null) {
 				if (ctr.getPl() == this) {
@@ -690,9 +702,31 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 					return;
 				}
 			}
+			ctr = ch.getTarget();
+			if (ctr != null && ctr.getPl() == this) {
+				Vec3 chairPos = MorphUtils.getRealBlockPos(ctr.getPl(), BlockPos.ZERO).add(ch.getChairPos());
+				setPosition.accept(passanger, chairPos.x, chairPos.y, chairPos.z);
+				return;
+			}
 		}
 		super.positionRider(passanger, setPosition);
 	}
+
+	/*private MultiBlockLevel LIQIUD_LEVEL;
+
+	public MultiBlockLevel getLiquidCachedLevel() {
+		if (LIQIUD_LEVEL == null && this.level().isClientSide()) {
+			LIQIUD_LEVEL = new MultiBlockLevel(this.level(), true) {
+				@Override
+				public BlockState getBlockState(BlockPos pos) {
+					BlockInPlayer bl = blocks.get(pos);
+					if (bl != null) return bl.getBlockState();
+					return Blocks.AIR.defaultBlockState();
+				}
+			};
+		}
+		return LIQIUD_LEVEL;
+	}*/
 
 	public PlayerMixin() {
 		super(null, null);

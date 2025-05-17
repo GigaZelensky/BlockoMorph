@@ -94,7 +94,7 @@ public class ClientBoundBlockEventPacket implements BlockMorphPacket {
                 if (ctr != null) {
                     PlayerJukeboxSoundInstance.play(ctr, this.paramB);
                     for(LivingEntity livingentity : player.level().getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().inflate(3.0F))) {
-                        livingentity.setRecordPlayingNearby(((BlockPosAccessor)new BlockPos(0, 0 ,0)).setUseController(ctr), true);
+                        livingentity.setRecordPlayingNearby(BlockPosAccessor.of(ctr.getOffset()).setUseController(ctr), true);
                     }
                 }
                 return true;

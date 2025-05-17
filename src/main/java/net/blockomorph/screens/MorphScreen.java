@@ -170,7 +170,7 @@ public class MorphScreen extends Screen {
 			CreativeModeTab tab = this.getTabAtPosition(mouseX, mouseY);
 			if (tab != null) guiGraphics.renderTooltip(this.font, tab.getDisplayName(), mouseX, mouseY);
 		}
-		if (this.unmask != null) this.unmask.active = ((PlayerAccessor)this.entity).isFullActive();
+		if (this.unmask != null) this.unmask.active = PlayerAccessor.of(this.entity).isFullActive();
 		if (this.fuse != null) {
 			this.fuse.active = this.activeFlameBut();
 			this.fuse.visible = this.needFlameBut();
@@ -303,10 +303,10 @@ public class MorphScreen extends Screen {
         		guiGraphics.blit(new ResourceLocation("blockomorph:textures/screens/sel_lock.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
         		return;
         	}
-        	BlockState plSt = ((PlayerAccessor)entity).getBlockState();
+        	BlockState plSt = PlayerAccessor.of(this.entity).getBlockState();
             if (selectedTab == loved_blocks) {
-            	if (plSt.equals(blockState) && tag.equals(((PlayerAccessor)entity).getTag()))
-            	guiGraphics.blit(new ResourceLocation("blockomorph:textures/screens/selected.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
+            	if (plSt.equals(blockState) && tag.equals(PlayerAccessor.of(this.entity).getTag()))
+            		guiGraphics.blit(new ResourceLocation("blockomorph:textures/screens/selected.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
             } else if (plSt.getBlock() == blockState.getBlock()) {
             	guiGraphics.blit(new ResourceLocation("blockomorph:textures/screens/selected.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
             }
@@ -662,7 +662,7 @@ public class MorphScreen extends Screen {
 			 //MorphUtils.sendServer(ServerBoundBlockMorphPacket.fuse());
 			MorphUtils.sendServer(ServerBoundBlockMorphPacket.fuse());
 		});
-		this.unmask.active = ((PlayerAccessor)this.entity).isFullActive();
+		this.unmask.active = PlayerAccessor.of(this.entity).isFullActive();
 		this.unmask.visible = this.needUnmorphBut();
 		this.fuse.active = this.activeFlameBut();
 		this.fuse.visible = this.needFlameBut();

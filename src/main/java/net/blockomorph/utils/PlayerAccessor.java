@@ -2,6 +2,7 @@ package net.blockomorph.utils;
 
 import net.blockomorph.utils.use.UseController;
 import net.blockomorph.utils.use.fix.BedController;
+import net.blockomorph.utils.use.fix.ChairController;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
@@ -41,5 +42,16 @@ public interface PlayerAccessor {
 	HashMap<BlockPos, UseController> getUseControllers();
 	void saveBlockEntities();
 	BedController getBedController();
+	ChairController getChairController();
 	HashMap<BlockPos, BlockInPlayer> getBlocksData();
+	//client only
+	//MultiBlockLevel getLiquidCachedLevel();
+
+	default Player player() {
+		return (Player) this;
+	}
+
+	static PlayerAccessor of(Player pl) {
+		return (PlayerAccessor) pl;
+	}
 }

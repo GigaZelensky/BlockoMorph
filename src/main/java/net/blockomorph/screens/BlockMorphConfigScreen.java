@@ -109,7 +109,7 @@ public class BlockMorphConfigScreen extends Screen {
    }
 
    public void morphUpdate(BlockState state) {
-   	    CompoundTag tag = ((PlayerAccessor)this.entity).getTag();
+   	    CompoundTag tag = PlayerAccessor.of(this.entity).getTag();
    	    if (state.getBlock() instanceof EntityBlock) {
 			tagsBox.setFocused(true);
 			tagsBox.setEditable(true);
@@ -444,12 +444,12 @@ public class BlockMorphConfigScreen extends Screen {
 		tagsBox.setTextColorUneditable(-1);
 		this.addRenderableWidget(tagsBox);
 		this.addRenderableWidget(this.savebox);
-		this.playerState = ((PlayerAccessor)this.entity).getBlockState();
+		this.playerState = PlayerAccessor.of(this.entity).getBlockState();
 		//this.mb = false;//((PlayerAccessor)this.entity).isMultiBlock();
 		BlockState blockState = this.playerState;
 		if (blockState.getBlock() instanceof EntityBlock) {
 			this.setInitialFocus(tagsBox);
-			CompoundTag tag = ((PlayerAccessor)this.entity).getTag();
+			CompoundTag tag = PlayerAccessor.of(this.entity).getTag();
 			tagsBox.setValue(tag.toString());
 			this.playerTag = tag;
 		} else {

@@ -39,7 +39,7 @@ public class BedController {
     private boolean inited;
 
     public BedController(PlayerAccessor playerAccessor, SynchedEntityData data, EntityDataAccessor<CompoundTag> sync) {
-        this.owner = ((Player)Objects.requireNonNull(playerAccessor));
+        this.owner = Objects.requireNonNull(playerAccessor).player();
         this.entityData = data;
         this.TARGET = sync;
     }
@@ -199,20 +199,22 @@ public class BedController {
 
     private void lanchSleep(UseController ctr) {
         this.sleepCounter = 0;
-        if (owner.isPassenger()) {
-            owner.stopRiding();
+        if (this.isWorking()) {
+            this.stopSleep(false);
+        }
+        ChairController ctrChair = PlayerAccessor.of(owner).getChairController();
+        if (ctrChair.isWorking()) {
+            ctrChair.setSittingBound(null, null, false);
         }
         this.changeAccupied(ctr, true);
-        this.setBound(ctr);//bad logic//нажмите шифт чтобы спешиться
+        this.setBound(ctr);
         this.owner.startRiding(ctr.getOwner(), true);
         if (this.owner.level() instanceof ServerLevel lv)
             lv.updateSleepingPlayerList();
     }
 
     private void changeAccupied(UseController bed, boolean yes) {
-        HashMap<BlockPos, SavedBlock> map = new HashMap<>();
-        map.put(bed.getOffset(), new SavedBlock(bed.getBlockState().setValue(BedBlock.OCCUPIED, yes), new CompoundTag(), ""));
-        bed.getPl().enableBlockOverrides(map);
+        bed.getPl().enableBlockOverrides(SavedBlock.getSetBlockMap(bed.getOffset(), bed.getBlockState().setValue(BedBlock.OCCUPIED, yes)));
     }
 
     private void setBound(UseController ctr) {

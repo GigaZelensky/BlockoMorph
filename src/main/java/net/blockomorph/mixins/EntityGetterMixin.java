@@ -132,9 +132,14 @@ public abstract class EntityGetterMixin implements LevelAccessor, CollisionGette
       MorphUtils.doActionFromBounedBlockPos(pos, (ctr, realPos) -> {
          cir.setReturnValue(true);
          if (realPos.equals(BlockPos.ZERO) && st.getBlock() == Blocks.AIR || this.isClientSide) return;
-         HashMap<BlockPos, SavedBlock> setBlock = new HashMap<>();
-         setBlock.put(realPos, new SavedBlock(st, new CompoundTag(), ""));
-         ctr.getPl().enableBlockOverrides(setBlock);
+         ctr.getPl().enableBlockOverrides(SavedBlock.getSetBlockMap(realPos, st));
+      });
+   }
+
+   @Inject(method = "isLoaded", at = @At(value = "HEAD"), cancellable = true)
+   public void acceptIfPlayer(BlockPos pos, CallbackInfoReturnable<Boolean> cir) {
+      MorphUtils.doActionFromBounedBlockPos(pos, (ctr, bp) -> {
+         cir.setReturnValue(true);
       });
    }
 }

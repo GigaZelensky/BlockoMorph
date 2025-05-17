@@ -1,5 +1,6 @@
 package net.blockomorph.utils;
 
+import net.blockomorph.utils.accessors.BlockPosAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -16,6 +17,7 @@ import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkSource;
 import net.minecraft.world.level.entity.EntityTypeTest;
@@ -48,6 +50,18 @@ public class MultiBlockLevel extends Level {
     public boolean setBlock(BlockPos blockPos, BlockState blockState, int i, int j) {
         this.blocks.put(blockPos, blockState);
         return true;
+    }
+
+    @Override
+    public BlockState getBlockState(BlockPos pos) {
+        BlockState st = blocks.get(pos);
+        if (st == null) {
+            if (BlockPosAccessor.of(pos).getController() != null) {
+                return BlockPosAccessor.of(pos).getController().getBlockState();
+            }
+            return Blocks.AIR.defaultBlockState();
+        }
+        return st;
     }
 
     public HashMap<BlockPos, BlockState> getBlocks() {

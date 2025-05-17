@@ -1,12 +1,11 @@
 package net.blockomorph.utils.use;
 
 import net.blockomorph.network.blockFix.ClientBoundBlockEventPacket;
-import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.MultiBlockLevel;
 import net.blockomorph.utils.accessors.EntityAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -14,16 +13,17 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.model.data.ModelDataManager;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class UseLevel extends MultiBlockLevel implements UseAccessor {
     protected final UseController useController;
@@ -80,17 +80,7 @@ public class UseLevel extends MultiBlockLevel implements UseAccessor {
 
     @Override
     public BlockState getBlockState(BlockPos blockPos) {
-        BlockPos pos = this.calculateRealPos(blockPos);
-        if (this.realBlockPosMode) {
-            if (pos.equals(this.useController.getOffset())) {
-                return this.useController.getBlockState();
-            } else {
-                return realLevel.getBlockState(blockPos);
-            }
-        }
-        BlockState st = this.useController.getPl().getBlocks().get(pos);
-        if (st == null) return Blocks.AIR.defaultBlockState();
-        return st;
+        return UseAccessor.getState(this, blockPos);
     }
 
     @Override
@@ -151,6 +141,30 @@ public class UseLevel extends MultiBlockLevel implements UseAccessor {
             input = input.move(this.useController.getRealPos().add(-0.5, -0.5, -0.5));
         }
         return realLevel.noCollision(input);
+    }
+
+    public void addParticle(ParticleOptions args, double x, double y, double z, double dx, double dy, double dz) {
+        this.recalculatePosForParticles(new Vec3(x, y, z), (pos) ->{
+            this.realLevel.addParticle(args, pos.x, pos.y, pos.z, dx, dy, dz);
+        });
+    }
+
+    public void addParticle(ParticleOptions args, boolean limit, double x, double y, double z, double dx, double dy, double dz) {
+        this.recalculatePosForParticles(new Vec3(x, y, z), (pos) ->{
+            this.realLevel.addParticle(args, limit, pos.x, pos.y, pos.z, dx, dy, dz);
+        });
+    }
+
+    public void addAlwaysVisibleParticle(ParticleOptions args, double x, double y, double z, double dx, double dy, double dz) {
+        this.recalculatePosForParticles(new Vec3(x, y, z), (pos) ->{
+            this.realLevel.addAlwaysVisibleParticle(args, pos.x, pos.y, pos.z, dx, dy, dz);
+        });
+    }
+
+    public void addAlwaysVisibleParticle(ParticleOptions args, boolean limit, double x, double y, double z, double dx, double dy, double dz) {
+        this.recalculatePosForParticles(new Vec3(x, y, z), (pos) ->{
+            this.realLevel.addAlwaysVisibleParticle(args, limit, pos.x, pos.y, pos.z, dx, dy, dz);
+        });
     }
 
     @Override

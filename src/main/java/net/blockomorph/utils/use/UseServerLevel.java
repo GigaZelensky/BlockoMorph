@@ -1,10 +1,8 @@
 package net.blockomorph.utils.use;
 
 
-import net.blockomorph.Blockomorph;
 import net.blockomorph.network.blockFix.ClientBoundBlockEventPacket;
 import net.blockomorph.utils.MorphUtils;
-import net.blockomorph.utils.accessors.EntityAccessor;
 import net.blockomorph.utils.accessors.ServerLevelAccessor;
 import net.blockomorph.utils.use.fix.UseServerLevelData;
 import net.minecraft.core.BlockPos;
@@ -12,8 +10,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ServerScoreboard;
@@ -33,7 +29,6 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.ColorResolver;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkStatus;
@@ -48,7 +43,6 @@ import net.minecraft.world.level.storage.LevelStorageSource;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.ticks.LevelTicks;
-import org.apache.logging.log4j.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -61,6 +55,7 @@ public class UseServerLevel extends ServerLevel implements UseAccessor {
     protected ServerLevel realLevel;
     protected final UseController useController;
     private boolean realBlockPosMode;
+    private final List<Entity> cacheEntities = new ArrayList<>();
 
     UseServerLevel(ServerLevel real, UseController ctr) {
         super(
@@ -83,6 +78,10 @@ public class UseServerLevel extends ServerLevel implements UseAccessor {
 
     public ServerLevel getRealLevel() {
         return this.realLevel;
+    }
+
+    public List<Entity> getCachedEntities() {
+        return this.cacheEntities;
     }
 
 
@@ -130,17 +129,7 @@ public class UseServerLevel extends ServerLevel implements UseAccessor {
 
     @Override
     public BlockState getBlockState(BlockPos blockPos) {
-        BlockPos pos = this.calculateRealPos(blockPos);
-        if (this.realBlockPosMode) {
-            if (pos.equals(this.useController.getOffset())) {
-                return this.useController.getBlockState();
-            } else {
-                return realLevel.getBlockState(blockPos);
-            }
-        }
-        BlockState st = this.useController.getPl().getBlocks().get(pos);
-        if (st == null) return Blocks.AIR.defaultBlockState();
-        return st;
+        return UseAccessor.getState(this, blockPos);
     }
 
     @Override
@@ -150,8 +139,8 @@ public class UseServerLevel extends ServerLevel implements UseAccessor {
 
     @Override
     public boolean addFreshEntity(Entity ent) {
-        ((EntityAccessor)ent).forceLevelChange(realLevel);
-        return realLevel.addFreshEntity(ent);
+        this.cacheEntities.add(ent);
+        return true;
     }
 
     public void playSound(@Nullable Player pl, BlockPos p_46561_, SoundEvent p_46562_, SoundSource p_46563_, float p_46564_, float p_46565_) {
@@ -208,6 +197,18 @@ public class UseServerLevel extends ServerLevel implements UseAccessor {
             input = input.move(this.useController.getRealPos().add(-0.5, -0.5, -0.5));
         }
         return realLevel.noCollision(input);
+    }
+
+    public <T extends ParticleOptions> int sendParticles(T args, double x, double y, double z, int count, double dx, double dy, double dz, double maxSpeed) {
+        return this.recalculatePosForParticles(new Vec3(x, y, z), (pos) -> {
+            return this.realLevel.sendParticles(args, pos.x, pos.y, pos.z, count, dx, dy, dz, maxSpeed);
+        });
+    }
+
+    public <T extends ParticleOptions> boolean sendParticles(ServerPlayer player, T args, boolean disableDistanceCheck, double x, double y, double z, int count, double dx, double dy, double dz, double maxSpeed) {
+        return this.recalculatePosForParticles(new Vec3(x, y, z), (pos) -> {
+            return this.realLevel.sendParticles(player, args, disableDistanceCheck, pos.x, pos.y, pos.z, count, dx, dy, dz, maxSpeed);
+        });
     }
 
     //use level /\
@@ -300,12 +301,7 @@ public class UseServerLevel extends ServerLevel implements UseAccessor {
     }
 
     public void sendBlockUpdated(BlockPos var1, BlockState var2, BlockState var3, int var4) {
-        MorphUtils.doActionFromBounedBlockPos(var1, (ctr, realPos) -> {
-            BlockEntity ent = ctr.getBlockEntity();
-            if (ent != null && ent.getUpdatePacket() != null) {
-                this.getChunkSource().broadcastAndSend(ctr.getOwner(), ent.getUpdatePacket());
-            }
-        });
+        this.getChunkSource().blockChanged(var1);
     }
 
     public void playSeededSound(@Nullable Player var1, Entity var2, Holder<SoundEvent> var3, SoundSource var4, float var5, float var6, long var7) {}

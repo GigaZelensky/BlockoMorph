@@ -59,7 +59,7 @@ public class DebugPacket2 implements BlockMorphPacket {
         if (player instanceof PlayerAccessor pl) {
             BlockEntity bl = pl.getUseControllers().get(BlockPos.ZERO).getBlockEntity();
             if (bl != null&&bl.getLevel() instanceof UseServerLevel LV2) {
-                LV2.sendBlockUpdated(bl.getBlockPos(), null, null, 0);
+                //LV2.sendBlockUpdated(bl.getBlockPos(), null, null, 0);
             }
         }
     }

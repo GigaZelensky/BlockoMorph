@@ -2,6 +2,7 @@ package net.blockomorph.network;
 
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
+import net.blockomorph.utils.hit.PlayerHitResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
@@ -47,7 +48,7 @@ public class ServerBoundInteractBlockPacket implements BlockMorphPacket {
                 return;
             MorphUtils.onPlayerAttack(player, ent, pos);
         } else {
-            if (MorphUtils.getEntityLookedAt(player, -1, 1) instanceof PlayerAccessor mob) {
+            if (PlayerHitResult.getEntityLookedAt(player, -1, 1) instanceof PlayerAccessor mob) {
                 mob.removePlayer(pos, player);
             }
         }

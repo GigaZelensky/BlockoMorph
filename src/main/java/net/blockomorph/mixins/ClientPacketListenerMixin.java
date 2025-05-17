@@ -22,7 +22,7 @@ public abstract class ClientPacketListenerMixin {
    public void autoRespawn(ClientboundPlayerCombatKillPacket packet, CallbackInfo ci) {
    	  LocalPlayer player = Minecraft.getInstance().player;
    	  Entity entity = player.level().getEntity(packet.getPlayerId());
-   	  if (entity == player && ((PlayerAccessor)player).isActive()) {
+   	  if (entity == player && PlayerAccessor.of(player).isActive()) {
    	  	  ci.cancel();
           player.respawn();
       }

@@ -21,9 +21,11 @@
     "blockUseFeatureFix.LivingEntityMixin",
     "blockUseFeatureFix.ModelDataManagerMixin",
     "blockUseFeatureFix.ParotMixin",
+    "blockUseFeatureFix.ServerChunkCacheMixin",
     "blockUseFeatureFix.ServerEntityMixin"
   ],
   "client": [
+    "ClientLevelMixin",
     "ClientPacketListenerMixin",
     "DebugScreenMixin",
     "EntityRendererMixin",
@@ -32,6 +34,7 @@
     "LevelRenderMixin",
     "MinecraftMixin",
     "PlayerRendererMixin",
+    "blockUseFeatureFix.CameraMixin",
     "blockUseFeatureFix.GuiMixin",
     "blockUseFeatureFix.HumanoidModelMixin"
   ]

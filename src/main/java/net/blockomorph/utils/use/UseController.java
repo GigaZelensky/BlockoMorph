@@ -7,12 +7,14 @@ import net.blockomorph.utils.PlayerAccessor;
 import net.blockomorph.utils.SavedBlock;
 import net.blockomorph.utils.accessors.BlockEntityAccessor;
 import net.blockomorph.utils.accessors.BlockPosAccessor;
+import net.blockomorph.utils.accessors.EntityAccessor;
 import net.blockomorph.utils.accessors.MenuAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
@@ -27,9 +29,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class UseController {
     private final PlayerAccessor pl;
@@ -47,9 +47,8 @@ public class UseController {
     public UseController(PlayerAccessor pl, BlockPos offset, BlockState state) {
         this.pl = pl;
         this.owner = (Player) pl;
-        this.offset = offset;
+        this.offset = BlockPosAccessor.of(offset).setUseController(this);
         this.blockState = state;
-        ((BlockPosAccessor)this.offset).setUseController(this);
         this.doChangeDimension();
         this.initBlockEntity();
         this.initTicker();
@@ -60,6 +59,7 @@ public class UseController {
             this.blockState = state;
             if (this.blockEntity != null) {
                 this.blockEntity.setBlockState(state);
+                this.initTicker();
             }
             return this;
         }
@@ -92,6 +92,10 @@ public class UseController {
         return this.useLevel;
     }
 
+    public Level getTickingLevel() {
+        return this.tickingLevel;
+    }
+
     public void updateModelData(ModelData dat) {
         this.data = dat;
     }
@@ -118,10 +122,9 @@ public class UseController {
     }
 
     public InteractionResult use(Player clicker, BlockHitResult hiter, InteractionHand hand) {
-        ((BlockPosAccessor)hiter.getBlockPos()).setUseController(this);
+        hiter = new BlockHitResult(hiter.getLocation(), hiter.getDirection(), BlockPosAccessor.of(hiter.getBlockPos()).setUseController(this), hiter.isInside());
         Level lv = this.useLevel;
         ItemStack itemstack = clicker.getItemInHand(hand);
-        Blockomorph.LOGGER.info("test!");
         if (clicker.isSpectator()) {
             if (this.owner.level().isClientSide)
                 return InteractionResult.SUCCESS;
@@ -175,8 +178,21 @@ public class UseController {
                 bls.put(pos, new SavedBlock(state, new CompoundTag(), ""));
             }
             this.pl.enableBlockOverrides(bls);
+
+            this.ejectEntities(lv2);
         } else if (lv instanceof UseLevel acc) {
             acc.getBlocks().clear();
+        }
+    }
+
+    private void ejectEntities(UseServerLevel lv2) {
+        List<Entity> entities = new ArrayList<>(lv2.getCachedEntities());
+        lv2.getCachedEntities().clear();
+        for (Entity ent : entities) {
+            if (ent.isAlive()) {
+                ((EntityAccessor)ent).forceLevelChange(this.owner.level());
+                this.owner.level().addFreshEntity(ent);
+            }
         }
     }
 
@@ -209,8 +225,7 @@ public class UseController {
                 Level lv = this.tickingLevel;
                 try {
                     BlockPos ps = BlockPos.containing(this.getRealPos());
-                    ((BlockPosAccessor)ps).setUseController(this);
-                    ticker.tick(lv, ps, this.blockState, this.blockEntity);
+                    ticker.tick(lv, BlockPosAccessor.of(ps).setUseController(this), this.blockState, this.blockEntity);
                 } catch (Exception e) {
                     this.ticker = null;
                     Blockomorph.LOGGER.error(
@@ -219,12 +234,23 @@ public class UseController {
                                     ": ", e
                     );
                 }
-                this.ejectChanges(lv, null);
             }
         }
-        if (this.useLevel instanceof UseAccessor acc) {
-            if (!acc.getBlocks().isEmpty()) {
-                this.ejectChanges(this.useLevel, null);
+        this.checkLevelsAfterTick();
+    }
+
+    private void checkLevelsAfterTick() {
+        List<Level> levels = List.of(this.useLevel, this.tickingLevel);
+        for (Level lv : levels) {
+            if (lv instanceof UseAccessor acc) {
+                if (!acc.getBlocks().isEmpty()) {
+                    this.ejectChanges(lv, null);
+                }
+            }
+            if (lv instanceof UseServerLevel lv2) {
+                if (!lv2.getCachedEntities().isEmpty()) {
+                    this.ejectEntities(lv2);
+                }
             }
         }
     }

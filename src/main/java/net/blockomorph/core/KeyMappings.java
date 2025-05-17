@@ -1,20 +1,11 @@
 package net.blockomorph.core;
 
-import net.blockomorph.network.ClientBoundConfigUpdatePacket;
-import net.blockomorph.network.DebugPacket;
-import net.blockomorph.network.DebugPacket2;
 import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.screens.ConfigScreen;
 import net.blockomorph.screens.MorphScreen;
-import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -43,20 +34,18 @@ public class KeyMappings {
 	});
 
 	public static final KeyMapping db = new HandlerKeymapping("key.blockomorph.config_menu2", GLFW.GLFW_KEY_I, () -> {
-		MorphUtils.sendServer(new DebugPacket(BlockHitResult.miss(Vec3.ZERO, Direction.DOWN, BlockPos.ZERO)));
+		//MorphUtils.sendServer(new DebugPacket(BlockHitResult.miss(Vec3.ZERO, Direction.DOWN, BlockPos.ZERO)));
+		//MorphUtils.test = true;
 	});
 
 	public static final KeyMapping db2 = new HandlerKeymapping("key.blockomorph.config_menu22", GLFW.GLFW_KEY_J, () -> {
-		if (Minecraft.getInstance().hitResult instanceof BlockHitResult bl) {
-			MorphUtils.sendServer(new DebugPacket(bl));
-			DebugPacket.handleAlternative(bl, mc.player);
-		}
+
 	});
 
 	public static final KeyMapping db3 = new HandlerKeymapping("key.blockomorph.config_menu223", GLFW.GLFW_KEY_V, () -> {
 		//if (Minecraft.getInstance().hitResult instanceof EntityHitResult ent) {
         //    MorphUtils.sendServer(new DebugPacket2(ent.getEntity().getId()));
-		MorphUtils.sendServer(new DebugPacket2(-1));
+		//MorphUtils.sendServer(new DebugPacket2(-1));
         //}
 	});
 

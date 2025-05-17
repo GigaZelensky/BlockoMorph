@@ -1,5 +1,7 @@
 package net.blockomorph.utils;
 
+import net.blockomorph.utils.hit.MorphedPlayerHitResult;
+import net.blockomorph.utils.hit.PlayerHitResult;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -8,16 +10,15 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.TntBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.AbstractMap;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -73,13 +74,13 @@ public class BlockBracker {
       	    for (Player pl : this.players) {
                 //Player pl = iterator.next();
                 PlayerAccessor pla = (PlayerAccessor)pl;
-                MorphUtils.MorphedPlayerHitResult hit = MorphUtils.getMorphedPlayerHitResult(pl, -1, 1);
+                MorphedPlayerHitResult hit = PlayerHitResult.calculateMorphedPlayerHitResult(pl, -1, 1, ClipContext.Block.OUTLINE, false);
                 if (pla.readyForDestroy()) {
-                	if (hit == null || hit.player() != owner) {
+                	if (hit == null || hit.getPlayer() != owner) {
                 		//iterator.remove();
                 	    this.players.remove(pl);
                 	} else {
-                		BlockPos pos = hit.offset();
+                		BlockPos pos = hit.getOffset();
                 		if (!pos.equals(this.offset)) {
                 			this.removePlayer(pl);
                 			this.player.addPlayer(pos, pl);
@@ -205,7 +206,7 @@ public class BlockBracker {
 
     public synchronized void addPlayer(Player pl) {
     	if (!this.players.contains(pl)) {
-    		((PlayerAccessor)pl).setReady(false);
+			PlayerAccessor.of(pl).setReady(false);
     		this.players.add(pl);
     	}
     	if (!this.braking) {

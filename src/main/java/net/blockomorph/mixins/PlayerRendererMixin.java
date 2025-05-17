@@ -5,6 +5,8 @@ import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import net.blockomorph.screens.BlockMorphConfigScreen;
+import net.blockomorph.utils.BlockInPlayer;
+import net.blockomorph.utils.accessors.BlockPosAccessor;
 import net.blockomorph.utils.accessors.LevelRendererAccessor;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
@@ -30,7 +32,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -43,8 +45,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import javax.annotation.Nullable;
-import java.util.HashMap;
 import java.util.Map;
 
 @Mixin(PlayerRenderer.class)
@@ -117,24 +117,36 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
         return ModelData.EMPTY;
     }
 
+    private BlockPos getPosForOffset(UseController ctr) {
+        return BlockPosAccessor.of(BlockPos.containing(ctr.getRealPos())).setUseController(ctr);
+    }
+
     private void renderBlock(AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer, PlayerAccessor pl) {
-        for (Map.Entry<BlockPos, BlockState> entry : pl.getBlocks().entrySet()) {
-            if (entry.getValue().getRenderShape() != RenderShape.MODEL) continue;
+        for (Map.Entry<BlockPos, BlockInPlayer> entry : pl.getBlocksData().entrySet()) {
+            BlockInPlayer bl = entry.getValue();
+            BlockState st = bl.getBlockState();
             BlockPos pos = entry.getKey();
             posestack.pushPose();
             posestack.translate(pos.getX(), pos.getY(), pos.getZ());
-            this.renderBlock(player, entry.getValue(), posestack, buffer, player.blockPosition().offset(pos), this.getData(pl, pos));
+            if (st.getBlock() instanceof LiquidBlock) {
+                //this.renderLiquid(pos, st, posestack, buffer, pl); //TODO
+            } else if (st.getRenderShape() == RenderShape.MODEL) {
+                this.renderBlock(player, st, posestack, buffer, this.getPosForOffset(bl.getUseController()), this.getData(pl, pos));
+            }
             posestack.popPose();
         }
     }
 
     private void renderBlock(AbstractClientPlayer player, BlockState blockstate, PoseStack posestack, MultiBufferSource buffer, BlockPos offset, ModelData data) {
         Level level = player.level();
-        posestack.pushPose();
         var model = this.dispatcher.getBlockModel(blockstate);
         for (var renderType : model.getRenderTypes(blockstate, this.random, ModelData.EMPTY))
             this.dispatcher.getModelRenderer().tesselateBlock(level, model, blockstate, offset, posestack, buffer.getBuffer(renderType), false, this.random, blockstate.getSeed(offset), OverlayTexture.NO_OVERLAY, data, renderType);
-        posestack.popPose();
+    }
+
+    private void renderLiquid(BlockPos offset, BlockState blockstate, PoseStack posestack, MultiBufferSource buffer, PlayerAccessor pl) {
+        //this.dispatcher.renderLiquid(BlockPos.ZERO, pl.getLiquidCachedLevel(), buffer.getBuffer(ItemBlockRenderTypes.getRenderLayer(blockstate.getFluidState())), blockstate, blockstate.getFluidState());
+        //PlayerLiquidRenderer.render(pl.player().level(), posestack, buffer, LightTexture.pack(15, 15), blockstate.getFluidState());
     }
 
     private void renderBlockEntity(AbstractClientPlayer player, float partialticks, PoseStack posestack, MultiBufferSource buffer, int light, PlayerAccessor pl) {
@@ -201,12 +213,13 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
         }
     }
 
-    private void renderBreak(int k, BlockState blockstate, AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer, ModelData data, PlayerAccessor pl, BlockPos offser) {
+    private void renderBreak(int k, BlockState blockstate, AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer, ModelData data, PlayerAccessor pl, BlockPos offset) {
         posestack.pushPose();
+        UseController ctr = pl.getUseControllers().get(offset);
         PoseStack.Pose posestack$pose1 = posestack.last();
         if (k > -1 && k < 10) {
             VertexConsumer vertexconsumer1 = new SheetedDecalTextureGenerator(buffer.getBuffer(ModelBakery.DESTROY_TYPES.get(k)), posestack$pose1.pose(), posestack$pose1.normal(), 1.0F);
-            this.dispatcher.getModelRenderer().tesselateBlock(player.level(), this.dispatcher.getBlockModel(blockstate), blockstate, BlockPos.containing(MorphUtils.getRealBlockPos(pl, offser)), posestack, vertexconsumer1, false, this.random, blockstate.getSeed(player.blockPosition()), OverlayTexture.NO_OVERLAY, data, null);
+            this.dispatcher.getModelRenderer().tesselateBlock(player.level(), this.dispatcher.getBlockModel(blockstate), blockstate, this.getPosForOffset(ctr), posestack, vertexconsumer1, false, this.random, blockstate.getSeed(this.getPosForOffset(ctr)), OverlayTexture.NO_OVERLAY, data, null);
         }
 
         posestack.popPose();
@@ -214,7 +227,7 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
 
     private void renderFrame(AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer, PlayerAccessor pl) {
         Minecraft mc = Minecraft.getInstance();
-        if (this.shoudRenderFrame(mc, player, pl)) {
+        if (this.shouldRenderFrame(mc, player, pl)) {
             posestack.pushPose();
             VoxelShape shape = pl.getRenderShape(MorphUtils.hitPart);
             if (shape == null) {
@@ -226,12 +239,12 @@ public abstract class PlayerRendererMixin extends LivingEntityRenderer<AbstractC
         }
     }
 
-    private boolean shoudRenderFrame(Minecraft mc, AbstractClientPlayer player, PlayerAccessor pl) {
-        if (player == MorphUtils.hitEntity && MorphUtils.hitPart != null) {
+    private boolean shouldRenderFrame(Minecraft mc, AbstractClientPlayer player, PlayerAccessor pl) {
+        if (player == MorphUtils.hitEntity && MorphUtils.hitPart != null && !mc.options.hideGui) {
             if (mc.player.isSpectator()) {
                 return MorphUtils.canOpenMenuIn(pl, MorphUtils.hitPart);
             } else if (mc.gameMode.getPlayerMode() == GameType.ADVENTURE) {
-                return false; //TODO
+                return MorphUtils.isAdventureCanBreak(pl, mc.player, MorphUtils.hitPart);
             }
             return true;
         }
