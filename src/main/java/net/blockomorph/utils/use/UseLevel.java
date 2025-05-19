@@ -90,6 +90,7 @@ public class UseLevel extends MultiBlockLevel implements UseAccessor {
 
     @Override
     public boolean addFreshEntity(Entity ent) {
+        this.correctEntityPosition(ent);
         ((EntityAccessor)ent).forceLevelChange(realLevel);
         return realLevel.addFreshEntity(ent);
     }

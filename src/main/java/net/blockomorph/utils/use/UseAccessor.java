@@ -3,6 +3,7 @@ package net.blockomorph.utils.use;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.accessors.BlockPosAccessor;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -69,6 +70,21 @@ public interface UseAccessor {
             return new Vec3(realPos.x + x, realPos.y + y, realPos.z + z);
         } else {
             return new Vec3(realPos.x + pos.x, realPos.y + pos.y, realPos.z + pos.z);
+        }
+    }
+
+    default void correctEntityPosition(Entity ent) {
+        if (!(ent.level() instanceof UseAccessor)) return;
+        Vec3 realPos = this.getController().getRealPos();
+        BlockPos offset = BlockPos.containing(realPos);
+        realPos = realPos.add(-0.5, -0.5, -0.5);
+        if (this.isRealPosMode()) {
+            double x = ent.getX() - offset.getX();
+            double y = ent.getY() - offset.getY();
+            double z = ent.getZ() - offset.getZ();
+            ent.setPosRaw(realPos.x + x, realPos.y + y, realPos.z + z);
+        } else {
+            ent.setPosRaw(realPos.x + ent.getX(), realPos.y + ent.getY(), realPos.z + ent.getZ());
         }
     }
 }

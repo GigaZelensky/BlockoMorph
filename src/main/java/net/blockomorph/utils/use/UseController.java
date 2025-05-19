@@ -190,6 +190,7 @@ public class UseController {
         lv2.getCachedEntities().clear();
         for (Entity ent : entities) {
             if (ent.isAlive()) {
+                lv2.correctEntityPosition(ent);
                 ((EntityAccessor)ent).forceLevelChange(this.owner.level());
                 this.owner.level().addFreshEntity(ent);
             }

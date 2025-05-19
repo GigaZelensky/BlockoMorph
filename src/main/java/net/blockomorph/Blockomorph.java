@@ -1,7 +1,9 @@
 package net.blockomorph;
 
+import net.blockomorph.core.Test;
 import net.blockomorph.network.*;
 import net.blockomorph.network.blockFix.ClientBoundBlockEventPacket;
+import net.blockomorph.utils.BlockPosBounds;
 import net.blockomorph.utils.MorphUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.fml.common.Mod;
@@ -20,6 +22,7 @@ public class Blockomorph {
 	public Blockomorph() {
 		MorphUtils.registerPacket(ClientBoundConfigUpdatePacket.ID, ClientBoundConfigUpdatePacket::new, true);
 		MorphUtils.registerPacket(ClientBoundBlockEventPacket.ID, ClientBoundBlockEventPacket::new, true);
+		MorphUtils.registerPacket(ClientBoundBlockPosBoundPacket.ID, ClientBoundBlockPosBoundPacket::new, true);
 		MorphUtils.registerPacket(ServerBoundUseBlockPacket.ID, ServerBoundUseBlockPacket::new, false);
 		MorphUtils.registerPacket(ServerBoundBlockMorphPacket.ID, ServerBoundBlockMorphPacket::new, false);
 		MorphUtils.registerPacket(ServerBoundInteractBlockPacket.ID, ServerBoundInteractBlockPacket::new, false);
@@ -28,6 +31,7 @@ public class Blockomorph {
 		//MorphUtils.registerPacket("db", DebugPacket::new, false);
 		MorphUtils.registerPacket("db2", DebugPacket2::new, false);
 		PACKET_HANDLER.registerMessage(0, MainPacket.class, MainPacket::write, MainPacket::new, MainPacket::handler);
+		Test.get();
 	}
 
 }

@@ -16,7 +16,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
-import java.util.List;
 
 public interface PlayerAccessor {
 	void applyBlockMorph(BlockState state, CompoundTag tag);

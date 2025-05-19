@@ -3,9 +3,12 @@ package net.blockomorph.core;
 import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.screens.ConfigScreen;
 import net.blockomorph.screens.MorphScreen;
+import net.blockomorph.utils.BlockPosBounds;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -39,7 +42,11 @@ public class KeyMappings {
 	});
 
 	public static final KeyMapping db2 = new HandlerKeymapping("key.blockomorph.config_menu22", GLFW.GLFW_KEY_J, () -> {
-
+		//System.out.println(BlockPosBounds.getChunkPosForPlayer(mc.player));
+		for (Entity ent2 : mc.level.entitiesForRendering()) {
+			if (ent2 instanceof Player a)
+				System.out.println(ent2.getName() + "  :  " + BlockPosBounds.getChunkPosForPlayer(a));
+		}
 	});
 
 	public static final KeyMapping db3 = new HandlerKeymapping("key.blockomorph.config_menu223", GLFW.GLFW_KEY_V, () -> {

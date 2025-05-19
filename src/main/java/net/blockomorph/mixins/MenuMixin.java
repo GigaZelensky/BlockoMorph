@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import javax.annotation.Nullable;
 
-@Mixin(AbstractContainerMenu.class)
+@Mixin(value = AbstractContainerMenu.class)
 public abstract class MenuMixin implements MenuAccessor {
     private UseController owner;
     @Inject(method = "stillValid(Lnet/minecraft/world/inventory/ContainerLevelAccess;Lnet/minecraft/world/entity/player/Player;Lnet/minecraft/world/level/block/Block;)Z", at = @At(value = "HEAD"), cancellable = true)

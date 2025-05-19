@@ -16,13 +16,14 @@
     "ServerLevelMixin",
     "ServerPacketListenerMixin",
     "ServerPlayerMixin",
-    "blockUseFeatureFix.BlockPosMixin",
+    "BlockPosMixin",
     "blockUseFeatureFix.BufferMixin",
     "blockUseFeatureFix.LivingEntityMixin",
     "blockUseFeatureFix.ModelDataManagerMixin",
     "blockUseFeatureFix.ParotMixin",
     "blockUseFeatureFix.ServerChunkCacheMixin",
-    "blockUseFeatureFix.ServerEntityMixin"
+    "blockUseFeatureFix.ServerEntityMixin",
+    "test.TestMixin"
   ],
   "client": [
     "ClientLevelMixin",

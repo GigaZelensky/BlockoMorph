@@ -225,7 +225,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 			mainTag.putInt("UpdateFlag", 2);
 			CompoundTag elements = new CompoundTag();
 			MultiBlockLevel lv = new MultiBlockLevel(this.level(), false);
-			state.getBlock().setPlacedBy(lv, BlockPos.ZERO, state, (LivingEntity) (Object) this, new ItemStack(state.getBlock()));
+			state.getBlock().setPlacedBy(lv, BlockPos.ZERO, state, this.player(), new ItemStack(state.getBlock()));
 			for (Map.Entry<BlockPos, BlockState> bls : lv.getBlocks().entrySet()) {
 				CompoundTag tg = new CompoundTag();
 				tg.put("BlockState", NbtUtils.writeBlockState(bls.getValue()));
@@ -441,6 +441,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	}
 
 	private void updateBlocks() {
+
 		//this.resetUpdateFlag();
 		//tnt reset
 		CompoundTag tg = new CompoundTag();
@@ -718,7 +719,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		if (LIQIUD_LEVEL == null && this.level().isClientSide()) {
 			LIQIUD_LEVEL = new MultiBlockLevel(this.level(), true) {
 				@Override
-				public BlockState getBlockState(BlockPos pos) {
+				public BlockState getBlockState(BlockPospos) {
 					BlockInPlayer bl = blocks.get(pos);
 					if (bl != null) return bl.getBlockState();
 					return Blocks.AIR.defaultBlockState();
