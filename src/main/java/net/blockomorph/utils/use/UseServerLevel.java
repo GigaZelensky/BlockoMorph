@@ -283,6 +283,7 @@ public class UseServerLevel extends ServerLevel implements UseAccessor {
     }
 
     public @NotNull MinecraftServer getServer() {
+        if (this.getLevelData() instanceof UseServerLevelData data) return data.real.getServer();
         return realLevel.getServer();
     }
 

@@ -27,7 +27,7 @@ import java.util.UUID;
 public class BlockPosBounds { //TODO
     private static File FILE;
     public static final int MAX_PLAYER_CHUNK_COUNT = 31;
-    public static final int MAX_PLAYER_CHUNKS = 1935483;
+    public static final int MAX_PLAYER_CHUNKS = 193548;
     private static final RandomSource random = RandomSource.create();
 
     private static final HashMap<UUID, ChunkPos> BOUNDS = new HashMap<>();
