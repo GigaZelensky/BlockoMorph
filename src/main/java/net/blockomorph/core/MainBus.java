@@ -8,6 +8,7 @@ import net.blockomorph.network.*;
 import net.blockomorph.screens.PlayerCrackOverlay;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.Config;
+import net.blockomorph.utils.coords.BlockPosBounds;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -32,28 +33,17 @@ public class MainBus {
 		ClientPlayNetworking.registerGlobalReceiver(MainPacket.ID, (client, handler, buf, responseSender) -> {
 			try {
 				Runnable run = MainPacket.preApply(buf, null, true);
-				run.run();
+				client.execute(run);
 			} catch (Exception e) {
 				handler.getConnection().disconnect(Component.literal(e.getMessage()));
 			}
 		});
 		HudRenderCallback.EVENT.register(PlayerCrackOverlay::render);
 		KeyMappings.registerKeyMappings(KeyBindingHelper::registerKeyBinding);
-		ClientTickEvents.END_CLIENT_TICK.register((mc) -> {
-			MorphUtils.onClientTick();
-		});
-		WorldRenderEvents.BEFORE_ENTITIES.register((context) -> {
-			MorphUtils.onPick();
-		});
 		registerMain();
 	}
 
 	public static void registerServer() {
-		ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-			ServerPlayer p = handler.player;
-			MorphUtils.sendPlayer(new ClientBoundConfigUpdatePacket(Config.getInstance()), p);
-		});
-		ServerPlayerEvents.COPY_FROM.register(MorphUtils::onPlayerClone);
 		registerMain();
 	}
 
@@ -66,16 +56,21 @@ public class MainBus {
 		ServerPlayNetworking.registerGlobalReceiver(MainPacket.ID, (server, player, handler, buf, responseSender) -> {
 			try {
 				Runnable run = MainPacket.preApply(buf, player, false);
-				run.run();
+				server.execute(run);
 			} catch (Exception e) {
 				handler.disconnect(Component.literal(e.getMessage()));
 			}
 		});
-		ServerLifecycleEvents.SERVER_STARTING.register(Config::setServer);
+		ServerLifecycleEvents.SERVER_STARTING.register((sv) -> {
+			Config.setServer(sv);
+			BlockPosBounds.load();
+		});
 		MorphUtils.registerPacket(ClientBoundConfigUpdatePacket.ID, ClientBoundConfigUpdatePacket::new, true);
-		MorphUtils.registerPacket(ServerBoundUseBlockPacket.ID, ServerBoundUseBlockPacket::new, false);
+		MorphUtils.registerPacket(ClientBoundMorphUpdatePacket.ID, ClientBoundMorphUpdatePacket::new, true);
+		MorphUtils.registerPacket(ClientBoundBlockPosBoundPacket.ID, ClientBoundBlockPosBoundPacket::new, true);
+		MorphUtils.registerPacket(ClientBoundServerBlockEntityTagPacket.ID, ClientBoundServerBlockEntityTagPacket::new, true);
+
 		MorphUtils.registerPacket(ServerBoundBlockMorphPacket.ID, ServerBoundBlockMorphPacket::new, false);
-		MorphUtils.registerPacket(ServerBoundInteractBlockPacket.ID, ServerBoundInteractBlockPacket::new, false);
 		MorphUtils.registerPacket(ServerBoundConfigUpdatePacket.ID, ServerBoundConfigUpdatePacket::new, false);
 	}
 

@@ -1,13 +1,9 @@
 package net.blockomorph.core;
 
-import net.blockomorph.network.ClientBoundConfigUpdatePacket;
-import net.blockomorph.network.MainPacket;
 import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.screens.ConfigScreen;
 import net.blockomorph.screens.MorphScreen;
-import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.Config;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
@@ -17,7 +13,7 @@ import java.util.function.Consumer;
 
 
 public class KeyMappings {
-    private static final Minecraft mc = Minecraft.getInstance();
+	private static final Minecraft mc = Minecraft.getInstance();
 	private static final ArrayList<KeyMapping> KEYS = new ArrayList<>();
 
 	public static final KeyMapping MORPH = new HandlerKeymapping("key.blockomorph.morph_menu", GLFW.GLFW_KEY_Y, () ->
