@@ -31,7 +31,7 @@ public class BlockInPlayer2 {
 		this.pos = pos.boundedBlockPos(pl.player());
 		if (this.pos == null)
 			throw new IllegalArgumentException("Null BlockPos in BlockInPlayer! Player section: " + BlockPosBounds.getChunkPosForPlayer(pl.player()) +
-					" Level: " + pl.player().level());
+					" Level: " + pl.player().level() + "  " + pl.player().getUUID());
 		this.player = pl.player();
 		this.blockState = state;
 		preInit.accept(this);

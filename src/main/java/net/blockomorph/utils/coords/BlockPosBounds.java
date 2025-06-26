@@ -4,6 +4,7 @@ import net.blockomorph.BlockomorphServer;
 import net.blockomorph.network.ClientBoundBlockPosBoundPacket;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.Config;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
@@ -94,7 +95,7 @@ public class BlockPosBounds {
 
 	private static void initFile() {
 		if (Config.getServer() != null) {
-			FILE = new File(Config.getServer().getWorldPath(LevelResource.ROOT).toFile(), "/data/blockomorph.dat");
+			FILE = new File(Config.getServer().getWorldPath(LevelResource.ROOT).normalize().toFile(), "/data/blockomorph.dat");
 		}
 	}
 
@@ -110,6 +111,7 @@ public class BlockPosBounds {
 		}
 		for (String key : tg.getAllKeys()) {
 			BOUNDS.put(UUID.fromString(key), new PlayerMorphedSection(tg.getLong(key)));
+			BlockomorphServer.LOGGER.error(key);
 		}
 	}
 
@@ -135,6 +137,7 @@ public class BlockPosBounds {
 		}
 		CLIENT_BOUNDS.clear();
 		CLIENT_CACHE.clear();
+		throw new RuntimeException();
 	}
 
 	public static void onJoin(Player entity) {
