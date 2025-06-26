@@ -1,5 +1,6 @@
 package net.blockomorph.mixins;
 
+import net.fabricmc.loader.api.FabricLoader;
 import org.objectweb.asm.tree.ClassNode;
 import org.spongepowered.asm.mixin.extensibility.IMixinConfigPlugin;
 import org.spongepowered.asm.mixin.extensibility.IMixinInfo;
@@ -26,14 +27,14 @@ public class MixinConfig implements IMixinConfigPlugin {
 	}
 
 	static { //REPAIR
-		/*LoadingModList list = LoadingModList.get();
+		FabricLoader list = FabricLoader.getInstance();
 		if (list != null) {
-			useFlywheelCompat = list.getModFileById("flywheel") != null;
-			useVS2compat = list.getModFileById("valkyrienskies") != null;
-		} else {*/
+			useFlywheelCompat = list.isModLoaded("flywheel");
+			useVS2compat = list.isModLoaded("valkyrienskies");
+		} else {
 			useFlywheelCompat = false;
 			useVS2compat = false;
-		//}
+		}
 	}
 
 	@Override
