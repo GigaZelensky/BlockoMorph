@@ -1,10 +1,12 @@
 package net.blockomorph.mixins.main.server;
 
+import net.blockomorph.network.ClientBoundBlockPosBoundPacket;
 import net.blockomorph.network.ClientBoundMorphUpdatePacket;
 import net.blockomorph.utils.coords.BlockPosBounds;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
+import net.blockomorph.utils.coords.PlayerMorphedSection;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.Packet;
@@ -74,9 +76,17 @@ public class PlayerListMixin {
 		}
 	}
 
-	@Inject(method = "placeNewPlayer", at = @At(shift = At.Shift.BEFORE, value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;addNewPlayer(Lnet/minecraft/server/level/ServerPlayer;)V"))
+	@Inject(method = "placeNewPlayer", at = @At(shift = At.Shift.BEFORE, value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;load(Lnet/minecraft/server/level/ServerPlayer;)Lnet/minecraft/nbt/CompoundTag;"))
 	public void boundBlockPos(Connection connection, ServerPlayer player, CallbackInfo ci) {
-		BlockPosBounds.onJoin(player);
+		BlockPosBounds.boundPlayer(player);
+	}
+
+	@Inject(method = "placeNewPlayer", at = @At(shift = At.Shift.BEFORE, value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;addNewPlayer(Lnet/minecraft/server/level/ServerPlayer;)V"))
+	public void sendBlockPos(Connection connection, ServerPlayer player, CallbackInfo ci) {
+		PlayerMorphedSection pos = BlockPosBounds.getChunkPosForPlayer(player);
+		if (pos != null) {
+			MorphUtils.sendPlayer(new ClientBoundBlockPosBoundPacket(pos, player, false), player);
+		}
 	}
 
 	@Inject(method = "placeNewPlayer", at = @At("TAIL"))

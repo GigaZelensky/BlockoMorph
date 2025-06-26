@@ -2,6 +2,7 @@ package net.blockomorph.utils;
 
 import net.blockomorph.BlockomorphServer;
 import net.blockomorph.network.ClientBoundMorphUpdatePacket;
+import net.blockomorph.utils.coords.BlockPosBounds;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -28,6 +29,9 @@ public class BlockInPlayer2 {
 	public BlockInPlayer2(PlayerAccessor pl, InPlayerBlockPos pos, BlockState state, Consumer<BlockInPlayer2> preInit) {
 		this.offset = pos;
 		this.pos = pos.boundedBlockPos(pl.player());
+		if (this.pos == null)
+			throw new IllegalArgumentException("Null BlockPos in BlockInPlayer! Player section: " + BlockPosBounds.getChunkPosForPlayer(pl.player()) +
+					" Level: " + pl.player().level());
 		this.player = pl.player();
 		this.blockState = state;
 		preInit.accept(this);

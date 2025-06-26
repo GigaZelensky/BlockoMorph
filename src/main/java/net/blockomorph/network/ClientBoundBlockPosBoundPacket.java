@@ -2,11 +2,9 @@ package net.blockomorph.network;
 
 import net.blockomorph.utils.coords.BlockPosBounds;
 import net.blockomorph.utils.coords.PlayerMorphedSection;
-import net.blockomorph.utils.hit.MorphedPlayerHitResult;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.ChunkPos;
 import org.jetbrains.annotations.Nullable;
 
 public class ClientBoundBlockPosBoundPacket implements BlockMorphPacket {
