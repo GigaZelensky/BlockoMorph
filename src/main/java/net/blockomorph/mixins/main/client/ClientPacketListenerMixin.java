@@ -54,9 +54,4 @@ public abstract class ClientPacketListenerMixin {
 		return true;
 	}
 
-	@Inject(method = "close", at = @At("HEAD"))
-	public void releaseLevel(CallbackInfo ci) {
-		BlockPosBounds.onLevelUnload(this.level);
-	}
-
 }

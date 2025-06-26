@@ -78,7 +78,7 @@ public class PlayerListMixin {
 
 	@Inject(method = "placeNewPlayer", at = @At(shift = At.Shift.BEFORE, value = "INVOKE", target = "Lnet/minecraft/server/players/PlayerList;load(Lnet/minecraft/server/level/ServerPlayer;)Lnet/minecraft/nbt/CompoundTag;"))
 	public void boundBlockPos(Connection connection, ServerPlayer player, CallbackInfo ci) {
-		//BlockPosBounds.boundPlayer(player);
+		BlockPosBounds.boundPlayer(player);
 	}
 
 	@Inject(method = "placeNewPlayer", at = @At(shift = At.Shift.BEFORE, value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;addNewPlayer(Lnet/minecraft/server/level/ServerPlayer;)V"))

@@ -50,11 +50,6 @@ public abstract class ServerLevelMixin {
 		}
 	}
 
-	@Inject(method = "close", at = @At("HEAD"))
-	public void releaseLevel(CallbackInfo ci) {
-		BlockPosBounds.onLevelUnload(LevelAcc.ofSv(this));
-	}
-
 
 	@Unique
 	private Vec3 sound;
