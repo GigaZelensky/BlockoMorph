@@ -105,29 +105,20 @@ public class MorphedPlayerRenderer {
 			if (st.getBlock() instanceof LiquidBlock) {
 				//this.renderLiquid(pos, st, posestack, buffer, pl); //TODO RENDER LIQUID
 			} else if (st.getRenderShape() == RenderShape.MODEL) {
-				this.renderBlock(translucent, player, st, posestack, buffer, bl, bl.getModelData());
+				this.renderBlock(translucent, player, st, posestack, buffer, bl);
 			}
 			posestack.popPose();
 		}
 	}
 
-	private void renderBlock(boolean translucent, AbstractClientPlayer player, BlockState blockstate, PoseStack posestack, MultiBufferSource buffer, BlockInPlayer2 block, Object data) {
+	private void renderBlock(boolean translucent, AbstractClientPlayer player, BlockState blockstate, PoseStack posestack, MultiBufferSource buffer, BlockInPlayer2 block) {
 		Level level = player.level();
 		var model = this.blockRenderDispatcher.getBlockModel(blockstate);
 		BlockPos offset = this.getPosForOffset(block);
 		RenderType renderType = ItemBlockRenderTypes.getMovingBlockRenderType(blockstate);
 		if (translucent != (renderType == RenderType.translucentMovingBlock())) return;
-		boolean flag = Minecraft.useAmbientOcclusion() && blockstate.getLightEmission() == 0 && model.useAmbientOcclusion();
 		VertexConsumer vertex = buffer.getBuffer(renderType);
-		ModelBlockRenderer renderer = this.blockRenderDispatcher.getModelRenderer();
-		Vec3 vec3 = blockstate.getOffset(level, block.getPos());
-		posestack.translate(vec3.x, vec3.y, vec3.z);
-		long seed = blockstate.getSeed(offset);
-		if (flag) {
-			renderer.tesselateWithAO(level, model, blockstate, offset, posestack, vertex, true, RANDOM, seed, OverlayTexture.NO_OVERLAY);
-		} else {
-			renderer.tesselateWithoutAO(level, model, blockstate, offset, posestack, vertex, true, RANDOM, seed, OverlayTexture.NO_OVERLAY);
-		}
+		this.blockRenderDispatcher.getModelRenderer().tesselateBlock(level, model, blockstate, offset, posestack, vertex, true, RANDOM, blockstate.getSeed(offset), OverlayTexture.NO_OVERLAY);
 	}
 
 	private void renderLiquid(BlockPos offset, BlockState blockstate, PoseStack posestack, MultiBufferSource buffer, PlayerAccessor pl) {
@@ -190,7 +181,7 @@ public class MorphedPlayerRenderer {
 				InPlayerBlockPos offset = block.getOffset();
 
 				posestack.translate(offset.getX(), offset.getY(), offset.getZ());
-				this.renderBreak(k, state, player, posestack, buffer, block.getModelData(), block);
+				this.renderBreak(k, state, player, posestack, buffer, block);
 
 				posestack.popPose();
 			}
@@ -209,7 +200,7 @@ public class MorphedPlayerRenderer {
 		return -1;
 	}
 
-	private void renderBreak(int k, BlockState blockstate, AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer, Object data, BlockInPlayer2 block) {
+	private void renderBreak(int k, BlockState blockstate, AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer, BlockInPlayer2 block) {
 		posestack.pushPose();
 		PoseStack.Pose posestack$pose1 = posestack.last();
 		if (k > -1 && k < 10) {

@@ -23,7 +23,6 @@ public class BlockInPlayer2 {
 	private BlockEntity blockEntity;
 	private BlockEntityTicker blockEntityTicker;
 	//client only \/
-	private Object data = null;
 	private CompoundTag serverTag = new CompoundTag(); //temp
 
 	public BlockInPlayer2(PlayerAccessor pl, InPlayerBlockPos pos, BlockState state, Consumer<BlockInPlayer2> preInit) {
@@ -122,14 +121,6 @@ public class BlockInPlayer2 {
 		if (this.blockState.getBlock() instanceof EntityBlock ent && blockEntity != null) {
 			this.blockEntityTicker = ent.getTicker(this.player.level(), this.blockState, blockEntity.getType());
 		}
-	}
-
-	public void connectModelData(Object data) {
-		this.data = data;
-	}
-
-	public Object getModelData() {
-		return this.data;
 	}
 
 	public CompoundTag getServerTag() {
