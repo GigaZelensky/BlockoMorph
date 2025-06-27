@@ -36,5 +36,4 @@ public abstract class EntityRendererMixin {
 			if (pl.isActive()) info.cancel();
 		}
 	}
-
 }
