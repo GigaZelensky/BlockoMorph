@@ -55,7 +55,7 @@ public class PlayerListMixin {
 	}
 
 
-	@Inject(method = "respawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;addRespawnedPlayer(Lnet/minecraft/server/level/ServerPlayer;)V"), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
+	@Inject(method = "respawn", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;addRespawnedPlayer(Lnet/minecraft/server/level/ServerPlayer;)V"), locals = LocalCapture.CAPTURE_FAILHARD)
 	public void respawnPlayer(ServerPlayer oldPlayer, boolean p_11238_, CallbackInfoReturnable<ServerPlayer> cir, BlockPos blockpos, float f, boolean flag, ServerLevel serverlevel, Optional<Vec3> optional, ServerLevel serverlevel1, ServerPlayer newPlayer) {
 		BlockPosBounds.onJoin(newPlayer);
 		PlayerAccessor pl = PlayerAccessor.of(newPlayer);

@@ -27,7 +27,7 @@ public class VS2_BM_RaycastUtil {
 		PlayerHitResult.checkHitResult(cir.getReturnValue().getLocation(), ctx, cir::setReturnValue);
 	}
 
-	@Inject(method = "clipIncludeShips", at = @At(value = "RETURN", ordinal = 1), cancellable = true, locals = LocalCapture.CAPTURE_FAILEXCEPTION)
+	@Inject(method = "clipIncludeShips", at = @At(value = "RETURN", ordinal = 1), cancellable = true, locals = LocalCapture.CAPTURE_FAILHARD)
 	private static void modifyClipIncludeShipsWith(Level level, ClipContext ctx, boolean shouldTransformHitPos, Long skipShip, CallbackInfoReturnable<BlockHitResult> cir,
 												   BlockHitResult vanillaHit, BlockHitResult closestHit, Vec3 closestHitPos
 	) {

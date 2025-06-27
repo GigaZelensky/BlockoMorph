@@ -19,7 +19,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 @Mixin(EnchantmentTableBlockEntity.class)
 public class EnchantmentTableMixin {
 
-	@Inject(method = "bookAnimationTick", at = @At(value = "FIELD", target = "Lnet/minecraft/world/level/block/entity/EnchantmentTableBlockEntity;tRot:F", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER, ordinal = 0), locals = LocalCapture.CAPTURE_FAILEXCEPTION)
+	@Inject(method = "bookAnimationTick", at = @At(value = "FIELD", target = "Lnet/minecraft/world/level/block/entity/EnchantmentTableBlockEntity;tRot:F", opcode = Opcodes.PUTFIELD, shift = At.Shift.AFTER, ordinal = 0), locals = LocalCapture.CAPTURE_FAILHARD)
 	private static void getRealBlockPos(Level lv, BlockPos pos, BlockState p_155506_, EnchantmentTableBlockEntity table, CallbackInfo ci, Player player) {
 		InPlayerBlockPos.check(pos, (pl, realPos) -> {
 			Vec3 vec = MorphUtils.getRealBlockPos(pl, realPos);

@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 @Mixin(FallingBlockEntity.class)
 public class FallingBlockEntityMixin {
 
-	@Inject(method = "fall", locals = LocalCapture.CAPTURE_FAILEXCEPTION, at = @At(shift = At.Shift.BEFORE, value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z"), cancellable = true)
+	@Inject(method = "fall", locals = LocalCapture.CAPTURE_FAILHARD, at = @At(shift = At.Shift.BEFORE, value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z"), cancellable = true)
 	private static void fall(Level lv, BlockPos pos, BlockState state, CallbackInfoReturnable<FallingBlockEntity> cir, FallingBlockEntity fallingblockentity) {
 		InPlayerBlockPos.check(pos, (pl, realPos) -> {
 			if (realPos.equals(InPlayerBlockPos.ZERO)) {

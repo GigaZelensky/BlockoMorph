@@ -14,7 +14,7 @@ import java.util.Iterator;
 @Mixin(MinecraftServer.class)
 public class MinecraftServerMixin {
 
-	@Inject(locals = LocalCapture.CAPTURE_FAILEXCEPTION, method = "stopServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;close()V"))
+	@Inject(locals = LocalCapture.CAPTURE_FAILHARD, method = "stopServer", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerLevel;close()V"))
 	public void releaseCache(CallbackInfo ci, Iterator<ServerLevel> iterator, ServerLevel serverLevel) {
 		BlockPosBounds.onLevelUnload(serverLevel);
 	}

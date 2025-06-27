@@ -18,7 +18,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 @Mixin(DragonEggBlock.class)
 public class DragonEggMixin {
 
-	@Inject(method = "teleport", locals = LocalCapture.CAPTURE_FAILEXCEPTION, at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z"), cancellable = true)
+	@Inject(method = "teleport", locals = LocalCapture.CAPTURE_FAILHARD, at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/Level;setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;I)Z"), cancellable = true)
 	private void tpPlayer(BlockState p_52936_, Level lv, BlockPos origin, CallbackInfo ci, WorldBorder worldborder, int i, BlockPos pos) {
 		InPlayerBlockPos.check(origin, (pl, realPos) -> { //is not a bug by default, it is user logic, like with TNT
 			if (pl.player() instanceof ServerPlayer sp) {
