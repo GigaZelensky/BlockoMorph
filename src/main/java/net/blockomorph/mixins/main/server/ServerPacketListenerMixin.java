@@ -31,7 +31,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.Set;
 
-@Debug(export = true)
+
 @Mixin(ServerGamePacketListenerImpl.class)
 public abstract class ServerPacketListenerMixin {
 	@Shadow public ServerPlayer player;

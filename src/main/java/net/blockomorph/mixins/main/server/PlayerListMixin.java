@@ -29,7 +29,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.Optional;
 
-@Debug(export = true)
+
 @Mixin(PlayerList.class)
 public class PlayerListMixin {
 	@Unique private Vec3 tempPos;

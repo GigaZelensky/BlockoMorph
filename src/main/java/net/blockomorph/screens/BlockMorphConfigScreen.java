@@ -8,6 +8,7 @@ import net.blockomorph.network.ServerBoundBlockMorphPacket;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
 import net.blockomorph.utils.SavedBlock;
+import net.blockomorph.utils.accessors.ClientLevelAccessor;
 import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.client.Minecraft;
@@ -536,7 +537,10 @@ public class BlockMorphConfigScreen extends Screen {
                 BlockEntityRenderer renderer = blockEntityRenderDispatcher.getRenderer(blockEntity);
                 if (renderer != null) {
            	        posestack.pushPose();
+					ClientLevelAccessor acc = ClientLevelAccessor.of(world);
+					acc.setBlockEntityRenderingMode(true);
                     renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY);
+					acc.setBlockEntityRenderingMode(false);
                     posestack.popPose();
                 }
               } catch (Exception e) {

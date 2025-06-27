@@ -9,6 +9,7 @@ import net.blockomorph.network.ServerBoundConfigUpdatePacket;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
 import net.blockomorph.utils.SavedBlock;
+import net.blockomorph.utils.accessors.ClientLevelAccessor;
 import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.fabricmc.api.EnvType;
@@ -423,7 +424,10 @@ public class MorphScreen extends Screen {
                 if (renderer != null) {
            	        posestack.pushPose();
            	        try {
+						ClientLevelAccessor acc = ClientLevelAccessor.of(world);
+						acc.setBlockEntityRenderingMode(true);
                         renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY);
+						acc.setBlockEntityRenderingMode(false);
            	        } catch (Exception e) {
            	        	
                     }

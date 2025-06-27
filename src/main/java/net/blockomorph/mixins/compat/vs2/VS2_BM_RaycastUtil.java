@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import java.util.function.Predicate;
 
-@Debug(export = true)
+
 @Pseudo
 @Mixin(targets = "org.valkyrienskies.mod.common.world.RaycastUtilsKt", remap = false)
 public class VS2_BM_RaycastUtil {
