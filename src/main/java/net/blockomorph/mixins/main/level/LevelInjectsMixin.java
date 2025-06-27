@@ -38,6 +38,7 @@ public abstract class LevelInjectsMixin {
 	public BlockState changeState(BlockState original, BlockPos pos) {
 		AtomicReference<BlockState> value = new AtomicReference<>(original);
 		InPlayerBlockPos.check(pos, (pl, realPos) -> {
+
 			boolean flag = original.getBlock() instanceof LiquidBlock;
 			if (pl.isBreaking() && realPos.equals(InPlayerBlockPos.ZERO) && (original == Blocks.AIR.defaultBlockState() || flag)) {
 				value.set(Blocks.VOID_AIR.defaultBlockState());
@@ -46,6 +47,15 @@ public abstract class LevelInjectsMixin {
 			}
 		}, null, LevelAcc.of(this));
 		return value.get();
+	}
+
+	@Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z", at = @At("HEAD"), cancellable = true)
+	public void rejectBreak(BlockPos pos, BlockState blockState, int i, int j, CallbackInfoReturnable<Boolean> cir) {
+		InPlayerBlockPos.check(pos, (pl, realPos) -> {
+			if (pl.isOnLoadingBlocks() && blockState == Blocks.AIR.defaultBlockState() && realPos.equals(InPlayerBlockPos.ZERO))
+				cir.setReturnValue(false);
+		}, () -> cir.setReturnValue(false), LevelAcc.of(this));
+
 	}
 
 	@ModifyVariable(method = "getEntities(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;)Ljava/util/List;", at = @At("HEAD"))

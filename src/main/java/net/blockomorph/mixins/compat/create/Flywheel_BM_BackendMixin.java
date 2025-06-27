@@ -9,10 +9,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Pseudo
-@Mixin(targets = {"dev.engine_room.flywheel.impl.visualization.VisualizationManagerImpl"}, remap = false)
+@Mixin(targets = {"com.jozufozu.flywheel.backend.Backend"}, remap = false)
 public class Flywheel_BM_BackendMixin {
 
-	@Inject(method = "supportsVisualization", at = @At("HEAD"), cancellable = true, require = 0, expect = 0)
+	@Inject(method = "canUseInstancing", at = @At("HEAD"), cancellable = true, require = 0, expect = 0)
 	private static void check(Level world, CallbackInfoReturnable<Boolean> cir) {
 		if (world instanceof ClientLevelAccessor acc && acc.blockEntityRendering()) {
 			cir.setReturnValue(false);

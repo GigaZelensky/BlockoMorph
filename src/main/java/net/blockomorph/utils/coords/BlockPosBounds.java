@@ -137,7 +137,6 @@ public class BlockPosBounds {
 		}
 		CLIENT_BOUNDS.clear();
 		CLIENT_CACHE.clear();
-		throw new RuntimeException();
 	}
 
 	public static void onJoin(Player entity) {

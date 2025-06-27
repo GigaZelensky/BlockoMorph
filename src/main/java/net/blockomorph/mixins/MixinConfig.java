@@ -26,7 +26,7 @@ public class MixinConfig implements IMixinConfigPlugin {
 		return true;
 	}
 
-	static { //REPAIR
+	static {
 		FabricLoader list = FabricLoader.getInstance();
 		if (list != null) {
 			useFlywheelCompat = list.isModLoaded("flywheel");

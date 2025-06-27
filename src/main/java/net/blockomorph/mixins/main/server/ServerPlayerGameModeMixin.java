@@ -13,6 +13,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.BlockHitResult;
+import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -21,18 +22,19 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-@Mixin(ServerPlayerGameMode.class)
+@Debug(export = true)
+@Mixin(value = ServerPlayerGameMode.class, priority = 1020)
 public class ServerPlayerGameModeMixin {
 	@Shadow @Final protected ServerPlayer player;
 
-	@Inject(method = "destroyBlock", at = @At(shift = At.Shift.BEFORE, value = "INVOKE", target = "Lnet/minecraft/world/level/block/Block;playerWillDestroy(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/entity/player/Player;)V"), remap = false)
+	@Inject(method = "destroyBlock", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/level/block/Block;playerWillDestroy(Lnet/minecraft/world/level/Level;Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/entity/player/Player;)V"))
 	public void crackBlockStart(BlockPos blockPos, CallbackInfoReturnable<Boolean> cir) {
 		InPlayerBlockPos.check(blockPos, (pl, realPos) -> {
 			pl.breakingModeStart(true);
 		}, null, false);
 	}
 
-	@Inject(method = "destroyBlock", at = @At(shift = At.Shift.BEFORE, value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayerGameMode;isCreative()Z"), remap = false)
+	@Inject(method = "destroyBlock", at = @At(shift = At.Shift.BEFORE, value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayerGameMode;isCreative()Z"))
 	public void crackBlockEnd(BlockPos blockPos, CallbackInfoReturnable<Boolean> cir) {
 		InPlayerBlockPos.check(blockPos, (pl, realPos) -> {
 			boolean flag = pl.isBreaking();
