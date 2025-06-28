@@ -38,6 +38,11 @@ public class TntSpawnLevel extends MultiBlockLevel {
 		this.realLevel.playSound(pl, bp, se, ss, sp1, sp2);
 	}
 
+	@Override
+	public boolean hasNeighborSignal(BlockPos blockPos) {
+		return true;
+	}
+
 	public BlockState getBlockState(BlockPos p) {
 		return this.need;
 	}
