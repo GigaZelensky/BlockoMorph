@@ -11,16 +11,14 @@ import java.util.List;
 import java.nio.file.Path;
 import java.nio.file.Files;
 
+import net.blockomorph.network.ClientBoundConfigUpdatePacket;
 import net.blockomorph.utils.MorphUtils;
 import net.minecraft.network.FriendlyByteBuf;
-import net.blockomorph.network.ClientBoundConfigUpdatePacket;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonElement;
 import net.minecraft.server.MinecraftServer;
 import net.neoforged.fml.loading.FMLPaths;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.minecraft.network.chat.Component;
 
 public class Config {
 	private static final String configDir = FMLPaths.GAMEDIR.get()+ "\\config\\blockomorph.json";

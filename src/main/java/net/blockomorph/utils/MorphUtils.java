@@ -43,6 +43,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.List;
 import javax.annotation.Nullable;
 
+import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDrownEvent;
 import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
@@ -213,7 +214,7 @@ public class MorphUtils {
 		if (block != null) {
 			BlockInWorld blockinworld = new BlockInWorld(pl.player().level(), block.getPos(), true);
 			ItemStack itemstack = attacker.getMainHandItem();
-			return !itemstack.isEmpty() && (itemstack.hasAdventureModeBreakTagForBlock(registry, blockinworld) || itemstack.hasAdventureModePlaceTagForBlock(registry, blockinworld));
+			return !itemstack.isEmpty() && (itemstack.canBreakBlockInAdventureMode(blockinworld) || itemstack.canPlaceOnBlockInAdventureMode(blockinworld));
 		}
 		return false;
 	}
@@ -221,7 +222,7 @@ public class MorphUtils {
 	public static boolean onPlayerAttacked(DamageSource damage, Entity attacked) {
 		if (attacked instanceof PlayerAccessor pl) {
 			boolean noTnt = pl.getTnt() == null;
-			boolean tntBlock = pl.getBlockState().getBlock() instanceof TntBlock;
+			boolean tntBlock = pl.getBlockState(InPlayerBlockPos.ZERO).getBlock() instanceof TntBlock;
 			boolean tntDamage =
 					damage.is(DamageTypes.PLAYER_EXPLOSION) ||
 							damage.is(DamageTypes.EXPLOSION);
@@ -306,7 +307,7 @@ public class MorphUtils {
 		if (event.getEntity().getItemInHand(event.getHand()).getItem() instanceof BlockItem) {
 			Config.PlaceMode mode = Config.getInstance().getValue("placeMode");
 			if (mode == Config.PlaceMode.DISABLED && InPlayerBlockPos.isMorphedPlayerX(event.getHitVec().getBlockPos().getX())) {
-				event.setUseItem(Event.Result.DENY);
+				event.setUseItem(TriState.FALSE);
 			}
 		}
 	}
@@ -349,7 +350,7 @@ public class MorphUtils {
 		int progress = pl.getBiggestProgress();
 
 		BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
-		BakedModel model = dispatcher.getBlockModel(pl.getBlockState());
+		BakedModel model = dispatcher.getBlockModel(pl.getBlockState(InPlayerBlockPos.ZERO));
 		TextureAtlasSprite sprite = model.getParticleIcon();
 
 

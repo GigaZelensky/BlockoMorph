@@ -4,18 +4,18 @@ import net.blockomorph.Blockomorph;
 import net.blockomorph.network.ClientBoundBlockPosBoundPacket;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.Config;
-import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.storage.LevelResource;
-import net.minecraftforge.event.level.LevelEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -23,7 +23,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.UUID;
 
-@Mod.EventBusSubscriber
+@EventBusSubscriber
 public class BlockPosBounds {
     private static File FILE;
     public static final int MAX_PLAYER_CHUNKS = 1_875_000;
@@ -107,7 +107,7 @@ public class BlockPosBounds {
         if (FILE == null || !FILE.exists()) return;
         CompoundTag tg;
         try {
-            tg = NbtIo.readCompressed(FILE);
+            tg = NbtIo.readCompressed(FILE.toPath(), NbtAccounter.unlimitedHeap());
         } catch (IOException ex) {
             Blockomorph.LOGGER.fatal("Unable to read PLAYER-BLOCKPOS mappings.", ex);
             return;
@@ -124,7 +124,7 @@ public class BlockPosBounds {
             tg.putLong(uuid.toString(), chunkPos.toLong());
         }));
         try {
-            NbtIo.writeCompressed(tg, FILE);
+            NbtIo.writeCompressed(tg, FILE.toPath());
         } catch (IOException ex) {
             Blockomorph.LOGGER.fatal("Unable to save PLAYER-BLOCKPOS mappings.", ex);
         }

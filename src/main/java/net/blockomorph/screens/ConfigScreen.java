@@ -1,8 +1,8 @@
 package net.blockomorph.screens;
 
+import net.blockomorph.network.ServerBoundConfigUpdatePacket;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.*;
-import net.blockomorph.network.ServerBoundConfigUpdatePacket;
 
 
 import net.minecraft.client.gui.screens.Screen;
@@ -17,7 +17,6 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
 import java.util.List;
 import java.util.Arrays;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 public class ConfigScreen extends Screen {
    private static final ResourceLocation texture = ResourceLocation.tryParse("blockomorph:textures/screens/config_screen.png");

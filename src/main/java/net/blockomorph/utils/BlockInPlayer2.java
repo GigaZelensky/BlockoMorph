@@ -12,7 +12,7 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.client.model.data.ModelData;
+import net.neoforged.neoforge.client.model.data.ModelData;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -60,7 +60,7 @@ public class BlockInPlayer2 {
     public BlockInPlayer2 loadNBT(CompoundTag tg) {
         if (this.blockEntity != null) {
             try {
-				this.blockEntity.load(tg);
+				this.blockEntity.loadWithComponents(tg, this.player.registryAccess());
             } catch (Exception ignored) {}
         }
         return this;
@@ -69,7 +69,7 @@ public class BlockInPlayer2 {
 	public BlockInPlayer2 handleClientTag(CompoundTag tg, ClientBoundMorphUpdatePacket pkt) {
 		if (this.blockEntity != null) {
 			try {
-				this.blockEntity.onDataPacket(pkt.getListener().getConnection(), ClientboundBlockEntityDataPacket.create(this.blockEntity, (ent) -> tg));
+				this.blockEntity.onDataPacket(pkt.getListener().getConnection(), ClientboundBlockEntityDataPacket.create(this.blockEntity, (ent, access) -> tg), this.player.registryAccess());
 			} catch (Exception ignored) {}
 		}
 		return this;
