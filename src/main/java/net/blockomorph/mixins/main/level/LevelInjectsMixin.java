@@ -30,7 +30,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
-@Debug(export = true)
 @Mixin(Level.class)
 public abstract class LevelInjectsMixin {
 
