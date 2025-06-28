@@ -23,6 +23,7 @@
     "main.blockFix.FallingBlockEntityMixin",
     "main.blockFix.FallingBlockMixin",
     "main.blockFix.SignMixin",
+    "main.coords.AABBMixin",
     "main.coords.BlockPosEncoderMixin",
     "main.coords.DimensionMixin",
     "main.coords.HitResultMixin",

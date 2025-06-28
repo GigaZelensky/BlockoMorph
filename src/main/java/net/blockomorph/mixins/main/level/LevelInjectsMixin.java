@@ -18,7 +18,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -28,6 +30,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
+@Debug(export = true)
 @Mixin(Level.class)
 public abstract class LevelInjectsMixin {
 
@@ -49,6 +52,15 @@ public abstract class LevelInjectsMixin {
             }
         }, null, LevelAcc.of(this));
         return value.get();
+    }
+
+    @ModifyVariable(method = "markAndNotifyBlock", at = @At(value = "STORE"), ordinal = 2)
+    public BlockState getState(BlockState value, BlockPos pos) {
+        AtomicReference<BlockState> state = new AtomicReference<>(value);
+        InPlayerBlockPos.check(pos, (pl, realPos) -> {
+            state.set(pl.getBlockState(realPos));
+        }, null, LevelAcc.of(this));
+        return state.get();
     }
 
     @Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z", at = @At("HEAD"), cancellable = true)
