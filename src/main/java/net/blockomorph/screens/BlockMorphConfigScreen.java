@@ -1,6 +1,8 @@
 package net.blockomorph.screens;
 
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.blockomorph.utils.*;
+import net.blockomorph.utils.accessors.ClientLevelAccessor;
 import net.blockomorph.utils.config.*;
 import net.blockomorph.network.*;
 
@@ -40,6 +42,7 @@ import com.mojang.math.Axis;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import net.neoforged.neoforge.client.RenderTypeHelper;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -531,8 +534,11 @@ public class BlockMorphConfigScreen extends Screen {
         BlockState blockState = this.playerState;
         RandomSource random = RandomSource.create(blockState.getSeed(pos));
         var model = this.dispatcher.getBlockModel(blockState);
-        for (var renderType : model.getRenderTypes(blockState, random, ModelData.EMPTY))
-            this.dispatcher.getModelRenderer().tesselateBlock(world, model, blockState, pos, poseStack, bufferSource.getBuffer(renderType), false, RandomSource.create(), blockState.getSeed(pos), OverlayTexture.NO_OVERLAY, ModelData.EMPTY, renderType);
+	   var modeldata = model.getModelData(world, pos, blockState, ModelData.EMPTY);
+        for (var renderType : model.getRenderTypes(blockState, random, modeldata)) {
+			VertexConsumer vertex = bufferSource.getBuffer(RenderTypeHelper.getMovingBlockRenderType(renderType));
+			this.dispatcher.getModelRenderer().tesselateBlock(world, model, blockState, pos, poseStack, vertex, false, RandomSource.create(), blockState.getSeed(pos), OverlayTexture.NO_OVERLAY, modeldata, renderType);
+		}
         this.renderBlockEntity(blockState, ticks, poseStack, bufferSource);
         poseStack.popPose();
    }
@@ -547,7 +553,10 @@ public class BlockMorphConfigScreen extends Screen {
                 BlockEntityRenderer renderer = blockEntityRenderDispatcher.getRenderer(blockEntity);
                 if (renderer != null) {
            	        posestack.pushPose();
+					ClientLevelAccessor acc = ClientLevelAccessor.of(world);
+					acc.setBlockEntityRenderingMode(true);
                     renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY);
+					acc.setBlockEntityRenderingMode(false);
                     posestack.popPose();
                 }
               } catch (Exception e) {

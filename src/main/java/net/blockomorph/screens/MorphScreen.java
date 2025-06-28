@@ -1,11 +1,14 @@
 package net.blockomorph.screens;
 
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.blockomorph.Blockomorph;
 import net.blockomorph.utils.*;
+import net.blockomorph.utils.accessors.ClientLevelAccessor;
 import net.blockomorph.utils.config.*;
 import net.blockomorph.network.*;
 
 import net.blockomorph.utils.coords.InPlayerBlockPos;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.chat.Component;
@@ -35,6 +38,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.Mth;
 
+import net.neoforged.neoforge.client.RenderTypeHelper;
+import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix4f;
 
 import com.mojang.math.Axis;
@@ -329,8 +334,11 @@ public class MorphScreen extends Screen {
         RandomSource random = RandomSource.create(blockState.getSeed(pos));
         if (blockState.getRenderShape() != RenderShape.INVISIBLE) {
            var model = this.dispatcher.getBlockModel(blockState);
-           var renderType = ItemBlockRenderTypes.getMovingBlockRenderType(blockState);
-           this.dispatcher.getModelRenderer().tesselateBlock(world, model, blockState, pos, poseStack, bufferSource.getBuffer(renderType), false, RandomSource.create(), blockState.getSeed(pos), OverlayTexture.NO_OVERLAY);
+			var modeldata = model.getModelData(world, pos, blockState, ModelData.EMPTY);
+			for (RenderType renderType : model.getRenderTypes(blockState, random, modeldata)) {
+				VertexConsumer vertex = bufferSource.getBuffer(RenderTypeHelper.getMovingBlockRenderType(renderType));
+				this.dispatcher.getModelRenderer().tesselateBlock(world, model, blockState, pos, poseStack, vertex, false, RandomSource.create(), blockState.getSeed(pos), OverlayTexture.NO_OVERLAY, modeldata, renderType);
+			}
         } else if (blockState.getBlock().asItem() != null && !(blockState.getBlock() instanceof EntityBlock)) {
               //in development
         }
@@ -424,7 +432,10 @@ public class MorphScreen extends Screen {
                 if (renderer != null) {
            	        posestack.pushPose();
            	        try {
+						ClientLevelAccessor acc = ClientLevelAccessor.of(world);
+						acc.setBlockEntityRenderingMode(true);
                         renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY);
+						acc.setBlockEntityRenderingMode(false);
            	        } catch (Exception e) {
            	        	
                     }
