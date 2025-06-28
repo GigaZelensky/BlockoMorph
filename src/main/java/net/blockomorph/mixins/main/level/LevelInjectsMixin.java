@@ -61,6 +61,15 @@ public abstract class LevelInjectsMixin {
 
 	}
 
+	@ModifyVariable(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z", at = @At(value = "STORE"), ordinal = 2)
+	public BlockState getState(BlockState value, BlockPos pos) {
+		AtomicReference<BlockState> state = new AtomicReference<>(value);
+		InPlayerBlockPos.check(pos, (pl, realPos) -> {
+			state.set(pl.getBlockState(realPos));
+		}, null, LevelAcc.of(this));
+		return state.get();
+	}
+
 	@ModifyVariable(method = "getEntities(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;Ljava/util/function/Predicate;)Ljava/util/List;", at = @At("HEAD"))
 	private Predicate<Entity> eraseOwner(Predicate<Entity> original, Entity ent, AABB aabb) {
 		AtomicReference<Player> player = new AtomicReference<>();
