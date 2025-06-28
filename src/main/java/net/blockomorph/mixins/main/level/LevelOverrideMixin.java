@@ -1,6 +1,7 @@
 package net.blockomorph.mixins.main.level;
 
 import com.google.common.collect.ImmutableList;
+import net.blockomorph.utils.accessors.ClipContextAccessor;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
@@ -44,6 +45,7 @@ public abstract class LevelOverrideMixin extends Level {
 
 	@Override
 	public BlockHitResult clip(ClipContext ctx) {
+		ctx = ClipContextAccessor.of(ctx).normalize();
 		AtomicReference<BlockHitResult> res = new AtomicReference<>(super.clip(ctx));
 		PlayerHitResult.checkHitResult(res.get().getLocation(), ctx, res::set);
 		return res.get();

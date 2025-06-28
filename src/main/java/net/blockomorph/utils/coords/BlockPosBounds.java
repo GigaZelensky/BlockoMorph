@@ -111,7 +111,6 @@ public class BlockPosBounds {
 		}
 		for (String key : tg.getAllKeys()) {
 			BOUNDS.put(UUID.fromString(key), new PlayerMorphedSection(tg.getLong(key)));
-			BlockomorphServer.LOGGER.error(key);
 		}
 	}
 
