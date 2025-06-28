@@ -8,9 +8,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.client.Minecraft;
 
 public class SavedBlock {
-   private BlockState blockstate;
-   private CompoundTag nbt;
-   private String key;
+   private final BlockState blockstate;
+   private final CompoundTag nbt;
+   private final String key;
    
    public SavedBlock(BlockState state, CompoundTag nbt, String k) {
    	   this.blockstate = state;

@@ -53,7 +53,7 @@ import net.minecraft.world.item.crafting.RecipeManager;
 
 public class MultiBlockLevel 
 extends Level {
-    private final HashMap<BlockPos, BlockState> blocks = new HashMap();
+    private final HashMap<BlockPos, BlockState> blocks = new HashMap<>();
     protected final Level realLevel;
     
     public MultiBlockLevel(Level lv, boolean client) {
@@ -138,6 +138,7 @@ extends Level {
     	return realLevel.potionBrewing();
     }
 
+	@Nullable
     protected LevelEntityGetter<Entity> getEntities() {
     	return null;
     }

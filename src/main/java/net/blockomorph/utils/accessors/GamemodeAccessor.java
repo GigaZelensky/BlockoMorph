@@ -1,4 +1,4 @@
-package net.blockomorph.utils;
+package net.blockomorph.utils.accessors;
 
 public interface GamemodeAccessor {
    int getDelay();

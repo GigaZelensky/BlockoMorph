@@ -42,7 +42,7 @@ public class MovementCalculator {
         }
         if (main == null) return;
         Vec3 offset = this.getHitBoxOffset(main, originalMovement);
-        if (level.noCollision(player.getBoundingBox().move(offset).move(movement))) {
+        if (level.noCollision(player, player.getBoundingBox().move(offset).move(movement))) {
             if (this.isGoodPath(main, originalMovement)) {//broken
                 player.setPos(offset.x + player.getX(), player.getY(), offset.z + player.getZ());
             }
