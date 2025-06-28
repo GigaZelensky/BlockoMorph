@@ -2,6 +2,7 @@
   "required": true,
   "package": "net.blockomorph.mixins",
   "compatibilityLevel": "JAVA_17",
+  "plugin": "net.blockomorph.mixins.MixinConfig",
   "mixins": [
     "compat.vs2.VS2_BM_RaycastUtil",
     "compat.vs2.VS2_BM_VsUtilsMixin",

@@ -30,6 +30,11 @@ public class TntSpawnLevel extends MultiBlockLevel {
 		return false;
 	}
 
+	@Override
+	public boolean hasNeighborSignal(BlockPos blockPos) {
+		return true;
+	}
+
 	public boolean removeBlock(BlockPos p, boolean y) {
 		return false;
 	}
