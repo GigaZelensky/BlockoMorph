@@ -7,6 +7,7 @@ import net.blockomorph.utils.config.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -104,14 +105,13 @@ public class BlockPosBounds {
 		if (FILE == null || !FILE.exists()) return;
 		CompoundTag tg;
 		try {
-			tg = NbtIo.readCompressed(FILE);
+			tg = NbtIo.readCompressed(FILE.toPath(), NbtAccounter.unlimitedHeap());
 		} catch (IOException ex) {
 			BlockomorphServer.LOGGER.error("Unable to read PLAYER-BLOCKPOS mappings.", ex);
 			return;
 		}
 		for (String key : tg.getAllKeys()) {
 			BOUNDS.put(UUID.fromString(key), new PlayerMorphedSection(tg.getLong(key)));
-			BlockomorphServer.LOGGER.error(key);
 		}
 	}
 
@@ -122,7 +122,7 @@ public class BlockPosBounds {
 			tg.putLong(uuid.toString(), chunkPos.toLong());
 		}));
 		try {
-			NbtIo.writeCompressed(tg, FILE);
+			NbtIo.writeCompressed(tg, FILE.toPath());
 		} catch (IOException ex) {
 			BlockomorphServer.LOGGER.error("Unable to save PLAYER-BLOCKPOS mappings.", ex);
 		}

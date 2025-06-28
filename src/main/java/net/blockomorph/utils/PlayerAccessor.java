@@ -28,6 +28,7 @@ public interface PlayerAccessor {
 	InPlayerBlockPos maxPos();
 	PrimedTnt getTnt();
 	TntHandler getTntHandler();
+	HitBoxCalculator getHitBoxHandler();
 	void setTnt();
 	//client only
 	//MultiBlockLevel getLiquidCachedLevel();

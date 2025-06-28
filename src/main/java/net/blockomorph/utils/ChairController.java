@@ -67,9 +67,11 @@ public class ChairController {
 				InPlayerBlockPos.check(BlockPos.containing(pos), (pl, realPos) -> {
 					chair.set(pl.player());
 					CompoundTag tg = new CompoundTag();
-					double yOffset = pos.y + entity.getPassengersRidingOffset() + owner.getMyRidingOffset();
+					entity.setPos(0, pos.y, 0);
+					Vec3 vec3 = entity.getPassengerRidingPosition(this.owner);
+					Vec3 vec32 = this.owner.getVehicleAttachmentPoint(entity);
 					tg.putDouble("x", pos.x);
-					tg.putDouble("y", yOffset);
+					tg.putDouble("y", vec3.y - vec32.y);
 					tg.putDouble("z", pos.z);
 					tg.put("Chair", NbtUtils.writeBlockState(pl.getBlockState(realPos)));
 					tg.putString("RealPos", realPos.string());

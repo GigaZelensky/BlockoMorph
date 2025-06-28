@@ -11,6 +11,7 @@ import java.util.List;
 import java.nio.file.Path;
 import java.nio.file.Files;
 
+import net.blockomorph.network.ClientBoundConfigUpdatePacket;
 import net.blockomorph.utils.MorphUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.MinecraftServer;

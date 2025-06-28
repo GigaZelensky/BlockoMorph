@@ -1,5 +1,6 @@
 package net.blockomorph.screens;
 
+import net.blockomorph.network.ServerBoundConfigUpdatePacket;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.*;
 

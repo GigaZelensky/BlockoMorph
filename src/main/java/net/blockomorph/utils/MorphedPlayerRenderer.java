@@ -147,7 +147,7 @@ public class MorphedPlayerRenderer {
 					int k = getBrakeProgress(blockEntity.getBlockPos());
 					if (k > -1 && k < 10) {
 						PoseStack.Pose posestack$pose = posestack.last();
-						VertexConsumer vertexconsumer = new SheetedDecalTextureGenerator(buffer.getBuffer(ModelBakery.DESTROY_TYPES.get(k)), posestack$pose.pose(), posestack$pose.normal(), 1.0F);
+						VertexConsumer vertexconsumer = new SheetedDecalTextureGenerator(buffer.getBuffer(ModelBakery.DESTROY_TYPES.get(k)), posestack$pose, 1.0F);
 						src = (p_234298_) -> {
 							VertexConsumer vertexconsumer2 = buffer.getBuffer(p_234298_);
 							return p_234298_.affectsCrumbling() ? VertexMultiConsumer.create(vertexconsumer, vertexconsumer2) : vertexconsumer2;
@@ -204,7 +204,7 @@ public class MorphedPlayerRenderer {
 		posestack.pushPose();
 		PoseStack.Pose posestack$pose1 = posestack.last();
 		if (k > -1 && k < 10) {
-			VertexConsumer vertexconsumer1 = new SheetedDecalTextureGenerator(buffer.getBuffer(ModelBakery.DESTROY_TYPES.get(k)), posestack$pose1.pose(), posestack$pose1.normal(), 1.0F);
+			VertexConsumer vertexconsumer1 = new SheetedDecalTextureGenerator(buffer.getBuffer(ModelBakery.DESTROY_TYPES.get(k)), posestack$pose1, 1.0F);
 			BlockPos offset = this.getPosForOffset(block);
 			this.blockRenderDispatcher.getModelRenderer().tesselateBlock(player.level(), this.blockRenderDispatcher.getBlockModel(blockstate), blockstate, offset, posestack, vertexconsumer1, false, RANDOM, blockstate.getSeed(offset), OverlayTexture.NO_OVERLAY);
 		}
@@ -245,8 +245,8 @@ public class MorphedPlayerRenderer {
 			float r = (float)(o - l);
 			float s = (float)(p - m);
 			float t = Mth.sqrt(q * q + r * r + s * s);
-			vertexConsumer.vertex(pose.pose(), (float)(k), (float)(l), (float)(m)).color(0f, 0f, 0f, 0.4f).normal(pose.normal(), q /= t, r /= t, s /= t).endVertex();
-			vertexConsumer.vertex(pose.pose(), (float)(n), (float)(o), (float)(p)).color(0f, 0f, 0f, 0.4f).normal(pose.normal(), q, r, s).endVertex();
+			vertexConsumer.addVertex(pose, (float)(k), (float)(l), (float)(m)).setColor(0f, 0f, 0f, 0.4f).setNormal(pose, q /= t, r /= t, s /= t);
+			vertexConsumer.addVertex(pose, (float)(n), (float)(o), (float)(p)).setColor(0f, 0f, 0f, 0.4f).setNormal(pose, q, r, s);
 		});
 	}
 }

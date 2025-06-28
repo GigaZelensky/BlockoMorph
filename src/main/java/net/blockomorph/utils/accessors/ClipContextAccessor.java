@@ -8,6 +8,8 @@ public interface ClipContextAccessor {
 	CollisionContext getContext();
 	ClipContext.Block getMode();
 
+	ClipContext normalize();
+
 	static ClipContextAccessor of(ClipContext ctx) {
 		return (ClipContextAccessor) ctx;
 	}

@@ -178,8 +178,7 @@ public class MorphUtils {
 		if (block != null) {
 			BlockInWorld blockinworld = new BlockInWorld(pl.player().level(), block.getPos(), true);
 			ItemStack itemstack = attacker.getMainHandItem();
-			Registry<Block> registry = attacker.level().registryAccess().registryOrThrow(Registries.BLOCK);
-			return !itemstack.isEmpty() && (itemstack.hasAdventureModeBreakTagForBlock(registry, blockinworld) || itemstack.hasAdventureModePlaceTagForBlock(registry, blockinworld));
+			return !itemstack.isEmpty() && (itemstack.canBreakBlockInAdventureMode(blockinworld) || itemstack.canPlaceOnBlockInAdventureMode(blockinworld));
 		}
 		return false;
 	}
