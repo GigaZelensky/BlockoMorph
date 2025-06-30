@@ -73,7 +73,7 @@ public abstract class MultiPlayerGameModeMixin {
 
 
 
-	@Inject(method = "performUseItemOn", at = @At(shift = At.Shift.BEFORE, value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z"), cancellable = true)
+	@Inject(method = "performUseItemOn", at = @At(ordinal = 2, shift = At.Shift.BEFORE, value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z"), cancellable = true)
 	public void checkAccessOnPlace(LocalPlayer localPlayer, InteractionHand interactionHand, BlockHitResult blockHitResult, CallbackInfoReturnable<InteractionResult> cir) {
 		MorphUtils.onRightClick(localPlayer, interactionHand, blockHitResult, cir);
 	}
