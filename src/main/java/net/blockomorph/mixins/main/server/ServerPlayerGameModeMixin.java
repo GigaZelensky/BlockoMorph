@@ -61,7 +61,7 @@ public class ServerPlayerGameModeMixin {
 	}
 
 
-	@Inject(method = "useItemOn", at = @At(shift = At.Shift.BEFORE, value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z"), cancellable = true)
+	@Inject(method = "useItemOn", at = @At(ordinal = 2, shift = At.Shift.BEFORE, value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isEmpty()Z"), cancellable = true)
 	public void checkAccess(ServerPlayer serverPlayer, Level level, ItemStack itemStack, InteractionHand interactionHand, BlockHitResult blockHitResult, CallbackInfoReturnable<InteractionResult> cir) {
 		MorphUtils.onRightClick(serverPlayer, interactionHand, blockHitResult, cir);
 	}
