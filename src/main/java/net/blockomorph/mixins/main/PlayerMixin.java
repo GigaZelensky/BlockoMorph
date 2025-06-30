@@ -1,6 +1,7 @@
 package net.blockomorph.mixins.main;
 
 import net.blockomorph.Blockomorph;
+import net.blockomorph.network.ClientBoundApplyBlockMorphPacket;
 import net.blockomorph.network.ClientBoundMorphUpdatePacket;
 import net.blockomorph.network.ClientBoundServerBlockEntityTagPacket;
 import net.blockomorph.screens.BlockMorphConfigScreen;
@@ -212,6 +213,10 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		return this.onLoadingBlocks;
 	}
 
+	public void setOnLoadingBlocks(boolean yes) {
+		this.onLoadingBlocks = yes;
+	}
+
 	private void oldDataHandle(CompoundTag tag) {
 		if (!this.level().isClientSide) {
 			BlockState state = NbtUtils.readBlockState(this.level().holderLookup(Registries.BLOCK), tag.getCompound("BlockState"));
@@ -343,6 +348,11 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		boolean flag = state.equals(old);
 		if ((tag == null || tag.isEmpty()) && flag)
 			return MorphUtils.BannedBlock.SAME;
+		if (this.level() instanceof ServerLevel lv) {
+			for (ServerPlayer pl : lv.getChunkSource().chunkMap.getPlayers(this.player().chunkPosition(), false)) {
+				MorphUtils.sendPlayer(new ClientBoundApplyBlockMorphPacket(state, this), pl);
+			}
+		}
 		this.onLoadingBlocks = true;
 		for (InPlayerBlockPos pos : this.blocksData.keySet()) {
 			if (!pos.equals(InPlayerBlockPos.ZERO)) {
