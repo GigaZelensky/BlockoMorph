@@ -137,35 +137,6 @@ public class MorphUtils {
 		sendPlayer(new ClientBoundMorphUpdatePacket(pl), player);
 	}
 
-   /*public static VoxelShape centerVoxelShape(VoxelShape vo, PlayerAccessor pl) {
-        BlockPos minpos = pl.minPos();
-        Player player = (Player)pl;
-        AABB hitbox = player.getBoundingBox();
-        Vec3 playerCenter = player.position();
-        double hitboxMinX = hitbox.minX;
-        double hitboxMinZ = hitbox.minZ;
-
-        double offsetX = hitbox.minX - (playerCenter.x + minpos.getX());
-        double offsetZ = hitbox.minZ - (playerCenter.z + minpos.getZ());
-
-        return vo.move(player.getX() + offsetX, player.getY(), player.getZ() + offsetZ);
-   }
-
-   public static boolean onPlayerAttack(Player player, Entity mob, BlockPos part) {
-   	    if (mob.level().isClientSide() && mob instanceof PlayerAccessor mb2) mb2.setReady(false);
-   	    if (mob instanceof PlayerAccessor mb && player instanceof ServerPlayer pl && mb.isFullActive() && part != null) {
-   	    	GameType gm = pl.gameMode.getGameModeForPlayer();
-    	    if (player.isCreative()) {
-    	    	destroy(mb, player);
-    	    	player.swing(InteractionHand.MAIN_HAND, true);
-    	    } else if (gm == GameType.SURVIVAL) {
-    	    	mb.addPlayer(part, player);
-    	    }
-    	    return true;	    
-    	}
-    	return false;
-   }*/
-
 	public static Vec3 getRealBlockPos(PlayerAccessor original, InPlayerBlockPos offset) {
 		return getRealBlockPos(original, new Vec3(offset.x, offset.y, offset.z));
 	}
