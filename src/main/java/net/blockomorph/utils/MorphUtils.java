@@ -98,11 +98,11 @@ public class MorphUtils {
 		for (ServerPlayer p : Config.getServer().getPlayerList().getPlayers()) {
 			ServerPlayNetworking.send(p, new MainPacket(packet));
 		}
-	} //config
+	}
 
 	public static void sendPlayer(BlockMorphPacket packet, ServerPlayer pl) {
 		ServerPlayNetworking.send(pl, new MainPacket(packet));
-	} //onJoin
+	}
 
 	public static void registerPacket(String id, Function<FriendlyByteBuf, BlockMorphPacket> bl, boolean client) {
 		ResourceLocation res = ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, id);
