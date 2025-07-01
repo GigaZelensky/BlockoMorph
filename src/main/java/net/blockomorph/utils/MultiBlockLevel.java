@@ -2,15 +2,8 @@ package net.blockomorph.utils;
 
 import net.minecraft.world.level.Level;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.level.storage.WritableLevelData;
-import net.minecraft.CrashReportCategory;
-import net.minecraft.world.level.LevelHeightAccessor;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
@@ -23,13 +16,12 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.ExplosionDamageCalculator;
 import net.minecraft.core.particles.ParticleOptions;
 import java.util.Collection;
-import com.google.common.collect.ImmutableCollection;
+
 import net.minecraft.world.entity.boss.EnderDragonPart;
 import java.util.List;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.level.saveddata.maps.MapId;
-import com.mojang.realmsclient.util.task.RealmCreationTask;
 import net.minecraft.world.item.alchemy.PotionBrewing;
 import net.minecraft.world.level.block.entity.FuelValues;
 import net.minecraft.world.level.entity.LevelEntityGetter;
@@ -52,168 +44,168 @@ import net.minecraft.world.level.material.Fluid;
 import java.util.HashMap;
 import java.util.function.Predicate;
 
-public class MultiBlockLevel 
-extends Level {
-    private final HashMap<BlockPos, BlockState> blocks = new HashMap<>();
-    protected final Level realLevel;
-    
-    public MultiBlockLevel(Level lv, boolean cl) {
-        super((WritableLevelData)lv.getLevelData(), lv.dimension(), lv.registryAccess(), lv.dimensionTypeRegistration(), cl, lv.isDebug(), 0, 5);
-        this.realLevel = lv;
-    }
+public class MultiBlockLevel extends Level {
+	private final HashMap<BlockPos, BlockState> blocks = new HashMap<>();
+	protected final Level realLevel;
 
-    @Override
-    public boolean setBlock(BlockPos blockPos, BlockState blockState, int i, int j) {
-    	this.blocks.put(blockPos, blockState);
-    	return true;
-    }
+	public MultiBlockLevel(Level lv, boolean cl) {
+		super((WritableLevelData)lv.getLevelData(), lv.dimension(), lv.registryAccess(), lv.dimensionTypeRegistration(), cl, lv.isDebug(), 0, 5);
+		this.realLevel = lv;
+	}
 
-    public HashMap<BlockPos, BlockState> getBlocks() {
-    	return this.blocks;
-    }
+	@Override
+	public boolean setBlock(BlockPos blockPos, BlockState blockState, int i, int j) {
+		this.blocks.put(blockPos, blockState);
+		return true;
+	}
 
+	public HashMap<BlockPos, BlockState> getBlocks() {
+		return this.blocks;
+	}
 
 
 
 
 
-    //suppliers
 
-    public @NotNull List<Entity> getEntities(@Nullable Entity e, AABB ab, Predicate<? super Entity> p) {
-        return realLevel.getEntities(e, ab, p);
-    }
+	//suppliers
 
-    public <T extends Entity> void getEntities(EntityTypeTest<Entity, T> test, AABB ab, Predicate<? super T> p, List<? super T> l, int i) {
-        realLevel.getEntities(test, ab, p, l, i);
-    }
+	public @NotNull List<Entity> getEntities(@Nullable Entity e, AABB ab, Predicate<? super Entity> p) {
+		return realLevel.getEntities(e, ab, p);
+	}
 
-    public Level getRealLevel() {
-        return this.realLevel;
-    }
+	public <T extends Entity> void getEntities(EntityTypeTest<Entity, T> test, AABB ab, Predicate<? super T> p, List<? super T> l, int i) {
+		realLevel.getEntities(test, ab, p, l, i);
+	}
 
-    public void sendBlockUpdated(BlockPos var1, BlockState var2, BlockState var3, int var4) {}
+	public Level getRealLevel() {
+		return this.realLevel;
+	}
 
-    public void playSeededSound(@Nullable Player var1, double var2, double var4, double var6, Holder<SoundEvent> var8, SoundSource var9, float var10, float var11, long var12) {}
+	public void sendBlockUpdated(BlockPos var1, BlockState var2, BlockState var3, int var4) {}
 
-    public void playSeededSound(@Nullable Player var1, Entity var2, Holder<SoundEvent> var3, SoundSource var4, float var5, float var6, long var7) {}
+	public void playSeededSound(@Nullable Player var1, double var2, double var4, double var6, Holder<SoundEvent> var8, SoundSource var9, float var10, float var11, long var12) {}
 
-    public void explode(@Nullable Entity var1, @Nullable DamageSource var2, @Nullable ExplosionDamageCalculator var3, double var4, double var6, double var8, float var10, boolean var11, ExplosionInteraction var12, ParticleOptions var13, ParticleOptions var14, Holder<SoundEvent> var15) {}
+	public void playSeededSound(@Nullable Player var1, Entity var2, Holder<SoundEvent> var3, SoundSource var4, float var5, float var6, long var7) {}
 
-    public String gatherChunkSourceStats() {
-    	return realLevel.gatherChunkSourceStats();
-    }
+	public void explode(@Nullable Entity var1, @Nullable DamageSource var2, @Nullable ExplosionDamageCalculator var3, double var4, double var6, double var8, float var10, boolean var11, ExplosionInteraction var12, ParticleOptions var13, ParticleOptions var14, Holder<SoundEvent> var15) {}
 
-    @Nullable
-    public MapItemSavedData getMapData(MapId var1) {
-    	return realLevel.getMapData(var1);
-    }
+	public String gatherChunkSourceStats() {
+		return realLevel.gatherChunkSourceStats();
+	}
 
-    public void setMapData(MapId var1, MapItemSavedData var2) {}
+	@Nullable
+	public MapItemSavedData getMapData(MapId var1) {
+		return realLevel.getMapData(var1);
+	}
 
-    @Override
-    public MapId getFreeMapId() {
-        return realLevel.getFreeMapId();
-    }
+	public void setMapData(MapId var1, MapItemSavedData var2) {}
 
-    public RecipeAccess recipeAccess() {
-    	return realLevel.recipeAccess();
-    }
+	@Override
+	public MapId getFreeMapId() {
+		return realLevel.getFreeMapId();
+	}
 
-    public TickRateManager tickRateManager() {
-    	return realLevel.tickRateManager();
-    }
+	public RecipeAccess recipeAccess() {
+		return realLevel.recipeAccess();
+	}
 
-    @Nullable
-    public Entity getEntity(int var1) {
-    	return realLevel.getEntity(var1);
-    }
+	public TickRateManager tickRateManager() {
+		return realLevel.tickRateManager();
+	}
 
-    public Collection<EnderDragonPart> dragonParts() {
-    	return realLevel.dragonParts();
-    }
+	@Nullable
+	public Entity getEntity(int var1) {
+		return realLevel.getEntity(var1);
+	}
 
-    public PotionBrewing potionBrewing() {
-    	return realLevel.potionBrewing();
-    }
+	public Collection<EnderDragonPart> dragonParts() {
+		return realLevel.dragonParts();
+	}
 
-    public FuelValues fuelValues() {
-    	return realLevel.fuelValues();
-    }
+	public PotionBrewing potionBrewing() {
+		return realLevel.potionBrewing();
+	}
 
-    protected LevelEntityGetter<Entity> getEntities() {
-    	return null;
-    }
+	public FuelValues fuelValues() {
+		return realLevel.fuelValues();
+	}
 
-    public void destroyBlockProgress(int var1, BlockPos var2, int var3) {}
+	@Nullable
+	protected LevelEntityGetter<Entity> getEntities() {
+		return null;
+	}
 
-    public Scoreboard getScoreboard() {
-    	return realLevel.getScoreboard();
-    }
+	public void destroyBlockProgress(int var1, BlockPos var2, int var3) {}
 
-    //levelAccessor
+	public Scoreboard getScoreboard() {
+		return realLevel.getScoreboard();
+	}
 
-    public void gameEvent(Holder<GameEvent> var1, Vec3 var2, GameEvent.Context var3) {}
+	//levelAccessor
 
-    public void playSound(@Nullable Player var1, BlockPos var2, SoundEvent var3, SoundSource var4, float var5, float var6) {}
+	public void gameEvent(Holder<GameEvent> var1, Vec3 var2, GameEvent.Context var3) {}
 
-    public void addParticle(ParticleOptions var1, double var2, double var4, double var6, double var8, double var10, double var12) {}
+	public void playSound(@Nullable Player var1, BlockPos var2, SoundEvent var3, SoundSource var4, float var5, float var6) {}
 
-    public void levelEvent(@Nullable Player var1, int var2, BlockPos var3, int var4) {}
+	public void addParticle(ParticleOptions var1, double var2, double var4, double var6, double var8, double var10, double var12) {}
 
-    public ChunkSource getChunkSource() {
-    	return realLevel.getChunkSource();
-    }
+	public void levelEvent(@Nullable Player var1, int var2, BlockPos var3, int var4) {}
 
-    //entityGetter
+	public ChunkSource getChunkSource() {
+		return realLevel.getChunkSource();
+	}
 
-    public List<? extends Player> players() {
-    	return realLevel.players();
-    }
+	//entityGetter
 
-    //levelReader
+	public List<? extends Player> players() {
+		return realLevel.players();
+	}
 
-    public FeatureFlagSet enabledFeatures() {
-    	return realLevel.enabledFeatures();
-    }
+	//levelReader
 
-    public int getSeaLevel() {
-    	return realLevel.getSeaLevel();
-    }
+	public FeatureFlagSet enabledFeatures() {
+		return realLevel.enabledFeatures();
+	}
 
-    public Holder<Biome> getUncachedNoiseBiome(int var1, int var2, int var3) {
-    	return realLevel.getUncachedNoiseBiome(var1, var2, var3);
-    }
+	public int getSeaLevel() {
+		return realLevel.getSeaLevel();
+	}
 
-    //blockAndTintGetter
+	public Holder<Biome> getUncachedNoiseBiome(int var1, int var2, int var3) {
+		return realLevel.getUncachedNoiseBiome(var1, var2, var3);
+	}
 
-    public float getShade(Direction var1, boolean var2) {
-    	return realLevel.getShade(var1, var2);
-    }
+	//blockAndTintGetter
 
-    public LevelLightEngine getLightEngine() {
-    	return realLevel.getLightEngine();
-    }
+	public float getShade(Direction var1, boolean var2) {
+		return realLevel.getShade(var1, var2);
+	}
 
-    public int getBlockTint(BlockPos var1, ColorResolver var2) {
-    	return realLevel.getBlockTint(var1, var2);
-    }
+	public LevelLightEngine getLightEngine() {
+		return realLevel.getLightEngine();
+	}
 
-    //scheduledTickAcceess
+	public int getBlockTint(BlockPos var1, ColorResolver var2) {
+		return realLevel.getBlockTint(var1, var2);
+	}
 
-    public <T> ScheduledTick<T> createTick(BlockPos var1, T var2, int var3, TickPriority var4) {
-    	return realLevel.createTick(var1, var2, var3, var4);
-    }
+	//scheduledTickAcceess
 
-    public <T> ScheduledTick<T> createTick(BlockPos var1, T var2, int var3) {
-    	return realLevel.createTick(var1, var2, var3);
-    }
+	public <T> ScheduledTick<T> createTick(BlockPos var1, T var2, int var3, TickPriority var4) {
+		return realLevel.createTick(var1, var2, var3, var4);
+	}
 
-    public LevelTickAccess<Block> getBlockTicks() {
-    	return realLevel.getBlockTicks();
-    }
+	public <T> ScheduledTick<T> createTick(BlockPos var1, T var2, int var3) {
+		return realLevel.createTick(var1, var2, var3);
+	}
 
-    public LevelTickAccess<Fluid> getFluidTicks() {
-    	return realLevel.getFluidTicks();
-    }
+	public LevelTickAccess<Block> getBlockTicks() {
+		return realLevel.getBlockTicks();
+	}
+
+	public LevelTickAccess<Fluid> getFluidTicks() {
+		return realLevel.getFluidTicks();
+	}
 
 }
