@@ -11,32 +11,28 @@ import net.fabricmc.api.Environment;
 
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.Vec3i;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.MenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.item.PrimedTnt;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.*;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraft.core.particles.BlockParticleOption;
-import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.GameType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -44,46 +40,35 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.core.Holder;
 import net.minecraft.world.damagesource.DamageTypes;
-import net.minecraft.util.RandomSource;
 import net.minecraft.core.Direction;
-import net.minecraft.client.particle.TerrainParticle;
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 
 import java.util.List;
-import java.util.Optional;
+
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.world.level.block.piston.MovingPistonBlock;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.renderer.RenderType;
-import java.util.Map;
+
 import java.util.HashMap;
 import net.minecraft.core.BlockPos;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.function.DoubleConsumer;
 import java.util.function.Function;
 
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 public class MorphUtils {
 	public static final ResourceKey<DamageType> PLAYER_DESTROYED = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("blockomorph", "player_destroyed"));
 	public static final ResourceKey<DamageType> PLAYER_DESTROYED_NULL = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("blockomorph", "player_destroyed_null"));
-	private static boolean attackPressed;
 	public static final SavedBlockManager bmanager = getSavedManager();
-	public static BlockPos hitPart;
-	public static Entity hitEntity;
-	public static EntityHitResult hit;
 
 	private static final HashMap<ResourceLocation, PacketInfo> handlers = new HashMap<>();
 	public static PacketInfo getHandler(ResourceLocation id) {
@@ -142,6 +127,136 @@ public class MorphUtils {
 	public record BannedBlock(String reason, Component text) {
 		public static final BannedBlock SAME = new BannedBlock("You have already been turned into this block.",
 				Component.translatable("commands.blockomorph.blockSame"));
+	}
+
+	public static Vec3 getRealBlockPos(PlayerAccessor original, InPlayerBlockPos offset) {
+		return getRealBlockPos(original, new Vec3(offset.x, offset.y, offset.z));
+	}
+
+	public static Vec3 getRealBlockPos(PlayerAccessor original, Vec3 offset) {
+		AABB aabb = original.player().getBoundingBox();
+		InPlayerBlockPos minPos = original.minPos();
+
+		double deltaX = offset.x - (double) minPos.getX();
+		double deltaY = offset.y - (double) minPos.getY();
+		double deltaZ = offset.z - (double) minPos.getZ();
+
+		double globalX = aabb.minX + deltaX;
+		double globalY = aabb.minY + deltaY;
+		double globalZ = aabb.minZ + deltaZ;
+
+		return new Vec3(globalX, globalY, globalZ);
+	}
+
+	public static void distanceTo(Vec3 from, Vec3 to, boolean sqr, double offset, DoubleConsumer action) {
+		if (InPlayerBlockPos.isMorphedPlayerX(from.x) || InPlayerBlockPos.isMorphedPlayerX(to.x) && action != null) {
+			from = InPlayerBlockPos.checkOnReal(from);
+			to = InPlayerBlockPos.checkOnReal(to);
+			double d0 = from.x + offset - to.x;
+			double d1 = from.y + offset - to.y;
+			double d2 = from.z + offset - to.z;
+			double result = d0 * d0 + d1 * d1 + d2 * d2;
+			if (!sqr)
+				result = Math.sqrt(result);
+			action.accept(result);
+		}
+	}
+
+	public static void executeMorphedBlockShapeUpdate(LevelAccessor levelAccessor, Direction direction, BlockPos blockPos, BlockPos blockPos2, BlockState blockState, int i, int j, BlockState external) {
+		if ((i & 128) == 0 || !external.is(Blocks.REDSTONE_WIRE)) {
+			BlockState blockState3 = external.updateShape(levelAccessor, levelAccessor, blockPos, direction, blockPos2, blockState, levelAccessor.getRandom());
+			Block.updateOrDestroy(external, blockState3, levelAccessor, blockPos, i, j);
+		}
+	}
+
+	public static Vec3 getCetneredRealBlockPos(PlayerAccessor original, InPlayerBlockPos offset) {
+		Vec3 vec = getRealBlockPos(original, offset);
+		return new Vec3(vec.x + 0.5, vec.y + 0.5, vec.z + 0.5);
+	}
+
+	public static boolean isAdventureCanBreak(PlayerAccessor pl, Player attacker, InPlayerBlockPos hitPart) {
+		BlockInPlayer2 block = pl.getBlocksData2().get(hitPart);
+		if (block != null) {
+			BlockInWorld blockinworld = new BlockInWorld(pl.player().level(), block.getPos(), true);
+			ItemStack itemstack = attacker.getMainHandItem();
+			return !itemstack.isEmpty() && (itemstack.canBreakBlockInAdventureMode(blockinworld) || itemstack.canPlaceOnBlockInAdventureMode(blockinworld));
+		}
+		return false;
+	}
+
+	public static boolean needRejectUse(Level lv, BlockHitResult block) {
+		if (InPlayerBlockPos.isMorphedPlayerX(block.getBlockPos().getX())) {
+			BlockState state = lv.getBlockState(block.getBlockPos());
+			Config.UseMode mode = Config.getInstance().getValue("useMode");
+			switch (mode) {
+				case DISABLED -> {
+					return true;
+				}
+				case VANILLA -> {
+					ResourceLocation res = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+					return !res.getNamespace().equals(ResourceLocation.DEFAULT_NAMESPACE);
+				}
+			}
+		}
+		return false;
+	}
+
+	public static UseOnContext checkOnRealIfOut(UseOnContext ctx, ItemStack stack) {
+		if (stack.getItem() instanceof BlockItem && InPlayerBlockPos.isMorphedPlayerX(ctx.getClickedPos().getX())) {
+			Config.PlaceMode mode = Config.getInstance().getValue("placeMode");
+			if (mode == Config.PlaceMode.OUT) {
+				Vec3 realHit = InPlayerBlockPos.checkOnReal(ctx.getClickLocation());
+				realHit = toDirection(realHit, ctx.getClickedFace());
+				BlockHitResult hit = new BlockHitResult(realHit, ctx.getClickedFace(), BlockPos.containing(realHit), ctx.isInside());
+				return new UseOnContext(ctx.getLevel(), ctx.getPlayer(), ctx.getHand(), ctx.getItemInHand(), hit);
+			}
+		}
+		return ctx;
+	}
+
+	private static Vec3 toDirection(Vec3 vec, Direction dir) {
+		Vec3i step = dir.getUnitVec3i();
+		double x = switch (step.getX()) {
+			case 1 -> Math.ceil(vec.x) + 1.0E-7;
+			case -1 -> Math.floor(vec.x) - 1.0E-7;
+			default -> vec.x;
+		};
+		double y = switch (step.getY()) {
+			case 1 -> Math.ceil(vec.y) + 1.0E-7;
+			case -1 -> Math.floor(vec.y) - 1.0E-7;
+			default -> vec.y;
+		};
+		double z = switch (step.getZ()) {
+			case 1 -> Math.ceil(vec.z) + 1.0E-7;
+			case -1 -> Math.floor(vec.z) - 1.0E-7;
+			default -> vec.z;
+		};
+		return new Vec3(x, y, z);
+	}
+
+	public static void onJoin(ServerPlayer player) {
+		sendPlayer(new ClientBoundConfigUpdatePacket(Config.getInstance()), player);
+		PlayerAccessor pl = PlayerAccessor.of(player);
+		sendPlayer(new ClientBoundMorphUpdatePacket(pl), player);
+	}
+
+	@Environment(EnvType.CLIENT)
+	public static boolean canOpenMenuIn(PlayerAccessor pl, InPlayerBlockPos offset) {
+		BlockInPlayer2 block = pl.getBlocksData2().get(offset);
+		if (block != null) {
+			MenuProvider pr = block.getBlockState().getMenuProvider(pl.player().level(), block.getPos());
+			return pr != null;
+		}
+		return false;
+	}
+
+	public static void onRightClick(Player localPlayer, InteractionHand interactionHand, BlockHitResult blockHitResult, CallbackInfoReturnable<InteractionResult> cir) {
+		if (localPlayer.getItemInHand(interactionHand).getItem() instanceof BlockItem) {
+			Config.PlaceMode mode = Config.getInstance().getValue("placeMode");
+			if (mode == Config.PlaceMode.DISABLED && InPlayerBlockPos.isMorphedPlayerX(blockHitResult.getBlockPos().getX())) {
+				cir.setReturnValue(InteractionResult.PASS);
+			}
+		}
 	}
 
 	public static boolean onPlayerAttacked(LivingEntity attacked, DamageSource damage, float amount) {

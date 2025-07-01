@@ -18,7 +18,9 @@ import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.network.FriendlyByteBuf;
 import com.google.gson.JsonObject;
 import net.minecraft.commands.CommandBuildContext;
+import org.jetbrains.annotations.Nullable;
 
+//from forge
 public class EnumArgument<T extends Enum<T>> implements ArgumentType<T> {
     private static final Dynamic2CommandExceptionType INVALID_ENUM = new Dynamic2CommandExceptionType(
             (found, constants) -> Component.translatable("commands.blockmorph.enumArg", found, constants));
@@ -60,7 +62,8 @@ public class EnumArgument<T extends Enum<T>> implements ArgumentType<T> {
             buffer.writeUtf(template.enumClass.getName());
         }
 
-        //@SuppressWarnings("unchecked")
+        @Nullable
+        @SuppressWarnings("unchecked")
         @Override
         public Template deserializeFromNetwork(FriendlyByteBuf buffer) {
             try {
