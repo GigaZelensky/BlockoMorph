@@ -44,8 +44,7 @@ import net.minecraft.world.level.material.Fluid;
 import java.util.HashMap;
 import java.util.function.Predicate;
 
-public class MultiBlockLevel 
-extends Level {
+public class MultiBlockLevel extends Level {
     private final HashMap<BlockPos, BlockState> blocks = new HashMap<>();
     protected final Level realLevel;
     
@@ -123,6 +122,7 @@ extends Level {
     	return realLevel.fuelValues();
     }
 
+	@Nullable
     protected LevelEntityGetter<Entity> getEntities() {
     	return null;
     }

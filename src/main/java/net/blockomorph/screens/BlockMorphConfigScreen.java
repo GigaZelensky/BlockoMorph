@@ -2,8 +2,10 @@ package net.blockomorph.screens;
 
 import net.blockomorph.utils.*;
 import net.blockomorph.network.*;
+import net.blockomorph.utils.accessors.ClientLevelAccessor;
 import net.blockomorph.utils.config.*;
 
+import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.client.Camera;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
@@ -130,7 +132,7 @@ public class BlockMorphConfigScreen extends Screen {
    }
 
    public void morphUpdate(BlockState state) {
-   	    CompoundTag tag = ((PlayerAccessor)this.entity).getTag();
+   	    CompoundTag tag = ((PlayerAccessor)this.entity).getTag(InPlayerBlockPos.ZERO);
    	    if (state.getBlock() instanceof EntityBlock) {
 			tagsBox.setFocused(true);
 			tagsBox.setEditable(true);
@@ -145,7 +147,6 @@ public class BlockMorphConfigScreen extends Screen {
 		}
 		this.playerState = state;
 		this.playerTag = tag;
-		this.mb = ((PlayerAccessor)this.entity).isMultiBlock();
 		this.validSave(savebox.getValue());
    }
 
@@ -164,7 +165,7 @@ public class BlockMorphConfigScreen extends Screen {
    }
 
    private void renderMbButton(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
-   	    if (Config.getInstance() != null && (boolean)Config.getInstance().getValue("advancedMode")) {
+   	    if (false && Config.getInstance() != null && (boolean)Config.getInstance().getValue("advancedMode")) {
    	    	guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/mb_but.png"), this.leftPos + 93, this.topPos + 120, 0, this.mb ? 10:0, 67, 10, 67, 20);
    	    	guiGraphics.drawCenteredString(this.font, Component.translatable("gui.blockomorph.mb"), this.leftPos + 93 + 33, this.topPos + 121, -1);
    	    }
@@ -341,10 +342,10 @@ public class BlockMorphConfigScreen extends Screen {
    	    	boolean flag = this.enumClick(x, y);
    	    	Property prop = this.getProp(x, y, true);
    	    	this.listProp = null;
-   	    	if (!flag && prop == null) {
+   	    	if (false && !flag && prop == null) {
    	    		if (x > this.leftPos + 93 && x < this.leftPos + 93 + 67 && y > this.topPos + 120 && y < this.topPos + 130) {
    	    			if (Config.getInstance() != null && (boolean)Config.getInstance().getValue("advancedMode")) {
-   	    				MorphUtils.sendServer(ServerBoundBlockMorphPacket.create(this.playerState, this.playerTag, !this.mb));
+   	    				MorphUtils.sendServer(ServerBoundBlockMorphPacket.create(this.playerState, this.playerTag));
    	    			    sound.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
    	    			}
    	    		}
@@ -478,12 +479,11 @@ public class BlockMorphConfigScreen extends Screen {
 		tagsBox.setTextColorUneditable(-1);
 		this.addRenderableWidget(tagsBox);
 		this.addRenderableWidget(this.savebox);
-		this.playerState = ((PlayerAccessor)this.entity).getBlockState();
-		this.mb = ((PlayerAccessor)this.entity).isMultiBlock();
+		this.playerState = ((PlayerAccessor)this.entity).getBlockState(InPlayerBlockPos.ZERO);
 		BlockState blockState = this.playerState;
 		if (blockState.getBlock() instanceof EntityBlock) {
 			this.setInitialFocus(tagsBox);
-			CompoundTag tag = ((PlayerAccessor)this.entity).getTag();
+			CompoundTag tag = ((PlayerAccessor)this.entity).getTag(InPlayerBlockPos.ZERO);
 			tagsBox.setValue(tag.toString());
 			this.playerTag = tag;
 		} else {
@@ -550,7 +550,10 @@ public class BlockMorphConfigScreen extends Screen {
                 if (renderer != null) {
            	        posestack.pushPose();
 					Camera cam = Minecraft.getInstance().getBlockEntityRenderDispatcher().camera;
+					ClientLevelAccessor acc = ClientLevelAccessor.of(world);
+					acc.setBlockEntityRenderingMode(true);
                     renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY, cam.getPosition());
+					acc.setBlockEntityRenderingMode(false);
                     posestack.popPose();
                 }
               } catch (Exception e) {

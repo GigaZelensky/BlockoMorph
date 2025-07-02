@@ -1,6 +1,5 @@
 package net.blockomorph.utils;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -40,8 +39,8 @@ public class MovementCalculator {
         }
         if (main == null) return;
         Vec3 offset = this.getHitBoxOffset(main, originalMovement);
-        if (level.noCollision(player.getBoundingBox().move(offset).move(movement))) {
-            if (this.isGoodPath(main, originalMovement)) {//broken
+        if (level.noCollision(player, player.getBoundingBox().move(offset).move(movement))) {
+            if (this.isGoodPath(main, originalMovement)) {
                 player.setPos(offset.x + player.getX(), player.getY(), offset.z + player.getZ());
             }
         }
