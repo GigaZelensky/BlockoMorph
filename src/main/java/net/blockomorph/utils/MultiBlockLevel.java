@@ -56,7 +56,7 @@ import net.neoforged.neoforge.entity.PartEntity;
 
 public class MultiBlockLevel 
 extends Level {
-    private final HashMap<BlockPos, BlockState> blocks = new HashMap();
+    private final HashMap<BlockPos, BlockState> blocks = new HashMap<>();
     protected final Level realLevel;
     
     public MultiBlockLevel(Level lv, boolean cl) {
@@ -155,6 +155,7 @@ extends Level {
     	return realLevel.fuelValues();
     }
 
+	@Nullable
     protected LevelEntityGetter<Entity> getEntities() {
     	return null;
     }
