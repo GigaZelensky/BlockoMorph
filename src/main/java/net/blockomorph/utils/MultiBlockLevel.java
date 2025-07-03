@@ -2,15 +2,8 @@ package net.blockomorph.utils;
 
 import net.minecraft.world.level.Level;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.Difficulty;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraft.world.level.storage.WritableLevelData;
-import net.minecraft.CrashReportCategory;
-import net.minecraft.world.level.LevelHeightAccessor;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.storage.LevelData;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
@@ -23,13 +16,10 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.ExplosionDamageCalculator;
 import net.minecraft.core.particles.ParticleOptions;
 import java.util.Collection;
-import com.google.common.collect.ImmutableCollection;
-import net.minecraft.world.entity.boss.EnderDragonPart;
 import java.util.List;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.level.saveddata.maps.MapItemSavedData;
 import net.minecraft.world.level.saveddata.maps.MapId;
-import com.mojang.realmsclient.util.task.RealmCreationTask;
 import net.minecraft.world.item.alchemy.PotionBrewing;
 import net.minecraft.world.level.block.entity.FuelValues;
 import net.minecraft.world.level.entity.LevelEntityGetter;
@@ -54,9 +44,8 @@ import java.util.function.Predicate;
 
 import net.neoforged.neoforge.entity.PartEntity;
 
-public class MultiBlockLevel 
-extends Level {
-    private final HashMap<BlockPos, BlockState> blocks = new HashMap();
+public class MultiBlockLevel extends Level {
+    private final HashMap<BlockPos, BlockState> blocks = new HashMap<>();
     protected final Level realLevel;
     
     public MultiBlockLevel(Level lv, boolean cl) {
@@ -146,6 +135,7 @@ extends Level {
     	return realLevel.fuelValues();
     }
 
+	@Nullable
     protected LevelEntityGetter<Entity> getEntities() {
     	return null;
     }

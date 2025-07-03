@@ -14,7 +14,7 @@ import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
 
-@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD, value = {Dist.CLIENT})
+@EventBusSubscriber(value = {Dist.CLIENT})
 public class KeyMappings {
     private static Minecraft mc = Minecraft.getInstance();
 	private static final ArrayList<KeyMapping> KEYS = new ArrayList<>();
