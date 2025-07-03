@@ -23,7 +23,7 @@ public class ServerEntityMixin {
 
 	@Shadow @Final private Entity entity;
 
-	@Inject(method = "sendChanges", at = @At(value = "INVOKE", target = "Ljava/util/function/Consumer;accept(Ljava/lang/Object;)V", shift = At.Shift.AFTER, ordinal = 0))
+	@Inject(method = "sendChanges", at = @At(value = "INVOKE", target = "Ljava/util/function/BiConsumer;accept(Ljava/lang/Object;Ljava/lang/Object;)V", shift = At.Shift.AFTER))
 	private void fixAsync(CallbackInfo ci) {
 		if (this.entity instanceof ServerPlayer pl) {
 			pl.connection.send(new ClientboundSetPassengersPacket(pl));
