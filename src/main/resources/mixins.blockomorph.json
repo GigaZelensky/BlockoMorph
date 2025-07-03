@@ -62,6 +62,7 @@
     "main.client.graphic.LevelRenderMixin",
     "main.client.graphic.LightEngineManagerMixin",
     "main.client.graphic.LightEngineMixin",
+    "main.client.ModelDataManagerMixin",
     "main.client.graphic.ModelRendererMixin",
     "main.client.graphic.ParticleEngineMixin",
     "main.client.graphic.entity.EntityRendererMixin",

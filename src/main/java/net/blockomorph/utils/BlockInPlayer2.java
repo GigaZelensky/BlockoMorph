@@ -27,6 +27,7 @@ public class BlockInPlayer2 {
 	private BlockEntity blockEntity;
 	private BlockEntityTicker blockEntityTicker;
 	//client only \/
+	private ModelData data = ModelData.EMPTY;
 	private CompoundTag serverTag = new CompoundTag(); //temp
 
 	public BlockInPlayer2(PlayerAccessor pl, InPlayerBlockPos pos, BlockState state, Consumer<BlockInPlayer2> preInit) {
@@ -151,6 +152,14 @@ public class BlockInPlayer2 {
 
 	public CompoundTag getServerTag() {
 		return this.serverTag;
+	}
+
+	public void connectModelData(ModelData data) {
+		this.data = Objects.requireNonNullElse(data, ModelData.EMPTY);
+	}
+
+	public ModelData getModelData() {
+		return this.data;
 	}
 
 	public BlockInPlayer2 setServerTag(CompoundTag serverTag) {
