@@ -179,16 +179,14 @@ public class MorphedPlayerRenderer {
 	private void renderBreak(AbstractClientPlayer player, PoseStack posestack, MultiBufferSource buffer, PlayerAccessor pl) {
 		for (BlockInPlayer2 block : pl.getBlocksData2().values()) {
 			BlockState state = block.getBlockState();
-			if (state.getRenderShape() == RenderShape.MODEL) {
-				int k = getBrakeProgress(block.getPos());
-				posestack.pushPose();
-				InPlayerBlockPos offset = block.getOffset();
+			int k = getBrakeProgress(block.getPos());
+			posestack.pushPose();
+			InPlayerBlockPos offset = block.getOffset();
 
-				posestack.translate(offset.getX(), offset.getY(), offset.getZ());
-				this.renderBreak(k, state, player, posestack, buffer, block);
+			posestack.translate(offset.getX(), offset.getY(), offset.getZ());
+			this.renderBreak(k, state, player, posestack, buffer, block);
 
-				posestack.popPose();
-			}
+			posestack.popPose();
 		}
 	}
 
