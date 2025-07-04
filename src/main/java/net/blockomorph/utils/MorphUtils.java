@@ -6,10 +6,12 @@ import net.blockomorph.utils.config.*;
 
 import net.blockomorph.utils.coords.BlockPosBounds;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.TriState;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
@@ -46,11 +48,10 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 import net.neoforged.neoforge.client.event.RenderBlockScreenEffectEvent;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDrownEvent;
 import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
@@ -59,8 +60,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.minecraft.world.level.block.piston.MovingPistonBlock;
 import net.neoforged.fml.loading.FMLPaths;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.core.BlockPos;
+
 import java.util.HashMap;
 import java.util.function.DoubleConsumer;
 import java.util.function.Function;
@@ -78,7 +79,7 @@ public class MorphUtils {
 	}
 
 	public static void sendServer(BlockMorphPacket packet) {
-		PacketDistributor.sendToServer(new MainPacket(packet));
+		ClientPacketDistributor.sendToServer(new MainPacket(packet));
 	}
 
 	public static void sendAll(BlockMorphPacket packet) {
@@ -254,7 +255,6 @@ public class MorphUtils {
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	public static boolean canOpenMenuIn(PlayerAccessor pl, InPlayerBlockPos offset) {
 		BlockInPlayer2 block = pl.getBlocksData2().get(offset);
 		if (block != null) {
@@ -297,7 +297,6 @@ public class MorphUtils {
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onRenderFire(RenderBlockScreenEffectEvent event) {
 		if (((PlayerAccessor)event.getPlayer()).isActive()) {
@@ -305,7 +304,6 @@ public class MorphUtils {
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	@SubscribeEvent
 	public static void onHudRender(RenderGuiLayerEvent.Pre event) {
 		Minecraft mc = Minecraft.getInstance();
@@ -327,7 +325,6 @@ public class MorphUtils {
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	private static void renderBlockHeart(GuiGraphics gui, PlayerAccessor pl, int width, int height) {
 		int maxHearts = 10;
 		int progress = pl.getBiggestProgress();
@@ -348,17 +345,16 @@ public class MorphUtils {
 
 
 			if (i < 9 - progress) {
-				gui.blitSprite(RenderType::guiTextured, sprite, xPos + 1, yPos + 1, 7, 7);
+				gui.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, xPos + 1, yPos + 1, 7, 7);
 			}
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	private static void renderBar(GuiGraphics graphics, int x, int y, int progress) {
 		if (progress == 9) {
-			graphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 10, 81, 9, 81, 19);
+			graphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 10, 81, 9, 81, 19);
 		} else {
-			graphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 0, 81, 9, 81, 19);
+			graphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 0, 81, 9, 81, 19);
 		}
 	}
 
@@ -368,6 +364,20 @@ public class MorphUtils {
 			Holder<DamageType> damage = mob.level().registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).
 					getOrThrow(attacker == null ? PLAYER_DESTROYED_NULL : PLAYER_DESTROYED);
 			mob.hurtServer(lv, new DamageSource(damage, attacker), Float.MAX_VALUE);
+		}
+	}
+
+	public static class AutoLoggerCollector extends ProblemReporter.Collector implements AutoCloseable {
+
+		public AutoLoggerCollector(PathElement p_421607_) {
+			super(p_421607_);
+		}
+
+		public void close() {
+			if (!this.isEmpty()) {
+				Blockomorph.LOGGER.warn("[{}] Serialization errors:\n{}", Blockomorph.LOGGER.getName(), this.getTreeReport());
+			}
+
 		}
 	}
 }

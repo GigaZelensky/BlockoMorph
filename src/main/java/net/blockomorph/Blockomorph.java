@@ -18,7 +18,7 @@ public class Blockomorph {
 	public Blockomorph(IEventBus modEventBus) {
 		modEventBus.addListener((RegisterPayloadHandlersEvent event) -> {
 			final PayloadRegistrar registrar = event.registrar(MODID);
-			registrar.playBidirectional(MainPacket.ID, MainPacket.STREAM_CODEC, MainPacket::apply);
+			registrar.playBidirectional(MainPacket.ID, MainPacket.STREAM_CODEC, MainPacket::apply, MainPacket::apply);
 		});
 		MorphUtils.registerPacket(ClientBoundConfigUpdatePacket.ID, ClientBoundConfigUpdatePacket::new, true);
 		MorphUtils.registerPacket(ClientBoundBlockPosBoundPacket.ID, ClientBoundBlockPosBoundPacket::new, true);

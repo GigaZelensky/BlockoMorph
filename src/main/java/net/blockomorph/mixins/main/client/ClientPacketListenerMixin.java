@@ -35,10 +35,10 @@ public abstract class ClientPacketListenerMixin {
         }
     }
 
-    @Redirect(method = "handleSetEntityPassengersPacket(Lnet/minecraft/network/protocol/game/ClientboundSetPassengersPacket;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/GameNarrator;sayNow(Lnet/minecraft/network/chat/Component;)V"))
+    @Redirect(method = "handleSetEntityPassengersPacket(Lnet/minecraft/network/protocol/game/ClientboundSetPassengersPacket;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/GameNarrator;saySystemNow(Lnet/minecraft/network/chat/Component;)V"))
     private void redirectSayNow(GameNarrator instance, Component component) {
         if (this.needEjectMessage()) {
-            instance.sayNow(component);
+            instance.saySystemNow(component);
         }
     }
 

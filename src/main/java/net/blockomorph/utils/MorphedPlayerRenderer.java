@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.state.EntityRenderState;
@@ -131,9 +132,9 @@ public class MorphedPlayerRenderer {
 		}*/ //TODO modeldata?
 		RANDOM.setSeed(blockstate.getSeed(offset));
 		List<BlockModelPart> list = model.collectParts(level, offset, blockstate, RANDOM).stream().filter((blockModelPart -> {
-			return (blockModelPart.getRenderType(blockstate) == RenderType.translucent()) == translucent;
+			return (blockModelPart.getRenderType(blockstate) == ChunkSectionLayer.TRANSLUCENT) == translucent;
 		})).toList();
-		Function<RenderType, VertexConsumer> bufferLookup = (renderType) -> {
+		Function<ChunkSectionLayer, VertexConsumer> bufferLookup = (renderType) -> {
 			return buffer.getBuffer(RenderTypeHelper.getMovingBlockRenderType(renderType));
 		};
 		this.blockRenderDispatcher.getModelRenderer().tesselateBlock(level, list, blockstate, offset, posestack, bufferLookup, true, OverlayTexture.NO_OVERLAY);

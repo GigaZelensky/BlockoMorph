@@ -1,15 +1,15 @@
 plugins {
     id 'eclipse'
-    id 'net.neoforged.moddev' version '2.0.58-beta'
+    id 'net.neoforged.moddev' version '2.0.99'
 }
 
-version = '6.0.1'
-base.archivesName = "blockomorph-1.21.5-neoforge"
+version = '7.0.0'
+base.archivesName = "blockomorph-1.21.7-neoforge"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 neoForge {
-    version = "21.5.81"
+    version = "21.7.14-beta"
 
     runs {
         client {

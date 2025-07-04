@@ -8,12 +8,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.BaseRailBlock;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.neoforged.neoforge.model.data.ModelData;
 
 import java.util.Objects;
@@ -61,8 +64,9 @@ public class BlockInPlayer2 {
 
 	public BlockInPlayer2 loadNBT(CompoundTag tg) {
 		if (this.blockEntity != null) {
-			try {
-				this.blockEntity.loadWithComponents(tg, this.player.registryAccess());
+			try (MorphUtils.AutoLoggerCollector scopedCollector = new MorphUtils.AutoLoggerCollector(this.blockEntity.problemPath())) {
+				ValueInput valueInput = TagValueInput.create(scopedCollector, this.player.level().registryAccess(), tg);
+				this.blockEntity.loadWithComponents(valueInput);
 			} catch (Exception ignored) {}
 		}
 		return this;
@@ -70,8 +74,8 @@ public class BlockInPlayer2 {
 
 	public BlockInPlayer2 handleClientTag(CompoundTag tg, ClientBoundMorphUpdatePacket pkt) {
 		if (this.blockEntity != null) {
-			try {
-				this.blockEntity.onDataPacket(pkt.getListener().getConnection(), ClientboundBlockEntityDataPacket.create(this.blockEntity, (ent, access) -> tg), this.player.registryAccess());
+			try (MorphUtils.AutoLoggerCollector scopedCollector = new MorphUtils.AutoLoggerCollector(this.blockEntity.problemPath())) {
+				this.blockEntity.onDataPacket(pkt.getListener().getConnection(), TagValueInput.create(scopedCollector, this.player.level().registryAccess(), tg));
 			} catch (Exception ignored) {}
 		}
 		return this;
@@ -189,9 +193,5 @@ public class BlockInPlayer2 {
 		if (this.player.level().isClientSide) {
 			this.blockState.getBlock().animateTick(this.blockState, this.player.level(), this.pos, this.player.getRandom());
 		}
-	}
-
-	private boolean needRemoveBlockEntity(BlockState old, BlockState newState) {
-		return old.hasBlockEntity() && (!old.is(newState.getBlock()) || !newState.hasBlockEntity());
 	}
 }

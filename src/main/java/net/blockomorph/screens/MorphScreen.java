@@ -9,19 +9,18 @@ import net.blockomorph.network.*;
 
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.client.Camera;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.level.block.*;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.util.RandomSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.ItemStack;
@@ -40,6 +39,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.util.Mth;
 
+import net.minecraft.world.level.storage.TagValueInput;
 import net.neoforged.neoforge.client.RenderTypeHelper;
 import net.neoforged.neoforge.model.data.ModelData;
 import org.joml.Matrix4f;
@@ -55,17 +55,13 @@ import java.util.HashMap;
 import java.util.List;
 
 import net.neoforged.neoforge.common.CreativeModeTabRegistry;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
 import javax.annotation.Nullable;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.multiplayer.SessionSearchTrees;
 
-@OnlyIn(Dist.CLIENT)
 public class MorphScreen extends Screen {
     private static final ResourceLocation SCROLLER_SPRITE = ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller");
     private static final ResourceLocation SCROLLER_DISABLED_SPRITE = ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller_disabled");
@@ -200,6 +196,7 @@ public class MorphScreen extends Screen {
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 		super.render(guiGraphics, mouseX, mouseY, partialTicks);
+		this.tempBufer = Minecraft.getInstance().renderBuffers().bufferSource();
 		this.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
 		if (pageCount > 1) {
 		    Component page = Component.literal(String.format("%d / %d", MorphScreen.page + 1, pageCount));
@@ -207,21 +204,21 @@ public class MorphScreen extends Screen {
 		}
 		if (selectedTab.showTitle())
 		    guiGraphics.drawString(this.font, selectedTab.getDisplayName(), this.leftPos + 8, this.topPos + 6, selectedTab.getLabelColor(), false);
-		guiGraphics.drawSpecial(this::extractBuffer);
+		//guiGraphics.drawSpecial(this::extractBuffer);
 		this.renderBlockAsIcon(guiGraphics, partialTicks);
 		int i = this.findBlockIndex(mouseX, mouseY);
 		if (i != -1) {
 			Block bl = this.findBlockClick(mouseX, mouseY);
 			if (bl != null) {
-		        guiGraphics.renderTooltip(this.font, bl.getName(), mouseX, mouseY);
+		        guiGraphics.setTooltipForNextFrame(this.font, bl.getName(), mouseX, mouseY);
 			} else {
 				int ind = i + this.scrollOff * 2;
 				if (ind >= this.savedBlocks.size()) return;
-				guiGraphics.renderTooltip(this.font, Component.literal(this.savedBlocks.get(ind).getName()), mouseX, mouseY);
+				guiGraphics.setTooltipForNextFrame(this.font, Component.literal(this.savedBlocks.get(ind).getName()), mouseX, mouseY);
 			}
 		} else {
 			CreativeModeTab tab = this.getTabAtPosition(mouseX, mouseY);
-			if (tab != null) guiGraphics.renderTooltip(this.font, tab.getDisplayName(), mouseX, mouseY);
+			if (tab != null) guiGraphics.setTooltipForNextFrame(this.font, tab.getDisplayName(), mouseX, mouseY);
 		}
 		if (this.unmask != null) this.unmask.active = ((PlayerAccessor)this.entity).isFullActive();
 		if (this.fuse != null) {
@@ -290,51 +287,88 @@ public class MorphScreen extends Screen {
 	}
 
 	public void renderBlockAsIcon(GuiGraphics guiGraphics, float ticks) {
-        PoseStack poseStack = guiGraphics.pose();
-        MultiBufferSource bufferSource = this.tempBufer;
-        int xO = 0;
-        int yO = 0;
-        
-        for (int i = this.scrollOff; i < 16 + this.scrollOff; i++) {
-      	   if (this.scrollOff + i < ((selectedTab == loved_blocks) ? this.savedBlocks.size() : list.size())) {
-      	   	  BlockState blockState;
-      	   	  CompoundTag tag = null;
-      	   	  if (selectedTab == loved_blocks) {
-      	   	  	SavedBlock b = savedBlocks.get(this.scrollOff + i);
-      	   	  	blockState = b.getState();
-      	   	  	tag = b.getTag();
-      	   	  } else {
-      	   	  	blockState = list.get(this.scrollOff + i).defaultBlockState();
-      	   	  }
+		final int[] xO = {0};
+		final int[] yO = {0};
+		List<GuiBlockRenderState> states = new ArrayList<>();
+		for (int i = this.scrollOff; i < 16 + this.scrollOff; i++) {
+			if (this.scrollOff + i < ((selectedTab == loved_blocks) ? this.savedBlocks.size() : list.size())) {
+				final BlockState blockState;
+				CompoundTag tag;
+				if (selectedTab == loved_blocks) {
+					SavedBlock b = savedBlocks.get(this.scrollOff + i);
+					blockState = b.getState();
+					tag = b.getTag();
+				} else {
+					tag = null;
+					blockState = list.get(this.scrollOff + i).defaultBlockState();
+				}
 
-              poseStack.pushPose();
-              this.renderBlock(poseStack, bufferSource, xO, yO, blockState, ticks, tag);
-              poseStack.popPose();
+				int x = this.leftPos + 42 + xO[0]*36;
+				int y = this.topPos + 42 + yO[0]*36;
 
-              poseStack.pushPose();
-              poseStack.translate(0, 0, 200); 
-              this.renderFrame(guiGraphics, blockState, xO, yO, tag);
-              poseStack.translate(0, 0, -200); 
-              poseStack.popPose();
-              
-           } else {
-      		  break;
-           }
+				states.add(new GuiBlockRenderState(guiGraphics, x, y, 20, ((bufferSource, poseStack) -> {
+					this.renderBlock(poseStack, bufferSource, blockState, ticks, tag);
+				}), xO[0] == 0 && yO[0] == 0));
 
-           xO++;
-           if (xO > 3) {
-           	  xO = 0;
-        	  yO++;
-           }
-        }
-    }
+				this.renderFrame(guiGraphics, blockState, xO[0], yO[0], tag);
 
-    private void renderBlock(PoseStack poseStack, MultiBufferSource bufferSource, int xO, int yO, BlockState blockState, float ticks, @Nullable CompoundTag tag) {
-    	poseStack.translate(this.leftPos + 42 + xO*36, this.topPos + 41.8 + yO*36, 100); 
+			} else {
+				break;
+			}
+
+			xO[0]++;
+			if (xO[0] > 3) {
+				xO[0] = 0;
+				yO[0]++;
+			}
+		}
+		states.forEach(guiGraphics::submitPictureInPictureRenderState);
+		//GuiStateAccessor.load(guiGraphics.guiRenderState, states);
+
+		//poseStack.popPose();
+		/*BiConsumer<MultiBufferSource.BufferSource, PoseStack> action2 = (bufer, poseStack) -> {
+			float f = 2 * 20;
+			poseStack.translate((float) this.width* 2/2, (float) this.height * 2 /2, 0);
+			poseStack.translate(10, 10, 0);
+			poseStack.scale(f, f, -f);
+			//poseStack.mulPose((new Matrix4f()).scaling(1.0F, -1.0F, 1.0F));
+			poseStack.translate(-10, -10, 0);
+			//poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+			//poseStack.mulPose(Axis.YP.rotationDegrees(-45.0F));
+			//
+			//poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+			//poseStack.translate(1, 0, 0);
+			BlockState blockState = Blocks.GRASS_BLOCK.defaultBlockState();
+			//BlockState blockState = Blocks.DRIED_GHAST.defaultBlockState();
+			//BlockState blockState = Blocks.BAMBOO_BUTTON.defaultBlockState();
+			RandomSource s = RandomSource.create();
+			ModelBlockRenderer renderer = Minecraft.getInstance().getBlockRenderer().getModelRenderer();
+			var renderType = ItemBlockRenderTypes.getMovingBlockRenderType(blockState);
+			List<BlockModelPart> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).collectParts(s);
+			renderer.tesselateBlock(Minecraft.getInstance().level, list, blockState, new BlockPos(0, 500, 0), poseStack, bufer.getBuffer(renderType), false, OverlayTexture.NO_OVERLAY);
+		};
+		guiGraphics.guiRenderState.submitPicturesInPictureState(new GuiBlockRenderState(
+				this.leftPos + 10, this.topPos + 15, this.leftPos + 153, this.topPos + 158, guiGraphics.scissorStack.peek(), action2));
+		guiGraphics.guiRenderState.submitPicturesInPictureState(new GuiBlockRenderState(
+				this.leftPos + 30, this.topPos + 15, this.leftPos + 183, this.topPos + 158, guiGraphics.scissorStack.peek(), action2));
+				//this.leftPos + 10, this.topPos + 20, this.leftPos + 20, this.topPos + 30, guiGraphics.scissorStack.peek(), action2));
+		guiGraphics.guiRenderState.submitPicturesInPictureState(new GuiBlockRenderState(
+				0, 0, this.width, this.height, guiGraphics.scissorStack.peek(), action2));
+		Pig pig = new Pig(EntityType.PIG, world);
+		Vector3f vector3f = new Vector3f(0.0F, pig.getBbHeight() / 2.0F, 0.0F);
+		Quaternionf quaternionf = (new Quaternionf()).rotateZ((float)Math.PI);
+		//InventoryScreen.renderEntityInInventory(guiGraphics, this.leftPos + 10, this.topPos + 15, this.leftPos + 153, this.topPos + 158, 20, vector3f, quaternionf, null, pig);*/
+	}
+
+    private void renderBlock(PoseStack poseStack, MultiBufferSource bufferSource, BlockState blockState, float ticks, @Nullable CompoundTag tag) {
+    	/*poseStack.translate(this.leftPos + 42 + xO*36, this.topPos + 41.8 + yO*36, 100);
         poseStack.mulPose((new Matrix4f()).scaling(1.0F, -1.0F, 1.0F));
         poseStack.scale(20.0F, 20.0F, 20.0F); 
         poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
-        poseStack.mulPose(Axis.YP.rotationDegrees(225.0F)); 
+        poseStack.mulPose(Axis.YP.rotationDegrees(225.0F)); */
+		poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+		poseStack.mulPose(Axis.YP.rotationDegrees(-45.0F));
+		poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
 
       	BlockPos pos = AIR;
         RandomSource random = RandomSource.create(blockState.getSeed(pos));
@@ -342,7 +376,7 @@ public class MorphScreen extends Screen {
            var model = this.dispatcher.getBlockModel(blockState);
 			random.setSeed(blockState.getSeed(pos));
 			List<BlockModelPart> list = model.collectParts(world, pos, blockState, random);
-			Function<RenderType, VertexConsumer> bufferLookup = (renderType) -> {
+			Function<ChunkSectionLayer, VertexConsumer> bufferLookup = (renderType) -> {
 				return bufferSource.getBuffer(RenderTypeHelper.getMovingBlockRenderType(renderType));
 			};
 			this.dispatcher.getModelRenderer().tesselateBlock(world, list, blockState, pos, poseStack, bufferLookup, true, OverlayTexture.NO_OVERLAY);
@@ -356,20 +390,20 @@ public class MorphScreen extends Screen {
     	String name = BuiltInRegistries.BLOCK.getKey(blockState.getBlock()).toString();
         if (!this.isConfig()) {
         	if (MorphUtils.isBannedBlock(blockState, entity) != null) {
-        		guiGraphics.blit(RenderType::guiTextured, ResourceLocation.tryParse("blockomorph:textures/screens/sel_lock.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
+        		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.tryParse("blockomorph:textures/screens/sel_lock.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
         		return;
         	}
         	BlockState plSt = ((PlayerAccessor)entity).getBlockState(InPlayerBlockPos.ZERO);
             if (selectedTab == loved_blocks) {
             	if (plSt.equals(blockState) && tag.equals(((PlayerAccessor)entity).getTag(InPlayerBlockPos.ZERO)))
-            	guiGraphics.blit(RenderType::guiTextured, ResourceLocation.tryParse("blockomorph:textures/screens/selected.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
+            	guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.tryParse("blockomorph:textures/screens/selected.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
             } else if (plSt.getBlock() == blockState.getBlock()) {
-            	guiGraphics.blit(RenderType::guiTextured, ResourceLocation.tryParse("blockomorph:textures/screens/selected.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
+            	guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.tryParse("blockomorph:textures/screens/selected.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
             }
         } else if (this.mode == Config.Mode.WHITELIST) {
-            if (((List<String>)Config.getInstance().getValue("allowedBlocks")).contains(name)) guiGraphics.blit(RenderType::guiTextured, ResourceLocation.tryParse("blockomorph:textures/screens/sel_good.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
+            if (((List<String>)Config.getInstance().getValue("allowedBlocks")).contains(name)) guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.tryParse("blockomorph:textures/screens/sel_good.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
         } else if (this.mode == Config.Mode.BLACKLIST) {
-            if (((List<String>)Config.getInstance().getValue("bannedBlocks")).contains(name)) guiGraphics.blit(RenderType::guiTextured, ResourceLocation.tryParse("blockomorph:textures/screens/sel_bad.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
+            if (((List<String>)Config.getInstance().getValue("bannedBlocks")).contains(name)) guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.tryParse("blockomorph:textures/screens/sel_bad.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
         }
     }
 
@@ -434,11 +468,11 @@ public class MorphScreen extends Screen {
             BlockEntity blockEntity = ent.newBlockEntity(AIR, blockstate);
             if (blockEntity != null) {
       	        blockEntity.setLevel(world);
-      	        if (tag != null) blockEntity.loadWithComponents(tag, entity.level().registryAccess());
                 BlockEntityRenderer renderer = blockEntityRenderDispatcher.getRenderer(blockEntity);
                 if (renderer != null) {
            	        posestack.pushPose();
-           	        try {
+					try (MorphUtils.AutoLoggerCollector scopedCollector = new MorphUtils.AutoLoggerCollector(() -> "BlockEntity in morph selection gui: " + blockEntity.getClass())) {
+						if (tag != null) blockEntity.loadWithComponents(TagValueInput.create(scopedCollector, this.world.registryAccess(), tag));
 						Camera cam = Minecraft.getInstance().getBlockEntityRenderDispatcher().camera;
 						ClientLevelAccessor acc = ClientLevelAccessor.of(world);
 						acc.setBlockEntityRenderingMode(true);
@@ -489,15 +523,11 @@ public class MorphScreen extends Screen {
         tabType = tabType + "_middle";
         if (flag) tabType = tabType + "_selected";
         
-        gui.blit(RenderType::guiTextured, ResourceLocation.withDefaultNamespace("textures/gui/sprites/advancements/tab_" + tabType + ".png"), l, i1, 0, 0, weight, height, weight, height);
+        gui.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.withDefaultNamespace("textures/gui/sprites/advancements/tab_" + tabType + ".png"), l, i1, 0, 0, weight, height, weight, height);
 
-        gui.pose().pushPose();
-        gui.pose().translate(0.0F, 0.0F, 100.0F);
 
         ItemStack itemstack = tab.getIconItem();
         gui.renderItem(itemstack, l + 7, i1 + 5);
-        gui.renderItemDecorations(this.font, itemstack, l + 7, i1 + 4);
-        gui.pose().popPose();
     }
 
     public int getTabY(int i) {
@@ -512,10 +542,9 @@ public class MorphScreen extends Screen {
     }
 
 	protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
-		RenderSystem.setShaderColor(1, 1, 1, 1);
-		guiGraphics.blit(RenderType::guiTextured, texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
+		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
 		if (this.hasSearchBar())
-		    guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/searchbar.png"), this.leftPos + 90, this.topPos - 19, 0, 0, 80, 23, 80, 23);
+		    guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/searchbar.png"), this.leftPos + 90, this.topPos - 19, 0, 0, 80, 23, 80, 23);
 		int j = 0;
 		for (int i = page * 10; i < page * 10 + 10; i++) {
 			if (i < tabs.size()) {
@@ -527,14 +556,14 @@ public class MorphScreen extends Screen {
 		if (this.needAllowedTab()) this.renderTabButton(guiGraphics, allowed, -3, true);
 		this.renderTabButton(guiGraphics, op_tab, -2, true);
 		this.renderTabButton(guiGraphics, search, -1, true);
-		guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/exit_tabs.png"), this.leftPos + 4, this.topPos - 19, 0, 0, 80, 22, 80, 46);
+		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/exit_tabs.png"), this.leftPos + 4, this.topPos - 19, 0, 0, 80, 22, 80, 46);
 		int yPos = this.topPos + 16;
 		int totalScrollableElements = this.list.size() - 16;
 
         double scrollPercentage = (double)this.scrollOff / totalScrollableElements;
         int sharp = (int)Math.round(scrollPercentage * (253));
         sharp = Mth.clamp(sharp, 0, 127);
-		guiGraphics.blitSprite(RenderType::guiTextured, this.canScroll() ? SCROLLER_SPRITE : SCROLLER_DISABLED_SPRITE, this.leftPos + 158, yPos + sharp, 12, 15);
+		guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, this.canScroll() ? SCROLLER_SPRITE : SCROLLER_DISABLED_SPRITE, this.leftPos + 158, yPos + sharp, 12, 15);
 	}
 
 	public boolean mouseClicked(double x, double y, int type) {
@@ -700,7 +729,7 @@ public class MorphScreen extends Screen {
 		searchBox = new ListenerEditBox(this.font, this.leftPos + 99, this.topPos + -10, 70, 12, Component.literal("searchbox"), this::searchBlock);
 		searchBox.setMaxLength(32767);
 		searchBox.setBordered(false);
-		searchBox.setTextColor(16777215);
+		searchBox.setTextColor(-1);
 		this.addRenderableWidget(searchBox);
 		this.setInitialFocus(this.searchBox);
 		searchBox.active = this.hasSearchBar();

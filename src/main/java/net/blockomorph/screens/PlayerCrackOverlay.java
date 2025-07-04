@@ -3,6 +3,7 @@ package net.blockomorph.screens;
 
 import net.blockomorph.utils.PlayerAccessor;
 
+import net.minecraft.client.renderer.RenderPipelines;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.bus.api.EventPriority;
@@ -27,11 +28,11 @@ public class PlayerCrackOverlay {
 
 		    int k = ((PlayerAccessor)entity).getBiggestProgress();
 
-		    RenderSystem.setShaderColor(1, 1, 1, 1);
+		   // RenderSystem.setShaderColor(1, 1, 1, 1);
 		    
-			if (k >= 0 && k < 10) event.getGuiGraphics().blit(RenderType::guiTextured, ResourceLocation.withDefaultNamespace("textures/block/destroy_stage_" + k + ".png"), 0, 0, 16, 16, w, h, w, h);
+			if (k >= 0 && k < 10) event.getGuiGraphics().blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.withDefaultNamespace("textures/block/destroy_stage_" + k + ".png"), 0, 0, 16, 16, w, h, w, h);
 
-		    RenderSystem.setShaderColor(1, 1, 1, 1);
+		  //  RenderSystem.setShaderColor(1, 1, 1, 1);
 			
 		}
 	}

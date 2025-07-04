@@ -31,7 +31,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class ServerPacketListenerMixin {
     @Shadow public ServerPlayer player;
 
-    @Inject(method = "isPlayerCollidingWithAnythingNew", at = @At("HEAD"), cancellable = true) //TODO
+    /*@Inject(method = "isPlayerCollidingWithAnythingNew", at = @At("HEAD"), cancellable = true) //TODO
     public void checkCollision(LevelReader levelReader, AABB playerBox, double moveX, double moveY, double moveZ, CallbackInfoReturnable<Boolean> cir) {
     	ServerPlayer player = ((ServerGamePacketListenerImpl) (Object)this).player;
     	
@@ -56,7 +56,7 @@ public abstract class ServerPacketListenerMixin {
         } else {
             cir.setReturnValue(false);
         }
-    }
+    }*/
 
     @Inject(method = "handleUseItemOn", at = @At(ordinal = 1, value = "INVOKE", target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;send(Lnet/minecraft/network/protocol/Packet;)V"), cancellable = true)
     private void redirectUpdate(ServerboundUseItemOnPacket packet, CallbackInfo ci) {
@@ -65,7 +65,7 @@ public abstract class ServerPacketListenerMixin {
         InPlayerBlockPos.check(pos, (pl, realPos) -> {
             ci.cancel();
             this.player.connection.send(new ClientboundBlockUpdatePacket(pos, pl.getBlockState(realPos)));
-        }, null, this.player.serverLevel());
+        }, null, this.player.level());
     }
 
     @Inject(method = "handleUseItemOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isItemEnabled(Lnet/minecraft/world/flag/FeatureFlagSet;)Z"), cancellable = true)
@@ -83,7 +83,7 @@ public abstract class ServerPacketListenerMixin {
 
     @Inject(method = "handleInteract", at = @At(shift = At.Shift.AFTER, value = "INVOKE", target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/server/level/ServerLevel;)V"), cancellable = true)
     public void checkAccess(ServerboundInteractPacket pkt, CallbackInfo ci) {
-        Entity entity = pkt.getTarget(this.player.serverLevel());
+        Entity entity = pkt.getTarget(this.player.level());
         if (entity instanceof PlayerAccessor pl && pl.isActive()) {
             ci.cancel();
         }

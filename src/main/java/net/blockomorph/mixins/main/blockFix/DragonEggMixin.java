@@ -23,7 +23,7 @@ public class DragonEggMixin {
         InPlayerBlockPos.check(origin, (pl, realPos) -> { //is not a bug by default, it is user logic, like with TNT
             if (pl.player() instanceof ServerPlayer sp) {
                 Vec3 vec = InPlayerBlockPos.checkOnReal(pos.getCenter(), origin.getCenter());
-                sp.teleportTo(sp.serverLevel(), vec.x, vec.y, vec.z, Set.of(), sp.getYRot(), sp.getXRot(), true);
+                sp.teleportTo(sp.level(), vec.x, vec.y, vec.z, Set.of(), sp.getYRot(), sp.getXRot(), true);
                 ci.cancel();
             }
         }, null, lv);

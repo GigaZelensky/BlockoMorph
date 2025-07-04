@@ -35,12 +35,12 @@ import net.minecraft.world.level.BlockEventData;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -155,11 +155,15 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	}
 
 	@Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
-	public void readAdditionalSaveData(CompoundTag tag, CallbackInfo ci) {
-		if (tag.contains("BlockoMorph")) {
-			this.loadBlockData(tag.getCompound("BlockoMorph").orElseThrow(), null);
-		} else if (tag.contains("BlockMorph")) {
-			this.oldDataHandle(tag.getCompound("BlockMorph").orElseThrow());
+	public void readAdditionalSaveData(ValueInput valueInput, CallbackInfo ci) {
+		Optional<CompoundTag> old = valueInput.read("BlockMorph", CompoundTag.CODEC);
+		if (old.isPresent()) {
+			this.oldDataHandle(old.get());
+		} else {
+			Optional<CompoundTag> data = valueInput.read("BlockoMorph", CompoundTag.CODEC);
+			data.ifPresent((tag) -> {
+				this.loadBlockData(tag, null);
+			});
 		}
 	}
 
@@ -229,11 +233,11 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		}
 	}
 
-	@Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
-	public void addAdditionalSaveData(CompoundTag tag, CallbackInfo ci) {
+	@Inject(method = "addAdditionalSaveData", at = @At("TAIL")) //TODO
+	public void addAdditionalSaveData(ValueOutput valueOutput, CallbackInfo ci) {
 		CompoundTag tg = this.saveBlockData(false);
 		if (!tg.isEmpty()) {
-			tag.put("BlockoMorph", tg);
+			valueOutput.store("BlockoMorph", CompoundTag.CODEC, tg);
 		}
 	}
 
@@ -412,7 +416,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		return -1;
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	public void clientUpdate() {
 		if (Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc && Minecraft.getInstance().player == (PlayerAccessor)this)
 			sc.morphUpdate(this.getBlockState(InPlayerBlockPos.ZERO));

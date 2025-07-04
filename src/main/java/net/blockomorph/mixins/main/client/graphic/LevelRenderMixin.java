@@ -1,6 +1,7 @@
 package net.blockomorph.mixins.main.client.graphic;
 
 import com.llamalad7.mixinextras.sugar.Local;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.pipeline.RenderTarget;
 import com.mojang.blaze3d.resource.ResourceHandle;
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -14,6 +15,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
+import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.culling.Frustum;
@@ -76,8 +78,8 @@ public abstract class LevelRenderMixin implements LevelRendererAccessor {
 	@Unique
 	private final ArrayList<AbstractClientPlayer> playersToRender = new ArrayList<>();
 
-	@Inject(method = "lambda$addMainPass$2", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;checkPoseStack(Lcom/mojang/blaze3d/vertex/PoseStack;)V", ordinal = 1))
-	public void renderMorphedPlayersTranslucent(FogParameters p_363661_, DeltaTracker deltaTracker, Camera camera, ProfilerFiller p_362234_, Matrix4f p_362420_, Matrix4f p_361272_, ResourceHandle resourcehandle2, ResourceHandle resourcehandle3, Frustum p_366590_, boolean p_363964_, ResourceHandle resourcehandle1, ResourceHandle resourcehandle, CallbackInfo ci, @Local PoseStack stack) {
+	@Inject(method = "lambda$addMainPass$3", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/renderer/LevelRenderer;checkPoseStack(Lcom/mojang/blaze3d/vertex/PoseStack;)V", ordinal = 1))
+	public void renderMorphedPlayersTranslucent(GpuBufferSlice p_418185_, DeltaTracker deltaTracker, Camera camera, ProfilerFiller p_362234_, Matrix4f p_362420_, Frustum p_366590_, ResourceHandle resourcehandle2, ResourceHandle resourcehandle3, boolean p_363964_, ResourceHandle resourcehandle1, ResourceHandle resourcehandle, CallbackInfo ci, @Local PoseStack stack) {
 		if (this.level != null) {
 			for (AbstractClientPlayer player : this.playersToRender) {
 				this.renderMorphedPlayer(player, camera, stack, deltaTracker);
