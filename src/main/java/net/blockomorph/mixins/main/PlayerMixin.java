@@ -38,6 +38,7 @@ import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -226,11 +227,12 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		}
 	}
 
-	@Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
-	public void addAdditionalSaveData(CompoundTag tag, CallbackInfo ci) {
+	@Inject(method = "addAdditionalSaveData", at = @At("TAIL")) //TODO
+	public void addAdditionalSaveData(ValueOutput valueOutput, CallbackInfo ci) {
 		CompoundTag tg = this.saveBlockData(false);
 		if (!tg.isEmpty()) {
-			tag.put("BlockoMorph", tg);
+			//tag.put("BlockoMorph", tg);
+			valueOutput.store("BlockoMorph", CompoundTag.CODEC, tg);
 		}
 	}
 
