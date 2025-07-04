@@ -54,6 +54,7 @@
   ],
   "client": [
     "compat.create.Flywheel_BM_BackendMixin",
+    "main.blockFix.BeaconRendererFixMixin",
     "main.client.ClientChunkCacheMixin",
     "main.client.ClientLevelMixin",
     "main.client.ClientPacketListenerMixin",
