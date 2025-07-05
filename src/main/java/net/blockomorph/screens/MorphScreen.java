@@ -1,6 +1,8 @@
 package net.blockomorph.screens;
 
 import net.blockomorph.BlockomorphServer;
+import net.blockomorph.screens.utils.ListenerEditBox;
+import net.blockomorph.screens.utils.SoftSpritedImageButton;
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.fabricmc.api.EnvType;

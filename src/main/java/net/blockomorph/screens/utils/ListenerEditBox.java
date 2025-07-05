@@ -1,4 +1,4 @@
-package net.blockomorph.screens;
+package net.blockomorph.screens.utils;
 
 import net.minecraft.client.gui.components.EditBox;
 import java.util.function.Consumer;

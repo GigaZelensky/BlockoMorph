@@ -1,5 +1,6 @@
 package net.blockomorph.screens;
 
+import net.blockomorph.screens.utils.ListenerEditBox;
 import net.blockomorph.utils.*;
 import net.blockomorph.network.*;
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
@@ -51,7 +52,6 @@ import java.util.Collection;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
