@@ -61,13 +61,13 @@ public abstract class ClientLevelMixin implements ClientLevelAccessor {
 		return InPlayerBlockPos.checkOnReal(value);
 	}
 
-	private boolean BErendering;
+	private boolean specialRendering;
 
-	public boolean blockEntityRendering() {
-		return this.BErendering;
+	public boolean specialRenderingMode() {
+		return this.specialRendering;
 	}
 
-	public void setBlockEntityRenderingMode(boolean yes) {
-		this.BErendering = yes;
+	public void setSpecialRenderingMode(boolean yes) {
+		this.specialRendering = yes;
 	}
 }

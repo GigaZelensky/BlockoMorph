@@ -3,6 +3,7 @@ package net.blockomorph.core;
 import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.screens.ConfigScreen;
 import net.blockomorph.screens.MorphScreen;
+import net.blockomorph.screens.MorphScreen2;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -28,6 +29,10 @@ public class KeyMappings {
 		if (canOpenConfig()) {
 			mc.setScreen(new ConfigScreen());
 		}
+	});
+
+	public static final KeyMapping DEBUG = new HandlerKeymapping("key.blockomorph.debug", GLFW.GLFW_KEY_J, () -> {
+		mc.setScreen(MorphScreen2.test());
 	});
 
 	static void registerKeyMappings(Consumer<KeyMapping> register) {

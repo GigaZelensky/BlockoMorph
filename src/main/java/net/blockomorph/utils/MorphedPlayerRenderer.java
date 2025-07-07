@@ -157,10 +157,10 @@ public class MorphedPlayerRenderer {
 						};
 					}
 					ClientLevelAccessor acc = ClientLevelAccessor.of(blockEntity.getLevel());
-					acc.setBlockEntityRenderingMode(true);
+					acc.setSpecialRenderingMode(true);
 					Camera cam = Minecraft.getInstance().getBlockEntityRenderDispatcher().camera;
 					renderer.render(blockEntity, partialticks, posestack, src, light, OverlayTexture.NO_OVERLAY, cam.getPosition());
-					acc.setBlockEntityRenderingMode(false);
+					acc.setSpecialRenderingMode(false);
 				}
 			} catch (Exception e) {
 				if (player == Minecraft.getInstance().player && Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc)

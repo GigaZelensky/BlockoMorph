@@ -1,11 +1,12 @@
 package net.blockomorph.screens.utils;
 
+import com.google.common.collect.ImmutableList;
 import net.blockomorph.screens.MorphScreen2;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Renderable;
-import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.gui.narration.NarratableEntry;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.multiplayer.SessionSearchTrees;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -18,96 +19,138 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 public class TabManager {
-	private static final CreativeModeTab ALLOWED_TAB = CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0).title(Component.translatable("gui.blockomorph.allowedBlocks")).icon(() -> new ItemStack(Items.NETHER_STAR)).build();
-	private static final ResourceLocation SEARCH_BAR = GuiUtils.res("textures/screens/searchbar.png");
-	private final MorphScreen2 parentScreen;
-	private final List<CreativeModeTab> TABS = CreativeModeTabs.tabs();
-	private final List<CreativeModeTab> CONTENT_TABS = BuiltInRegistries.CREATIVE_MODE_TAB.stream().filter((tab) -> {
-		return tab.shouldDisplay() && tab.getType() == CreativeModeTab.Type.CATEGORY && tab != this.getTabFromKey(CreativeModeTabs.OP_BLOCKS);
-	}).toList();
-	private static CreativeModeTab selectedTab = CreativeModeTabs.getDefaultTab();
-	private static int tabPage = 0;
-	private final boolean useAllowedTab;
-	private final boolean useSavedBlocksTab;
+	protected static final CreativeModeTab ALLOWED_TAB = CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0).title(Component.translatable("gui.blockomorph.allowedBlocks")).icon(() -> new ItemStack(Items.NETHER_STAR)).build();
+	protected final MorphScreen2 parentScreen;
+	protected final List<CreativeModeTab> CONTENT_TABS;
+	protected static final Function<String, ResourceLocation> TAB_LOCATION = (tabName) -> GuiUtils.vanillaRes("textures/gui/sprites/advancements/tab_" + tabName+ ".png");
+	protected final List<CreativeModeTab> SPECIAL_TABS;
+	protected static CreativeModeTab selectedTab = CreativeModeTabs.getDefaultTab();
+	protected static int tabPage = 0;
+	protected final int pageCount;
 
 	public TabManager(MorphScreen2 screen, boolean useAllowedTab, boolean useSavedBlocksTab) {
 		this.parentScreen = screen;
-		this.useAllowedTab = useAllowedTab;
-		this.useSavedBlocksTab = useSavedBlocksTab;
+		MorphScreen2.SAVED_BLOCK_MANAGER.load();
+		this.initTabs();
+		ImmutableList.Builder<CreativeModeTab> list = ImmutableList.builder();
+		list.add(CreativeModeTabs.searchTab());
+		list.add(this.getTabFromKey(CreativeModeTabs.OP_BLOCKS));
+		if (useSavedBlocksTab) list.add(this.getTabFromKey(CreativeModeTabs.HOTBAR));
+		if (useAllowedTab) list.add(ALLOWED_TAB);
+		SPECIAL_TABS = list.build();
+		CONTENT_TABS = screen.BLOCKS_MANAGER.sortTabsIfItemsIsBlocks();
+		this.pageCount = (int) Math.ceil((double) CONTENT_TABS.size() / 10);
 	}
 
-	public void renderTabs(GuiUtils GUI, int mouseX, int mouseY) {
-		if (this.hasSearchBar()) {
-			GUI.blitMonoImage(SEARCH_BAR, parentScreen.getLeftPos() + 90, parentScreen.getTopPos() - 19, 80, 23);
-		}
-		//TABS
-		CreativeModeTab tab = this.getTabAtPosition(mouseX, mouseY);
-		if (tab != null) GUI.renderTooltip(tab.getDisplayName(), mouseX, mouseY);
+	public void renderTabs(GuiUtils gui) {
+		this.renderTabsInGui(gui);
+		CreativeModeTab tab = this.getTabAtPosition(gui.getMouseX(), gui.getMouseY());
+		if (tab != null) gui.renderTooltip(tab.getDisplayName(), gui.getMouseX(), gui.getMouseY());
 	}
 
 	public boolean hasSearchBar() {
-		return selectedTab == CreativeModeTabs.searchTab();
+		return selectedTab == CreativeModeTabs.searchTab() || selectedTab == ALLOWED_TAB || selectedTab == this.getTabFromKey(CreativeModeTabs.HOTBAR);
 	}
 
-	public <T extends GuiEventListener & Renderable & NarratableEntry> void init(Consumer<T> action) {
-
+	public void init(Consumer<AbstractWidget> action) {
+		if (this.pageCount > 1) {
+			int leftPos = parentScreen.getLeftPos();
+			int topPos = parentScreen.getTopPos();
+			action.accept(Button.builder(Component.literal("<"), b -> this.setPage(false)).pos(leftPos - 22,  topPos - 22).size(20, 20).build());
+			action.accept(Button.builder(Component.literal(">"), b -> this.setPage(true)).pos(leftPos + parentScreen.imageLength, topPos - 22).size(20, 20).build());
+		}
 	}
 
-	protected void renderTabButton(GuiGraphics gui, CreativeModeTab tab, int i, boolean isLeft) {
-		boolean isSelectedTab = tab == selectedTab;
-		String tabType;
-		int l = leftPos;
-		int i1 = this.getTabY(i);
-		int weight = 32;
-		int height = 28;
+	public boolean mouseClicked(double x, double y) {
+		CreativeModeTab tab = this.getTabAtPosition(x, y);
+		if (tab != null) {
+			selectedTab = tab;
+			return true;
+		}
+		return false;
+	}
 
-		if (isLeft) {
-			l -= 28;
-			tabType = "left";
+	private void initTabs() {
+		LocalPlayer player = ((LocalPlayer)parentScreen.getPlayer());
+		if (CreativeModeTabs.tryRebuildTabContents(
+				player.connection.enabledFeatures(),
+				true,
+				player.level().registryAccess())
+		) {
+			SessionSearchTrees sessionSearchTrees = player.connection.searchTrees();
+			List<ItemStack> list = List.copyOf(CreativeModeTabs.searchTab().getDisplayItems());
+			sessionSearchTrees.updateCreativeTooltips(player.level().registryAccess(), list);
+			sessionSearchTrees.updateCreativeTags(list);
+		}
+	}
+
+	private void setPage(boolean up) {
+		tabPage = up ? Math.min(tabPage + 1, pageCount - 1) : Math.max(tabPage - 1, 0);
+	}
+
+	protected boolean isSelected(boolean special, int i) {
+		return (special ? SPECIAL_TABS : CONTENT_TABS).get(i) == selectedTab;
+	}
+	
+	protected void renderTabsInGui(GuiUtils gui) {
+		this.renderContentTabs(gui);
+		this.renderSpecialTabs(gui);
+	}
+
+	protected void renderSpecialTabs(GuiUtils gui) {
+		for (int i = 0; i < SPECIAL_TABS.size(); i++) {
+			int tabXSpecial = parentScreen.getLeftPos() + parentScreen.imageLength - 38 - i * 32;
+			String selectedWord = (this.isSelected(true, i) ? "_selected" : "");
+			gui.blitMonoImage(TAB_LOCATION.apply("below_middle" + selectedWord), tabXSpecial, this.getTabY(-1), 28, 32);
+			this.renderItemInTab(gui, null, i, -1);
+		}
+	}
+
+	protected void renderContentTabs(GuiUtils gui) {
+		int count = 0;
+		for (int i = tabPage * 10; i < tabPage * 10 + 10; i++) {
+			if (i < CONTENT_TABS.size()) {
+				boolean isRight = count >= 5;
+				String selectedWord = (this.isSelected(false, i) ? "_selected" : "");
+				int tabXSpecial = parentScreen.getLeftPos() + (isRight ? parentScreen.imageLength - 4 : -28);
+				gui.blitMonoImage(TAB_LOCATION.apply((isRight ? "right" : "left") + "_middle" + selectedWord), tabXSpecial, this.getTabY(count), 32, 28);
+				this.renderItemInTab(gui, isRight, i, count);
+				count++;
+			} else break;
+		}
+	}
+
+	protected void renderItemInTab(GuiUtils gui, @Nullable Boolean isRight, int listIndex, int offsetIndex) {
+		int tabX;
+		boolean isDown = isRight == null;
+		if (isDown) {
+			tabX = parentScreen.getLeftPos() + parentScreen.imageLength - 38 - listIndex * 32 + 5;
 		} else {
-			l += imageWidth - 4;
-			tabType = "right";
+			tabX = parentScreen.getLeftPos() + (isRight ? parentScreen.imageLength + 2 : -19);
 		}
-		if (i < 0) {
-			tabType = "below";
-			l += imageWidth - 10;
-			if (i == -2) l -= 32;
-			if (i == -3) l -= 96;
-			if (i == -4) l -= 64;
-			weight = 28;
-			height = 32;
-		}
-		tabType = tabType + "_middle";
-		if (flag) tabType = tabType + "_selected";
+		int tabY = this.getTabY(offsetIndex) + (isDown ? 7 : 5);
 
-		gui.blit(RenderType::guiTextured, ResourceLocation.withDefaultNamespace("textures/gui/sprites/advancements/tab_" + tabType + ".png"), l, i1, 0, 0, weight, height, weight, height);
-
-		gui.pose().pushPose();
-		gui.pose().translate(0.0F, 0.0F, 100.0F);
-
-		ItemStack itemstack = tab.getIconItem();
-		gui.renderItem(itemstack, l + 7, i1 + 5);
-		gui.renderItemDecorations(this.font, itemstack, l + 7, i1 + 4);
-		gui.pose().popPose();
+		GuiGraphics guiGraphics = gui.getGuiGraphics();
+		guiGraphics.pose().pushPose();
+		guiGraphics.pose().translate(0.5f, 0f, 100f);
+		ItemStack itemstack = (isDown ? SPECIAL_TABS : CONTENT_TABS).get(listIndex).getIconItem();
+		guiGraphics.renderItem(itemstack, tabX, tabY);
+		guiGraphics.renderItemDecorations(parentScreen.getFont(), itemstack, tabX, tabY);
+		guiGraphics.pose().popPose();
 	}
 
-	private CreativeModeTab getTabAtPosition(double x, double y) {
+	protected CreativeModeTab getTabAtPosition(double x, double y) {
 		int leftPos = parentScreen.getLeftPos();
 		int imageWidth = parentScreen.imageLength;
 
 		int tabYSpecial = this.getTabY(-1);
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < SPECIAL_TABS.size(); i++) {
 			int tabXSpecial = leftPos + imageWidth - 38 - i * 32;
 			if (x > tabXSpecial && x < tabXSpecial + 28 && y > tabYSpecial && y < tabYSpecial + 32) {
-				return switch (i) {
-					case 0: CreativeModeTabs.searchTab();
-					case 1: this.getTabFromKey(CreativeModeTabs.OP_BLOCKS);
-					case 2: if (this.useSavedBlocksTab) this.getTabFromKey(CreativeModeTabs.HOTBAR);
-					case 3: if (this.useAllowedTab) yield ALLOWED_TAB;
-					default: yield null;
-				};
+				return SPECIAL_TABS.get(i);
 			}
 		}
 		for (int i = 0; i < 10; i++) {
@@ -129,13 +172,12 @@ public class TabManager {
 
 		return null;
 	}
-
-	@Nullable
+	
 	public CreativeModeTab getTabFromKey(ResourceKey<CreativeModeTab> name) {
-		return BuiltInRegistries.CREATIVE_MODE_TAB.getValue(name);
+		return BuiltInRegistries.CREATIVE_MODE_TAB.getValueOrThrow(name);
 	}
 
-	private int getTabY(int i) {
+	protected int getTabY(int i) {
 		if (i < 0) return parentScreen.getTopPos() + parentScreen.imageHeight - 4; //Special Tabs
 
 		if (i > 4) i -= 5; //right column

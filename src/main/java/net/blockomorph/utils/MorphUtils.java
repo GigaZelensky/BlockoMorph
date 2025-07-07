@@ -68,7 +68,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class MorphUtils {
 	public static final ResourceKey<DamageType> PLAYER_DESTROYED = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("blockomorph", "player_destroyed"));
 	public static final ResourceKey<DamageType> PLAYER_DESTROYED_NULL = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("blockomorph", "player_destroyed_null"));
-	public static final SavedBlockManager bmanager = getSavedManager();
 
 	private static final HashMap<ResourceLocation, PacketInfo> handlers = new HashMap<>();
 	public static PacketInfo getHandler(ResourceLocation id) {
@@ -98,10 +97,6 @@ public class MorphUtils {
 	}
 
 	public record PacketInfo(Function<FriendlyByteBuf, BlockMorphPacket> packet, boolean isClient) {}
-
-	private static SavedBlockManager getSavedManager() {
-		return new SavedBlockManager(FabricLoader.getInstance().getGameDir());
-	}
 
 	@Nullable
 	public static BannedBlock isBannedBlock(BlockState state, @Nullable Player pl) {

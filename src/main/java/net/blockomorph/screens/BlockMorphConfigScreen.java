@@ -98,7 +98,7 @@ public class BlockMorphConfigScreen extends Screen {
    	   this.init = init;
    	   this.world = Minecraft.getInstance().level;
 	   this.entity = Minecraft.getInstance().player;
-	   MorphUtils.bmanager.load();
+	   MorphScreen2.SAVED_BLOCK_MANAGER.load();
    }
 
    @Override
@@ -436,8 +436,8 @@ public class BlockMorphConfigScreen extends Screen {
    	    	this.editButBucket = false;
    	    	return;
    	    }
-   	    if (MorphUtils.bmanager.get().containsKey(s)) {
-   	    	if (MorphUtils.bmanager.get().get(s).equals(new SavedBlock(this.playerState, this.playerTag, s))) {
+   	    if (MorphScreen2.SAVED_BLOCK_MANAGER.get().containsKey(s)) {
+   	    	if (MorphScreen2.SAVED_BLOCK_MANAGER.get().get(s).equals(new SavedBlock(this.playerState, this.playerTag, s))) {
    	    		this.editButBucket = true;
    	    		this.edit.active = true;
    	    	} else {
@@ -492,9 +492,9 @@ public class BlockMorphConfigScreen extends Screen {
 		}
 		this.edit = new ImageButton(this.leftPos + 52, this.topPos + 90, 26, 26, SAVE_BUT, e -> {
 			 if (this.editButBucket) {
-			 	MorphUtils.bmanager.delete(savebox.getValue());
+			 	MorphScreen2.SAVED_BLOCK_MANAGER.delete(savebox.getValue());
 			 } else {
-			 	MorphUtils.bmanager.add(new SavedBlock(this.playerState, this.playerTag, this.savebox.getValue()));
+			 	MorphScreen2.SAVED_BLOCK_MANAGER.add(new SavedBlock(this.playerState, this.playerTag, this.savebox.getValue()));
 			 }
 			 this.validSave(this.savebox.getValue());
 		}) {
@@ -551,9 +551,9 @@ public class BlockMorphConfigScreen extends Screen {
            	        posestack.pushPose();
 					Camera cam = Minecraft.getInstance().getBlockEntityRenderDispatcher().camera;
 					ClientLevelAccessor acc = ClientLevelAccessor.of(world);
-					acc.setBlockEntityRenderingMode(true);
+					acc.setSpecialRenderingMode(true);
                     renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY, cam.getPosition());
-					acc.setBlockEntityRenderingMode(false);
+					acc.setSpecialRenderingMode(false);
                     posestack.popPose();
                 }
               } catch (Exception e) {

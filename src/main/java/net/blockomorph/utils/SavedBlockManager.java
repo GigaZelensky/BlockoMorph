@@ -23,8 +23,8 @@ public class SavedBlockManager {
 			try {
 				CompoundTag tag = NbtIo.read(this.gameDir);
 				if (tag != null) {
-					for (String name: tag.keySet()) {
-						this.blocks.put(name, SavedBlock.fromTag(tag.getCompound(name).orElse(new CompoundTag()), name));
+					for (String name : tag.keySet()) {
+						this.blocks.put(name, SavedBlock.fromTag(tag.getCompound(name).orElseThrow(), name));
 					}
 				}
 				init = true;

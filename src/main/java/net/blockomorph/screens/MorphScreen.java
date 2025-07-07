@@ -116,7 +116,7 @@ public class MorphScreen extends Screen {
 		super(Component.literal("morph_screen"));
 		this.mode = mode;
 		this.init = init;
-		MorphUtils.bmanager.load();
+		MorphScreen2.SAVED_BLOCK_MANAGER.load();
 		if (this.isConfig() && selectedTab == allowed) this.selectedTab = CreativeModeTabs.getDefaultTab();
 		Minecraft mc = Minecraft.getInstance();
 		this.world = mc.level;
@@ -125,7 +125,7 @@ public class MorphScreen extends Screen {
 		this.loadCreativeBlocks(mc);
         this.content = this.sortBlocksByTabs(this.reg, CreativeModeTabs.tabs());
         pageCount = (int) Math.ceil((double) tabs.size() / 10);
-        for (SavedBlock s : MorphUtils.bmanager.get().values()) {
+        for (SavedBlock s : MorphScreen2.SAVED_BLOCK_MANAGER.get().values()) {
         	this.savedBlockContent.add(s);
         }
 	}
@@ -464,9 +464,9 @@ public class MorphScreen extends Screen {
            	        try {
 						Camera cam = Minecraft.getInstance().getBlockEntityRenderDispatcher().camera;
 						ClientLevelAccessor acc = ClientLevelAccessor.of(world);
-						acc.setBlockEntityRenderingMode(true);
+						acc.setSpecialRenderingMode(true);
                         renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY, cam.getPosition());
-						acc.setBlockEntityRenderingMode(false);
+						acc.setSpecialRenderingMode(false);
            	        } catch (Exception e) {
            	        	
                     }
