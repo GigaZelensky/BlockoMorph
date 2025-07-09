@@ -32,12 +32,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class ServerPacketListenerMixin {
 	@Shadow public ServerPlayer player;
 
-	@Inject(method = "isPlayerCollidingWithAnythingNew", at = @At("HEAD"), cancellable = true) //TODO
-	public void checkCollision(LevelReader levelReader, AABB playerBox, double moveX, double moveY, double moveZ, CallbackInfoReturnable<Boolean> cir) {
-		ServerPlayer player = ((ServerGamePacketListenerImpl) (Object)this).player;
-
-		AABB movedBox = player.getBoundingBox().move(moveX - player.getX(), moveY - player.getY(), moveZ - player.getZ());
-		Iterable<VoxelShape> collisions = levelReader.getCollisions(player, movedBox.deflate(1.0E-5F));
+	//@Inject(method = "isEntityCollidingWithAnythingNew", at = @At("HEAD"), cancellable = true) //TODO
+	public void checkCollision(LevelReader levelReader, Entity entity, AABB playerBox, double moveX, double moveY, double moveZ, CallbackInfoReturnable<Boolean> cir) {
+		AABB movedBox = entity.getBoundingBox().move(moveX - entity.getX(), moveY - entity.getY(), moveZ - entity.getZ());
+		Iterable<VoxelShape> collisions = levelReader.getCollisions(entity, movedBox.deflate(1.0E-5F));
 
 		boolean isAlreadyInsideShape = false;
 		boolean isTryingToEnterShape = false;
@@ -66,7 +64,7 @@ public abstract class ServerPacketListenerMixin {
 		InPlayerBlockPos.check(pos, (pl, realPos) -> {
 			ci.cancel();
 			this.player.connection.send(new ClientboundBlockUpdatePacket(pos, pl.getBlockState(realPos)));
-		}, null, this.player.serverLevel());
+		}, null, this.player.level());
 	}
 
 	@Inject(method = "handleUseItemOn", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;isItemEnabled(Lnet/minecraft/world/flag/FeatureFlagSet;)Z"), cancellable = true)
@@ -84,7 +82,7 @@ public abstract class ServerPacketListenerMixin {
 
 	@Inject(method = "handleInteract", at = @At(shift = At.Shift.AFTER, value = "INVOKE", target = "Lnet/minecraft/network/protocol/PacketUtils;ensureRunningOnSameThread(Lnet/minecraft/network/protocol/Packet;Lnet/minecraft/network/PacketListener;Lnet/minecraft/server/level/ServerLevel;)V"), cancellable = true)
 	public void checkAccess(ServerboundInteractPacket pkt, CallbackInfo ci) {
-		Entity entity = pkt.getTarget(this.player.serverLevel());
+		Entity entity = pkt.getTarget(this.player.level());
 		if (entity instanceof PlayerAccessor pl && pl.isActive()) {
 			ci.cancel();
 		}

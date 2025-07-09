@@ -8,13 +8,15 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseRailBlock;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -60,8 +62,9 @@ public class BlockInPlayer2 {
 
 	public BlockInPlayer2 loadNBT(CompoundTag tg) {
 		if (this.blockEntity != null) {
-			try {
-				this.blockEntity.loadWithComponents(tg, this.player.level().registryAccess());
+			try (ProblemReporter.ScopedCollector scopedCollector = new ProblemReporter.ScopedCollector(this.blockEntity.problemPath(), BlockomorphServer.LOGGER)) {
+				ValueInput valueInput = TagValueInput.create(scopedCollector, this.player.level().registryAccess(), tg);
+				this.blockEntity.loadWithComponents(valueInput);
 			} catch (Exception ignored) {}
 		}
 		return this;

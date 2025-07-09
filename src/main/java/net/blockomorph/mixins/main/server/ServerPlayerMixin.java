@@ -30,8 +30,8 @@ import java.util.concurrent.atomic.AtomicReference;
 public abstract class ServerPlayerMixin extends Player {
 	@Shadow public abstract boolean startRiding(Entity p_277395_, boolean p_278062_);
 
-	public ServerPlayerMixin(Level p_250508_, BlockPos p_250289_, float p_251702_, GameProfile p_252153_) {
-		super(p_250508_, p_250289_, p_251702_, p_252153_);
+	public ServerPlayerMixin(Level p_250508_, GameProfile p_252153_) {
+		super(p_250508_, p_252153_);
 	}
 
 	@ModifyVariable(method = "setRespawnPosition", at = @At("HEAD"))

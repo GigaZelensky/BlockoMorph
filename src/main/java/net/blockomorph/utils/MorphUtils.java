@@ -1,5 +1,6 @@
 package net.blockomorph.utils;
 
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.blockomorph.BlockomorphServer;
 import net.blockomorph.network.*;
 import net.blockomorph.utils.config.*;
@@ -11,6 +12,7 @@ import net.fabricmc.api.Environment;
 
 
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.FriendlyByteBuf;
@@ -320,7 +322,7 @@ public class MorphUtils {
 
 
 			if (i < 9 - progress) {
-				gui.blitSprite(RenderType::guiTextured, sprite, xPos + 1, yPos + 1, 7, 7);
+				gui.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, xPos + 1, yPos + 1, 7, 7);
 			}
 		}
 	}
@@ -328,9 +330,9 @@ public class MorphUtils {
 	@Environment(EnvType.CLIENT)
 	private static void renderBar(GuiGraphics graphics, int x, int y, int progress) {
 		if (progress == 9) {
-			graphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 10, 81, 9, 81, 19);
+			graphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 10, 81, 9, 81, 19);
 		} else {
-			graphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 0, 81, 9, 81, 19);
+			graphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 0, 81, 9, 81, 19);
 		}
 	}
 

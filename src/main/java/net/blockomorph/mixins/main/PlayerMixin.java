@@ -155,10 +155,14 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 
 	@Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
 	public void readAdditionalSaveData(ValueInput valueInput, CallbackInfo ci) {
-		if (tag.contains("BlockoMorph")) {
-			this.loadBlockData(tag.getCompound("BlockoMorph").orElseThrow(), null);
-		} else if (tag.contains("BlockMorph")) {
-			this.oldDataHandle(tag.getCompound("BlockMorph").orElseThrow());
+		Optional<CompoundTag> old = valueInput.read("BlockMorph", CompoundTag.CODEC);
+		if (old.isPresent()) {
+			this.oldDataHandle(old.get());
+		} else {
+			Optional<CompoundTag> data = valueInput.read("BlockoMorph", CompoundTag.CODEC);
+			data.ifPresent((tag) -> {
+				this.loadBlockData(tag, null);
+			});
 		}
 	}
 
@@ -231,7 +235,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	public void addAdditionalSaveData(ValueOutput valueOutput, CallbackInfo ci) {
 		CompoundTag tg = this.saveBlockData(false);
 		if (!tg.isEmpty()) {
-			//tag.put("BlockoMorph", tg);
 			valueOutput.store("BlockoMorph", CompoundTag.CODEC, tg);
 		}
 	}
