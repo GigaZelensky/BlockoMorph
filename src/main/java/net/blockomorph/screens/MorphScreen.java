@@ -97,7 +97,7 @@ public class MorphScreen extends Screen {
     protected int imageHeight = 166;
     protected int leftPos;
     protected int topPos;
-    protected MultiBufferSource tempBufer;
+    protected MultiBufferSource.BufferSource tempBufer;
 	private int scrollOff;
 	private boolean scrollWork;
 	private static int page = 0;
@@ -143,7 +143,7 @@ public class MorphScreen extends Screen {
 		}
 	}
 
-	private void extractBuffer(MultiBufferSource b) {
+	private void extractBuffer(MultiBufferSource.BufferSource b) {
    	    this.tempBufer = b;
     }
 
@@ -210,6 +210,7 @@ public class MorphScreen extends Screen {
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
 	    super.render(guiGraphics, mouseX, mouseY, partialTicks);
+		this.extractBuffer(Minecraft.getInstance().renderBuffers().bufferSource());
 		this.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
 		if (pageCount > 1) {
 		    Component page = Component.literal(String.format("%d / %d", MorphScreen.page + 1, pageCount));
@@ -314,9 +315,13 @@ public class MorphScreen extends Screen {
 	}
 
 	public void renderBlockAsIcon(GuiGraphics guiGraphics, float ticks) {
-        PoseStack poseStack = guiGraphics.pose();
+		PoseStack poseStack = new PoseStack();
         int xO = 0;
         int yO = 0;
+		int scale = Minecraft.getInstance().getWindow().getGuiScale();
+		poseStack.pushPose();
+		//poseStack.translate(0, 0, -11000);
+		poseStack.scale(scale, scale, -scale);
         
         for (int i = this.scrollOff; i < 16 + this.scrollOff; i++) {
       	   if (this.scrollOff + i < ((selectedTab == loved_blocks) ? this.savedBlocks.size() : list.size())) {
@@ -330,12 +335,14 @@ public class MorphScreen extends Screen {
       	   	  	blockState = list.get(this.scrollOff + i).defaultBlockState();
       	   	  }
 
+
+
               poseStack.pushPose();
               this.renderBlock(poseStack, this.tempBufer, xO, yO, blockState, ticks, tag);
               poseStack.popPose();
 
               poseStack.pushPose();
-              poseStack.translate(0, 0, 200); 
+              //poseStack.translate(0, 0, 200);
               this.renderFrame(guiGraphics, blockState, xO, yO, tag);
               poseStack.translate(0, 0, -200); 
               poseStack.popPose();
@@ -350,6 +357,8 @@ public class MorphScreen extends Screen {
         	  yO++;
            }
         }
+		poseStack.popPose();
+		this.tempBufer.endBatch();
     }
 
     private void renderBlock(PoseStack poseStack, MultiBufferSource bufferSource, int xO, int yO, BlockState blockState, float ticks, @Nullable CompoundTag tag) {
@@ -513,14 +522,7 @@ public class MorphScreen extends Screen {
         if (flag) tabType = tabType + "_selected";
         
         gui.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.withDefaultNamespace("textures/gui/sprites/advancements/tab_" + tabType + ".png"), l, i1, 0, 0, weight, height, weight, height);
-
-        gui.pose().pushPose();
-        gui.pose().translate(0.0F, 0.0F, 100.0F);
-
-        ItemStack itemstack = tab.getIconItem();
-        gui.renderItem(itemstack, l + 7, i1 + 5);
-        gui.renderItemDecorations(this.font, itemstack, l + 7, i1 + 4);
-        gui.pose().popPose();
+        gui.renderItem(tab.getIconItem(), l + 7, i1 + 5);
     }
 
     public int getTabY(int i) {

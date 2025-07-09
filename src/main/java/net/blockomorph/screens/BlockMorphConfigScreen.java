@@ -104,12 +104,12 @@ public class BlockMorphConfigScreen extends Screen {
    @Override
    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTicks) {
    	    super.render(guiGraphics, mouseX, mouseY, partialTicks);
+		   this.extractBuffer(Minecraft.getInstance().renderBuffers().bufferSource());
    	    this.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
 		this.renderLb(guiGraphics);
-		guiGraphics.drawSpecial(this::extractBuffer);
 		this.renderBlockAsIcon(guiGraphics, partialTicks);
 	    String name = playerState.getBlock().getName().getString();
-		if (name.length() > 13 && mouseX > this.leftPos + 15 && mouseX < this.leftPos + 75 && mouseY > this.topPos + 18 && mouseY < this.topPos + 78) guiGraphics.renderTooltip(this.font, Component.literal(name), mouseX, mouseY);
+		if (name.length() > 13 && mouseX > this.leftPos + 15 && mouseX < this.leftPos + 75 && mouseY > this.topPos + 18 && mouseY < this.topPos + 78) guiGraphics.setTooltipForNextFrame(this.font, Component.literal(name), mouseX, mouseY);
 		if (!tagException.isEmpty()) {
 		    guiGraphics.fill(this.leftPos, this.topPos + this.imageHeight - 2, this.leftPos + this.font.width(tagException), this.topPos + this.imageHeight + 14, Integer.MIN_VALUE);
             guiGraphics.drawString(this.font, tagException, this.leftPos, this.topPos + this.imageHeight + 2, 16733525);
@@ -519,7 +519,7 @@ public class BlockMorphConfigScreen extends Screen {
    }
 
    public void renderBlockAsIcon(GuiGraphics guiGraphics, float ticks) {
-   	    PoseStack poseStack = guiGraphics.pose();
+   	    PoseStack poseStack = new PoseStack();
         MultiBufferSource bufferSource = this.tempBufer;
         poseStack.pushPose();
         poseStack.translate(this.leftPos + 71, this.topPos + 63.8, 20); 
