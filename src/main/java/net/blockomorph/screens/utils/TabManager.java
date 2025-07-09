@@ -2,6 +2,7 @@ package net.blockomorph.screens.utils;
 
 import com.google.common.collect.ImmutableList;
 import net.blockomorph.screens.MorphScreen2;
+import net.blockomorph.utils.SavedBlock;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
@@ -37,8 +38,8 @@ public class TabManager {
 		this.initTabs();
 		ImmutableList.Builder<CreativeModeTab> list = ImmutableList.builder();
 		list.add(CreativeModeTabs.searchTab());
-		list.add(this.getTabFromKey(CreativeModeTabs.OP_BLOCKS));
-		if (useSavedBlocksTab) list.add(this.getTabFromKey(CreativeModeTabs.HOTBAR));
+		list.add(getTabFromKey(CreativeModeTabs.OP_BLOCKS));
+		if (useSavedBlocksTab) list.add(getTabFromKey(CreativeModeTabs.HOTBAR));
 		if (useAllowedTab) list.add(ALLOWED_TAB);
 		SPECIAL_TABS = list.build();
 		CONTENT_TABS = screen.BLOCKS_MANAGER.sortTabsIfItemsIsBlocks();
@@ -49,10 +50,20 @@ public class TabManager {
 		this.renderTabsInGui(gui);
 		CreativeModeTab tab = this.getTabAtPosition(gui.getMouseX(), gui.getMouseY());
 		if (tab != null) gui.renderTooltip(tab.getDisplayName(), gui.getMouseX(), gui.getMouseY());
+		if (selectedTab.showTitle())
+			gui.getGuiGraphics().drawString(gui.getFont(), selectedTab.getDisplayName(), parentScreen.getLeftPos() + 8, parentScreen.getTopPos() + 6, 0x404040, false);
 	}
 
 	public boolean hasSearchBar() {
-		return selectedTab == CreativeModeTabs.searchTab() || selectedTab == ALLOWED_TAB || selectedTab == this.getTabFromKey(CreativeModeTabs.HOTBAR);
+		return selectedTab == CreativeModeTabs.searchTab() || selectedTab == ALLOWED_TAB || selectedTab == getTabFromKey(CreativeModeTabs.HOTBAR);
+	}
+
+	public static CreativeModeTab getSelectedTab() {
+		return selectedTab;
+	}
+
+	public static int getTabPage() {
+		return tabPage;
 	}
 
 	public void init(Consumer<AbstractWidget> action) {
@@ -67,7 +78,19 @@ public class TabManager {
 	public boolean mouseClicked(double x, double y) {
 		CreativeModeTab tab = this.getTabAtPosition(x, y);
 		if (tab != null) {
+			return this.selectTab(tab);
+		}
+		return false;
+	}
+
+	public boolean selectTab(CreativeModeTab tab) {
+		List<SavedBlock> list = BlocksManager.ALL_TAB_CONTENTS.get(getKeyFromTab(tab));
+		if (list != null && !list.isEmpty()) {
 			selectedTab = tab;
+			ScrollerManager<SavedBlock> manager = parentScreen.BLOCKS_MANAGER.scrollerManager;
+			manager.setScrollOffset(0f);
+			manager.setMainList(list);
+			manager.refreshList();
 			return true;
 		}
 		return false;
@@ -173,8 +196,15 @@ public class TabManager {
 		return null;
 	}
 	
-	public CreativeModeTab getTabFromKey(ResourceKey<CreativeModeTab> name) {
+	public static CreativeModeTab getTabFromKey(ResourceKey<CreativeModeTab> name) {
 		return BuiltInRegistries.CREATIVE_MODE_TAB.getValueOrThrow(name);
+	}
+
+	public static ResourceKey<CreativeModeTab> getKeyFromTab(CreativeModeTab tab) {
+		if (tab == ALLOWED_TAB) {
+			return BlocksManager.ALLOWED_TAB_KEY;
+		}
+		return BuiltInRegistries.CREATIVE_MODE_TAB.getResourceKey(tab).orElseThrow();
 	}
 
 	protected int getTabY(int i) {

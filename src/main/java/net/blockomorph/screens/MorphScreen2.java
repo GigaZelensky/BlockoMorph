@@ -2,6 +2,7 @@ package net.blockomorph.screens;
 
 import net.blockomorph.screens.utils.BlocksManager;
 import net.blockomorph.screens.utils.GuiUtils;
+import net.blockomorph.screens.utils.ScrollerManager;
 import net.blockomorph.screens.utils.TabManager;
 import net.blockomorph.utils.PlayerAccessor;
 import net.blockomorph.utils.SavedBlock;
@@ -30,7 +31,6 @@ public class MorphScreen2 extends Screen {
 	public static final SavedBlockManager SAVED_BLOCK_MANAGER = new SavedBlockManager(GuiUtils.getSavedBlockManagerPath());
 	public final TabManager TAB_MANAGER;
 	public final BlocksManager BLOCKS_MANAGER;
-	protected static int tabOffset;
 	protected PlayerAccessor player;
 	public final int imageLength = 176;
 	public final int imageHeight = 166;
@@ -41,13 +41,13 @@ public class MorphScreen2 extends Screen {
 	protected int topPos;
 
 
-	protected MorphScreen2(OnBlockClick click, OnRenderingFrame frame, BiFunction<Integer, Integer, List<AbstractWidget>> init, boolean useSpecialTabs, boolean useSavedBlocksTab) {
+	protected MorphScreen2(OnBlockClick click, OnRenderingFrame frame, BiFunction<Integer, Integer, List<AbstractWidget>> init, boolean useSpecialTabs, boolean useSavedBlocksTab, boolean needAccessCheck) {
 		super(Component.literal("morph_screen"));
 		this.player = PlayerAccessor.of(mc.player);
 		this.onBlockClick = click;
 		this.onRenderingFrame = frame;
 		this.onInit = init;
-		this.BLOCKS_MANAGER = new BlocksManager(this);
+		this.BLOCKS_MANAGER = new BlocksManager(this, needAccessCheck);
 		this.TAB_MANAGER = new TabManager(this, useSpecialTabs, useSavedBlocksTab);
 	}
 
@@ -57,7 +57,7 @@ public class MorphScreen2 extends Screen {
 			return null;
 		}, (utils, lv, pl, block, buffer) -> {
 
-		}, (leftPos, topPos) -> List.of(), true, true);
+		}, (leftPos, topPos) -> List.of(), true, true, true);
 	}
 
 	@Override
@@ -87,7 +87,6 @@ public class MorphScreen2 extends Screen {
 		super.render(guiGraphics, mouseX, mouseY, tick);
 		this.gui.setGuiGraphics(guiGraphics, this.font, mouseX, mouseY, tick);
 		this.renderBackground();
-		//this.onRenderingFrame.render(this.gui, this.player.player().level(), this.player, );
 	}
 
 	private void renderBackground() {
@@ -106,11 +105,39 @@ public class MorphScreen2 extends Screen {
 		if (type == 0) {
 			if (TAB_MANAGER.mouseClicked(x, y)) {
 				return true;
+			} else if (BLOCKS_MANAGER.mouseClicked(x, y, this.onBlockClick)) {
+				return true;
 			} else {
-				//SoundInstance sound = this.onBlockClick.click(this.player.player().level(), this.player, )
+
 			}
 		}
-		return false;
+		return super.mouseClicked(x, y, type);
+	}
+
+	@Override
+	public boolean mouseDragged(double mouseX, double mouseY, int type, double mouseXOffset, double mouseYOffset) {
+		if (BLOCKS_MANAGER.scrollerManager.mouseDragged(mouseY)) {
+			return true;
+		}
+		return super.mouseDragged(mouseX, mouseY, type, mouseXOffset, mouseYOffset);
+	}
+
+	@Override
+	public boolean mouseReleased(double x, double y, int type) {
+		if (type == 0) {
+			if (TAB_MANAGER.mouseClicked(x, y)) {
+				return true;
+			} else BLOCKS_MANAGER.scrollerManager.disableScrollWork();
+		}
+		return super.mouseReleased(x, y, type);
+	}
+
+	@Override
+	public boolean mouseScrolled(double x, double y, double xScrolled, double yScrolled) {
+		if (BLOCKS_MANAGER.scrollerManager.mouseScrolled(yScrolled)) {
+			return true;
+		}
+		return super.mouseScrolled(x, y, xScrolled, yScrolled);
 	}
 
 	@Override
@@ -121,6 +148,16 @@ public class MorphScreen2 extends Screen {
 			this.addRenderableWidget(widget);
 		}
 		TAB_MANAGER.init(this::addRenderableWidget);
+		TAB_MANAGER.selectTab(TabManager.getSelectedTab());
+	}
+
+	@Override
+	public void resize(Minecraft minecraft, int width, int height) {
+		ScrollerManager<SavedBlock> manager = BLOCKS_MANAGER.scrollerManager;
+		float scroll = manager.getScrollerOffset();
+		super.resize(minecraft, width, height);
+		manager.setScrollOffset(scroll);
+		manager.refreshList();
 	}
 	
 	@FunctionalInterface

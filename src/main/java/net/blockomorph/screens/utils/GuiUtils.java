@@ -32,7 +32,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 public class GuiUtils { //Cross-platform wrapper
-	private static final BlockPos AIR = new BlockPos(0, 500, 0);
+	protected static final BlockPos AIR = new BlockPos(0, 500, 0);
 	private static final Minecraft MC = Minecraft.getInstance();
 	public static final MultiBufferSource bufferSource = MC.renderBuffers().bufferSource();
 	private static final BlockRenderDispatcher blockRenderer = MC.getBlockRenderer();
@@ -123,7 +123,10 @@ public class GuiUtils { //Cross-platform wrapper
 		if (blockState.getRenderShape() != RenderShape.INVISIBLE) {
 			List<BlockModelPart> list = blockRenderer.getBlockModel(blockState).collectParts(random);
 			var renderType = ItemBlockRenderTypes.getMovingBlockRenderType(blockState);
+			ClientLevelAccessor acc = ClientLevelAccessor.of(MC.level);
+			acc.setSpecialRenderingMode(true);
 			blockRenderer.getModelRenderer().tesselateBlock(MC.level, list, blockState, AIR, stack, bufferSource.getBuffer(renderType), false, OverlayTexture.NO_OVERLAY);
+			acc.setSpecialRenderingMode(false);
 		} else if (blockState.getBlock().asItem() == Items.AIR) {
 			//TODO
 		}
@@ -131,7 +134,6 @@ public class GuiUtils { //Cross-platform wrapper
 
 	private <T extends BlockEntity> void renderBlockEntity(PoseStack stack, T blockEntity) {
 		if (blockEntity != null) {
-			blockEntity.setLevel(MC.level);
 			BlockEntityRenderer<T> renderer = blockEntityRenderer.getRenderer(blockEntity);
 			if (renderer != null) {
 				try {
