@@ -1,7 +1,5 @@
 package net.blockomorph.mixins.main.client.graphic;
 
-import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
-import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.core.BlockPos;

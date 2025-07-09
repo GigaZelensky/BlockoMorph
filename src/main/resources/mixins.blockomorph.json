@@ -53,6 +53,7 @@
     "main.server.ServerPlayerMixin"
   ],
   "client": [
+    "Debug",
     "compat.create.Flywheel_BM_BackendMixin",
     "main.blockFix.BeaconRendererFixMixin",
     "main.client.ClientChunkCacheMixin",

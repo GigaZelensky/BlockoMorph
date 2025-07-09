@@ -11,9 +11,13 @@ import net.blockomorph.network.*;
 import net.blockomorph.utils.config.*;
 
 import net.minecraft.client.Camera;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.*;
+import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.chat.Component;
@@ -42,12 +46,14 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.util.Mth;
 
 import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
 import com.mojang.math.Axis;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.systems.RenderSystem;
 
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,6 +67,8 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.multiplayer.SessionSearchTrees;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 @Environment(EnvType.CLIENT)
 public class MorphScreen extends Screen {
@@ -315,58 +323,93 @@ public class MorphScreen extends Screen {
 	}
 
 	public void renderBlockAsIcon(GuiGraphics guiGraphics, float ticks) {
-		PoseStack poseStack = new PoseStack();
-        int xO = 0;
-        int yO = 0;
-		int scale = Minecraft.getInstance().getWindow().getGuiScale();
-		poseStack.pushPose();
-		//poseStack.translate(0, 0, -11000);
-		poseStack.scale(scale, scale, -scale);
-        
-        for (int i = this.scrollOff; i < 16 + this.scrollOff; i++) {
-      	   if (this.scrollOff + i < ((selectedTab == loved_blocks) ? this.savedBlocks.size() : list.size())) {
-      	   	  BlockState blockState;
-      	   	  CompoundTag tag = null;
-      	   	  if (selectedTab == loved_blocks) {
-      	   	  	SavedBlock b = savedBlocks.get(this.scrollOff + i);
-      	   	  	blockState = b.getState();
-      	   	  	tag = b.getTag();
-      	   	  } else {
-      	   	  	blockState = list.get(this.scrollOff + i).defaultBlockState();
-      	   	  }
+		final int[] xO = {0};
+		final int[] yO = {0};
+		BiConsumer<MultiBufferSource.BufferSource, PoseStack> action = (bufer, poseStack) -> {
+			poseStack.pushPose();
+		for (int i = this.scrollOff; i < 16 + this.scrollOff; i++) {
+			if (this.scrollOff + i < ((selectedTab == loved_blocks) ? this.savedBlocks.size() : list.size())) {
+				BlockState blockState;
+				CompoundTag tag = null;
+				if (selectedTab == loved_blocks) {
+					SavedBlock b = savedBlocks.get(this.scrollOff + i);
+					blockState = b.getState();
+					tag = b.getTag();
+				} else {
+					blockState = list.get(this.scrollOff + i).defaultBlockState();
+				}
 
 
+				poseStack.pushPose();
+				this.renderBlock(poseStack, bufer, xO[0], yO[0], blockState, ticks, tag);
+				poseStack.popPose();
 
-              poseStack.pushPose();
-              this.renderBlock(poseStack, this.tempBufer, xO, yO, blockState, ticks, tag);
-              poseStack.popPose();
+				poseStack.pushPose();
+				poseStack.translate(0, 0, 200);
+				this.renderFrame(guiGraphics, blockState, xO[0], yO[0], tag);
+				poseStack.translate(0, 0, -200);
+				poseStack.popPose();
 
-              poseStack.pushPose();
-              //poseStack.translate(0, 0, 200);
-              this.renderFrame(guiGraphics, blockState, xO, yO, tag);
-              poseStack.translate(0, 0, -200); 
-              poseStack.popPose();
-              
-           } else {
-      		  break;
-           }
+			} else {
+				break;
+			}
 
-           xO++;
-           if (xO > 3) {
-           	  xO = 0;
-        	  yO++;
-           }
-        }
+			xO[0]++;
+			if (xO[0] > 3) {
+				xO[0] = 0;
+				yO[0]++;
+			}
+		}
 		poseStack.popPose();
-		this.tempBufer.endBatch();
+	};
+		BiConsumer<MultiBufferSource.BufferSource, PoseStack> action2 = (bufer, poseStack) -> {
+			float f = 2 * 20;
+			poseStack.translate((float) this.width* 2/2, (float) this.height * 2 /2, 0);
+			poseStack.translate(10, 10, 0);
+			poseStack.scale(f, f, -f);
+			//poseStack.mulPose((new Matrix4f()).scaling(1.0F, -1.0F, 1.0F));
+			poseStack.translate(-10, -10, 0);
+			//poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+			//poseStack.mulPose(Axis.YP.rotationDegrees(-45.0F));
+			//
+			//poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+			//poseStack.translate(1, 0, 0);
+			BlockState blockState = Blocks.GRASS_BLOCK.defaultBlockState();
+			//BlockState blockState = Blocks.DRIED_GHAST.defaultBlockState();
+			//BlockState blockState = Blocks.BAMBOO_BUTTON.defaultBlockState();
+			RandomSource s = RandomSource.create();
+			ModelBlockRenderer renderer = Minecraft.getInstance().getBlockRenderer().getModelRenderer();
+			var renderType = ItemBlockRenderTypes.getMovingBlockRenderType(blockState);
+			List<BlockModelPart> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).collectParts(s);
+			renderer.tesselateBlock(Minecraft.getInstance().level, list, blockState, new BlockPos(0, 500, 0), poseStack, bufer.getBuffer(renderType), false, OverlayTexture.NO_OVERLAY);
+		};
+		/*guiGraphics.guiRenderState.submitPicturesInPictureState(new GuiBlockRenderState(
+				this.leftPos + 10, this.topPos + 15, this.leftPos + 153, this.topPos + 158, guiGraphics.scissorStack.peek(), action2));
+		guiGraphics.guiRenderState.submitPicturesInPictureState(new GuiBlockRenderState(
+				this.leftPos + 30, this.topPos + 15, this.leftPos + 183, this.topPos + 158, guiGraphics.scissorStack.peek(), action2));
+				//this.leftPos + 10, this.topPos + 20, this.leftPos + 20, this.topPos + 30, guiGraphics.scissorStack.peek(), action2));*/
+		guiGraphics.guiRenderState.submitPicturesInPictureState(new GuiBlockRenderState(
+				0, 0, this.width, this.height, guiGraphics.scissorStack.peek(), action2));
+		Pig pig = new Pig(EntityType.PIG, world);
+		Vector3f vector3f = new Vector3f(0.0F, pig.getBbHeight() / 2.0F, 0.0F);
+		Quaternionf quaternionf = (new Quaternionf()).rotateZ((float)Math.PI);
+		//InventoryScreen.renderEntityInInventory(guiGraphics, this.leftPos + 10, this.topPos + 15, this.leftPos + 153, this.topPos + 158, 20, vector3f, quaternionf, null, pig);
     }
 
+	public static Vec3 test() {
+		return new Vec3(0.2, 0, 0);
+	}
+
+	protected static float getTranslateY(int i, int j) {
+		return (float)i / 2.0f;
+	}
+
     private void renderBlock(PoseStack poseStack, MultiBufferSource bufferSource, int xO, int yO, BlockState blockState, float ticks, @Nullable CompoundTag tag) {
-    	poseStack.translate(this.leftPos + 42 + xO*36, this.topPos + 41.8 + yO*36, 100); 
+    	poseStack.translate(this.leftPos + 42 + xO*36, this.topPos + 41.8 + yO*36, 100);
         poseStack.mulPose((new Matrix4f()).scaling(1.0F, -1.0F, 1.0F));
-        poseStack.scale(20.0F, 20.0F, 20.0F); 
+        poseStack.scale(20.0F, 20.0F, 20.0F);
         poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
-        poseStack.mulPose(Axis.YP.rotationDegrees(225.0F)); 
+        poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
 
       	BlockPos pos = AIR;
         RandomSource random = RandomSource.create(blockState.getSeed(pos));
