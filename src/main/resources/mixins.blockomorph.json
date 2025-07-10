@@ -72,8 +72,7 @@
     "main.client.graphic.entity.HumanoidModelMixin",
     "main.client.graphic.entity.LivingRendererMixin",
     "main.client.graphic.entity.RenderStateMixin",
-    "temp.GuiRenderMixin",
-    "temp.GuiRenderStateMixin"
+    "temp.GuiRenderMixin"
   ],
   "minVersion": "0.8"
 }

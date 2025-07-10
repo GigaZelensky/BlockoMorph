@@ -24,7 +24,7 @@ public class GuiBlockRenderer extends PictureInPictureRenderer<GuiBlockRenderSta
 
 	@Override
 	protected String getTextureLabel() {
-		return "block";
+		return "BM block gui renderer";
 	}
 
 	protected float getTranslateY(int i, int j) {

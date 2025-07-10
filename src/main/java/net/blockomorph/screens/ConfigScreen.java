@@ -66,7 +66,7 @@ public class ConfigScreen extends Screen {
    protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
 		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
 		this.renderConfigs(guiGraphics, gx, gy);
-		guiGraphics.drawString(this.font, Component.translatable("menu.options"), this.leftPos + 8, this.topPos + 6, 4210752, false);
+		guiGraphics.drawString(this.font, Component.translatable("menu.options"), this.leftPos + 8, this.topPos + 6, -12566464, false);
 		//scroller always locked in this mod version
 		guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller_disabled"), this.leftPos + 158, this.topPos + 16, 12, 15);
    }

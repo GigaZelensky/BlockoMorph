@@ -35,9 +35,6 @@ public class MainBus {
 		});
 		HudRenderCallback.EVENT.register(PlayerCrackOverlay::render);
 		KeyMappings.registerKeyMappings(KeyBindingHelper::registerKeyBinding);
-		SpecialGuiElementRegistry.register((ctx) -> {
-			return new GuiBlockRenderer(ctx.vertexConsumers());
-		});
 	}
 
 	public static void registerServer() {

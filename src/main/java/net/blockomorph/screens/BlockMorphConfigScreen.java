@@ -106,6 +106,8 @@ public class BlockMorphConfigScreen extends Screen {
    	    super.render(guiGraphics, mouseX, mouseY, partialTicks);
 		   this.extractBuffer(Minecraft.getInstance().renderBuffers().bufferSource());
    	    this.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
+		   tagsBox.render(guiGraphics, mouseX, mouseY, partialTicks);
+		   savebox.render(guiGraphics, mouseX, mouseY, partialTicks);
 		this.renderLb(guiGraphics);
 		this.renderBlockAsIcon(guiGraphics, partialTicks);
 	    String name = playerState.getBlock().getName().getString();
@@ -176,10 +178,10 @@ public class BlockMorphConfigScreen extends Screen {
    	    	name = name.substring(0, 13);
    	    	name = name + "...";
    	    }
-   	    guiGraphics.drawString(this.font, name, this.leftPos + 6, this.topPos + 6, 4210752, false);
-   	    guiGraphics.drawString(this.font, "BlockStates", this.leftPos + 100, this.topPos + 15, 4210752, false);
-   	    guiGraphics.drawString(this.font, "NBT", this.leftPos + 9, this.topPos + 130, 4210752, false);
-   	    guiGraphics.drawString(this.font, Component.translatable("gui.blockomorph.save"), this.leftPos + 13, this.topPos + 87, 4210752, false);
+   	    guiGraphics.drawString(this.font, name, this.leftPos + 6, this.topPos + 6, -12566464, false);
+   	    guiGraphics.drawString(this.font, "BlockStates", this.leftPos + 100, this.topPos + 15, -12566464, false);
+   	    guiGraphics.drawString(this.font, "NBT", this.leftPos + 9, this.topPos + 130, -12566464, false);
+   	    guiGraphics.drawString(this.font, Component.translatable("gui.blockomorph.save"), this.leftPos + 13, this.topPos + 87, -12566464, false);
    }
 
    private void renderProp(GuiGraphics guiGraphics, int mouseX, int mouseY) {
@@ -476,8 +478,8 @@ public class BlockMorphConfigScreen extends Screen {
 		tagsBox.setBordered(false);
 		tagsBox.setTextColor(-1);
 		tagsBox.setTextColorUneditable(-1);
-		this.addRenderableWidget(tagsBox);
-		this.addRenderableWidget(this.savebox);
+		this.addWidget(tagsBox);
+		this.addWidget(this.savebox);
 		this.playerState = ((PlayerAccessor)this.entity).getBlockState(InPlayerBlockPos.ZERO);
 		BlockState blockState = this.playerState;
 		if (blockState.getBlock() instanceof EntityBlock) {

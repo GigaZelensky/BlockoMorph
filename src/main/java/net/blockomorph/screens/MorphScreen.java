@@ -2,7 +2,6 @@ package net.blockomorph.screens;
 
 import net.blockomorph.BlockomorphServer;
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
-import net.blockomorph.utils.accessors.temp.GuiStateAccessor;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -12,13 +11,9 @@ import net.blockomorph.network.*;
 import net.blockomorph.utils.config.*;
 
 import net.minecraft.client.Camera;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.*;
-import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.util.ProblemReporter;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.animal.Pig;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.chat.Component;
@@ -48,13 +43,10 @@ import net.minecraft.util.Mth;
 
 import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.Vec3;
-import org.joml.Matrix4f;
 
 import com.mojang.math.Axis;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.systems.RenderSystem;
 
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,8 +60,6 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.multiplayer.SessionSearchTrees;
-import org.joml.Quaternionf;
-import org.joml.Vector3f;
 
 @Environment(EnvType.CLIENT)
 public class MorphScreen extends Screen {
@@ -221,12 +211,15 @@ public class MorphScreen extends Screen {
 	    super.render(guiGraphics, mouseX, mouseY, partialTicks);
 		this.extractBuffer(Minecraft.getInstance().renderBuffers().bufferSource());
 		this.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
+		if (this.hasSearchBar())
+			guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/searchbar.png"), this.leftPos + 90, this.topPos - 19, 0, 0, 80, 23, 80, 23);
+		searchBox.render(guiGraphics, mouseX, mouseY, partialTicks);
 		if (pageCount > 1) {
 		    Component page = Component.literal(String.format("%d / %d", MorphScreen.page + 1, pageCount));
-		    guiGraphics.drawString(this.font, page.getVisualOrderText(), this.leftPos + (this.imageWidth / 2) - (this.font.width(page) / 2), this.topPos - 34, -1);
+		    guiGraphics.drawString(this.font, page.getVisualOrderText(), this.leftPos + (this.imageWidth / 2) - (this.font.width(page) / 2), this.topPos - 34, 0xffffffff);
 		}
 		if (selectedTab.showTitle())
-		    guiGraphics.drawString(this.font, selectedTab.getDisplayName(), this.leftPos + 8, this.topPos + 6, 0x404040, false);
+		    guiGraphics.drawString(this.font, selectedTab.getDisplayName(), this.leftPos + 8, this.topPos + 6, -12566464, false);
 		this.renderBlockAsIcon(guiGraphics, partialTicks);
 		int i = this.findBlockIndex(mouseX, mouseY);
 		if (i != -1) {
@@ -345,7 +338,7 @@ public class MorphScreen extends Screen {
 
 				states.add(new GuiBlockRenderState(guiGraphics, x, y, 20, ((bufferSource, poseStack) -> {
 					this.renderBlock(poseStack, bufferSource, blockState, ticks, tag);
-				}), xO[0] == 0 && yO[0] == 0));
+				})));
 
 				this.renderFrame(guiGraphics, blockState, xO[0], yO[0], tag);
 
@@ -396,14 +389,6 @@ public class MorphScreen extends Screen {
 		Quaternionf quaternionf = (new Quaternionf()).rotateZ((float)Math.PI);
 		//InventoryScreen.renderEntityInInventory(guiGraphics, this.leftPos + 10, this.topPos + 15, this.leftPos + 153, this.topPos + 158, 20, vector3f, quaternionf, null, pig);*/
     }
-
-	public static Vec3 test() {
-		return new Vec3(0.2, 0, 0);
-	}
-
-	protected static float getTranslateY(int i, int j) {
-		return (float)i / 2.0f;
-	}
 
     private void renderBlock(PoseStack poseStack, MultiBufferSource bufferSource, BlockState blockState, float ticks, @Nullable CompoundTag tag) {
     	//poseStack.translate(this.leftPos + 42 + xO*36, this.topPos + 41.8 + yO*36, 100);
@@ -580,8 +565,6 @@ public class MorphScreen extends Screen {
 
 	protected void renderBg(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
 		guiGraphics.blit(RenderPipelines.GUI_TEXTURED, texture, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, this.imageWidth, this.imageHeight);
-		if (this.hasSearchBar())
-		    guiGraphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/searchbar.png"), this.leftPos + 90, this.topPos - 19, 0, 0, 80, 23, 80, 23);
 		int j = 0;
 		for (int i = page * 10; i < page * 10 + 10; i++) {
 			if (i < tabs.size()) {
@@ -766,8 +749,8 @@ public class MorphScreen extends Screen {
 		searchBox = new ListenerEditBox(this.font, this.leftPos + 99, this.topPos + -10, 70, 12, null, this::searchBlock);
 		searchBox.setMaxLength(32767);
 		searchBox.setBordered(false);
-		searchBox.setTextColor(16777215);
-		this.addRenderableWidget(searchBox);
+		searchBox.setTextColor(-1);
+		this.addWidget(searchBox);
 		this.setInitialFocus(this.searchBox);
 		searchBox.active = this.hasSearchBar();
 		this.unmask = new SoftSpritedImageButton(this.leftPos + 10, this.topPos + this.imageHeight + 1, 26, 26, DEMORPH_BUT, e -> {

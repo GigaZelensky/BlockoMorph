@@ -9,7 +9,6 @@ import net.minecraft.client.gui.render.state.pip.PictureInPictureRenderState;
 import net.minecraft.client.renderer.MultiBufferSource;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.function.BiConsumer;
 
 /*
@@ -24,13 +23,8 @@ public class GuiBlockRenderState implements PictureInPictureRenderState {
 	private final int y1;
 	private final float scale;
 	private final BiConsumer<MultiBufferSource.BufferSource, PoseStack> renderDo;
-	private final int x;
-	private final int y;
-	private final boolean first;
 
-	public GuiBlockRenderState(GuiGraphics gui, int x, int y, float scale, BiConsumer<MultiBufferSource.BufferSource, PoseStack> renderOutput, boolean first) {
-		this.x = x;
-		this.y = y;
+	public GuiBlockRenderState(GuiGraphics gui, int x, int y, float scale, BiConsumer<MultiBufferSource.BufferSource, PoseStack> renderOutput) {
 		this.x0 = x - 40;
 		this.x1 = x + 40;
 		this.y0 = y - 40;
@@ -39,7 +33,6 @@ public class GuiBlockRenderState implements PictureInPictureRenderState {
 		this.scrissorsArea = gui.scissorStack.peek();
 		this.bounds = PictureInPictureRenderState.getBounds(this.x0, this.y0, this.x1, this.y1, this.scrissorsArea);
 		this.renderDo = renderOutput;
-		this.first = first;
 	}
 
 	@Override
@@ -67,10 +60,6 @@ public class GuiBlockRenderState implements PictureInPictureRenderState {
 		return this.scale;
 	}
 
-	public boolean isFirst() {
-		return first;
-	}
-
 	@Override
 	public @Nullable ScreenRectangle scissorArea() {
 		return this.scrissorsArea;
@@ -82,18 +71,8 @@ public class GuiBlockRenderState implements PictureInPictureRenderState {
 	}
 
 	public void startRender(PoseStack stack, MultiBufferSource.BufferSource buffer) {
-		//Minecraft.getInstance().gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
+		Minecraft.getInstance().gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
 		this.renderDo.accept(buffer, stack);
 		buffer.endLastBatch();
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == this) {
-			return true;
-		} else if (obj instanceof GuiBlockRenderState state) {
-			return Objects.equals(this.x, state.x) && Objects.equals(this.y, state.y);
-		}
-		return false;
 	}
 }
