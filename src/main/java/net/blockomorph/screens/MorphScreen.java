@@ -2,6 +2,7 @@ package net.blockomorph.screens;
 
 import net.blockomorph.BlockomorphServer;
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
+import net.blockomorph.utils.accessors.temp.GuiStateAccessor;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -325,30 +326,28 @@ public class MorphScreen extends Screen {
 	public void renderBlockAsIcon(GuiGraphics guiGraphics, float ticks) {
 		final int[] xO = {0};
 		final int[] yO = {0};
-		BiConsumer<MultiBufferSource.BufferSource, PoseStack> action = (bufer, poseStack) -> {
-			poseStack.pushPose();
+		List<GuiBlockRenderState> states = new ArrayList<>();
 		for (int i = this.scrollOff; i < 16 + this.scrollOff; i++) {
 			if (this.scrollOff + i < ((selectedTab == loved_blocks) ? this.savedBlocks.size() : list.size())) {
-				BlockState blockState;
-				CompoundTag tag = null;
+				final BlockState blockState;
+				CompoundTag tag;
 				if (selectedTab == loved_blocks) {
 					SavedBlock b = savedBlocks.get(this.scrollOff + i);
 					blockState = b.getState();
 					tag = b.getTag();
 				} else {
+					tag = null;
 					blockState = list.get(this.scrollOff + i).defaultBlockState();
 				}
 
+				int x = this.leftPos + 42 + xO[0]*36;
+				int y = this.topPos + 42 + yO[0]*36;
 
-				poseStack.pushPose();
-				this.renderBlock(poseStack, bufer, xO[0], yO[0], blockState, ticks, tag);
-				poseStack.popPose();
+				states.add(new GuiBlockRenderState(guiGraphics, x, y, 20, ((bufferSource, poseStack) -> {
+					this.renderBlock(poseStack, bufferSource, blockState, ticks, tag);
+				}), xO[0] == 0 && yO[0] == 0));
 
-				poseStack.pushPose();
-				poseStack.translate(0, 0, 200);
 				this.renderFrame(guiGraphics, blockState, xO[0], yO[0], tag);
-				poseStack.translate(0, 0, -200);
-				poseStack.popPose();
 
 			} else {
 				break;
@@ -360,9 +359,11 @@ public class MorphScreen extends Screen {
 				yO[0]++;
 			}
 		}
-		poseStack.popPose();
-	};
-		BiConsumer<MultiBufferSource.BufferSource, PoseStack> action2 = (bufer, poseStack) -> {
+		states.forEach(guiGraphics.guiRenderState::submitPicturesInPictureState);
+		//GuiStateAccessor.load(guiGraphics.guiRenderState, states);
+
+		//poseStack.popPose();
+		/*BiConsumer<MultiBufferSource.BufferSource, PoseStack> action2 = (bufer, poseStack) -> {
 			float f = 2 * 20;
 			poseStack.translate((float) this.width* 2/2, (float) this.height * 2 /2, 0);
 			poseStack.translate(10, 10, 0);
@@ -383,17 +384,17 @@ public class MorphScreen extends Screen {
 			List<BlockModelPart> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).collectParts(s);
 			renderer.tesselateBlock(Minecraft.getInstance().level, list, blockState, new BlockPos(0, 500, 0), poseStack, bufer.getBuffer(renderType), false, OverlayTexture.NO_OVERLAY);
 		};
-		/*guiGraphics.guiRenderState.submitPicturesInPictureState(new GuiBlockRenderState(
+		guiGraphics.guiRenderState.submitPicturesInPictureState(new GuiBlockRenderState(
 				this.leftPos + 10, this.topPos + 15, this.leftPos + 153, this.topPos + 158, guiGraphics.scissorStack.peek(), action2));
 		guiGraphics.guiRenderState.submitPicturesInPictureState(new GuiBlockRenderState(
 				this.leftPos + 30, this.topPos + 15, this.leftPos + 183, this.topPos + 158, guiGraphics.scissorStack.peek(), action2));
-				//this.leftPos + 10, this.topPos + 20, this.leftPos + 20, this.topPos + 30, guiGraphics.scissorStack.peek(), action2));*/
+				//this.leftPos + 10, this.topPos + 20, this.leftPos + 20, this.topPos + 30, guiGraphics.scissorStack.peek(), action2));
 		guiGraphics.guiRenderState.submitPicturesInPictureState(new GuiBlockRenderState(
 				0, 0, this.width, this.height, guiGraphics.scissorStack.peek(), action2));
 		Pig pig = new Pig(EntityType.PIG, world);
 		Vector3f vector3f = new Vector3f(0.0F, pig.getBbHeight() / 2.0F, 0.0F);
 		Quaternionf quaternionf = (new Quaternionf()).rotateZ((float)Math.PI);
-		//InventoryScreen.renderEntityInInventory(guiGraphics, this.leftPos + 10, this.topPos + 15, this.leftPos + 153, this.topPos + 158, 20, vector3f, quaternionf, null, pig);
+		//InventoryScreen.renderEntityInInventory(guiGraphics, this.leftPos + 10, this.topPos + 15, this.leftPos + 153, this.topPos + 158, 20, vector3f, quaternionf, null, pig);*/
     }
 
 	public static Vec3 test() {
@@ -404,12 +405,13 @@ public class MorphScreen extends Screen {
 		return (float)i / 2.0f;
 	}
 
-    private void renderBlock(PoseStack poseStack, MultiBufferSource bufferSource, int xO, int yO, BlockState blockState, float ticks, @Nullable CompoundTag tag) {
-    	poseStack.translate(this.leftPos + 42 + xO*36, this.topPos + 41.8 + yO*36, 100);
-        poseStack.mulPose((new Matrix4f()).scaling(1.0F, -1.0F, 1.0F));
-        poseStack.scale(20.0F, 20.0F, 20.0F);
+    private void renderBlock(PoseStack poseStack, MultiBufferSource bufferSource, BlockState blockState, float ticks, @Nullable CompoundTag tag) {
+    	//poseStack.translate(this.leftPos + 42 + xO*36, this.topPos + 41.8 + yO*36, 100);
+        //poseStack.mulPose((new Matrix4f()).scaling(1.0F, -1.0F, 1.0F));
+        //poseStack.scale(20.0F, 20.0F, 20.0F);
         poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
-        poseStack.mulPose(Axis.YP.rotationDegrees(225.0F));
+        poseStack.mulPose(Axis.YP.rotationDegrees(-45.0F));
+		poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
 
       	BlockPos pos = AIR;
         RandomSource random = RandomSource.create(blockState.getSeed(pos));
