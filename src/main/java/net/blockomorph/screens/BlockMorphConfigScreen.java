@@ -521,23 +521,19 @@ public class BlockMorphConfigScreen extends Screen {
    }
 
    public void renderBlockAsIcon(GuiGraphics guiGraphics, float ticks) {
-   	    PoseStack poseStack = new PoseStack();
-        MultiBufferSource bufferSource = this.tempBufer;
-        poseStack.pushPose();
-        poseStack.translate(this.leftPos + 71, this.topPos + 63.8, 20); 
-        poseStack.mulPose((new Matrix4f()).scaling(1.0F, -1.0F, 1.0F));
-        float size = 36f;
-        poseStack.scale(size, size, size); 
-        poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
-        poseStack.mulPose(Axis.YP.rotationDegrees(225.0F)); 
-        BlockPos pos = AIR;
-        BlockState blockstate = this.playerState;
-        RandomSource random = RandomSource.create(blockstate.getSeed(pos));
-        var renderType = ItemBlockRenderTypes.getMovingBlockRenderType(blockstate);
-	    List<BlockModelPart> list = this.dispatcher.getBlockModel(blockstate).collectParts(random);
-        this.dispatcher.getModelRenderer().tesselateBlock(world, list, blockstate, pos, poseStack, bufferSource.getBuffer(renderType), false, OverlayTexture.NO_OVERLAY);
-        this.renderBlockEntity(blockstate, ticks, poseStack, bufferSource);
-        poseStack.popPose();
+		guiGraphics.guiRenderState.submitPicturesInPictureState(new GuiBlockRenderState(guiGraphics, this.leftPos + 71, this.topPos + 64, 36f, (buffer, poseStack) -> {
+			poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+			poseStack.mulPose(Axis.YP.rotationDegrees(-45.0F));
+			poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+
+			BlockPos pos = AIR;
+			BlockState blockstate = this.playerState;
+			RandomSource random = RandomSource.create(blockstate.getSeed(pos));
+			var renderType = ItemBlockRenderTypes.getMovingBlockRenderType(blockstate);
+			List<BlockModelPart> list = this.dispatcher.getBlockModel(blockstate).collectParts(random);
+			this.dispatcher.getModelRenderer().tesselateBlock(world, list, blockstate, pos, poseStack, buffer.getBuffer(renderType), false, OverlayTexture.NO_OVERLAY);
+			this.renderBlockEntity(blockstate, ticks, poseStack, buffer);
+		}));
    }
 
    private void renderBlockEntity(BlockState blockstate, float partialticks, PoseStack posestack, MultiBufferSource buffer) {

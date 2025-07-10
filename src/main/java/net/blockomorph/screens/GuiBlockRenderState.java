@@ -15,6 +15,7 @@ import java.util.function.BiConsumer;
  *             //TEMP CLASS until the GUI refactoring is done
  */
 public class GuiBlockRenderState implements PictureInPictureRenderState {
+	private final int SCRISSORS_SIZE = 70;
 	private final ScreenRectangle scrissorsArea;
 	private final ScreenRectangle bounds;
 	private final int x0;
@@ -25,10 +26,10 @@ public class GuiBlockRenderState implements PictureInPictureRenderState {
 	private final BiConsumer<MultiBufferSource.BufferSource, PoseStack> renderDo;
 
 	public GuiBlockRenderState(GuiGraphics gui, int x, int y, float scale, BiConsumer<MultiBufferSource.BufferSource, PoseStack> renderOutput) {
-		this.x0 = x - 40;
-		this.x1 = x + 40;
-		this.y0 = y - 40;
-		this.y1 = y + 40;
+		this.x0 = x - SCRISSORS_SIZE;
+		this.x1 = x + SCRISSORS_SIZE;
+		this.y0 = y - SCRISSORS_SIZE;
+		this.y1 = y + SCRISSORS_SIZE;
 		this.scale = scale;
 		this.scrissorsArea = gui.scissorStack.peek();
 		this.bounds = PictureInPictureRenderState.getBounds(this.x0, this.y0, this.x1, this.y1, this.scrissorsArea);
