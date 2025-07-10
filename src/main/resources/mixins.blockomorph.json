@@ -39,6 +39,7 @@
     "main.level.LevelInjectsMixin",
     "main.level.LevelOverrideMixin",
     "main.level.LevelTicksMixin",
+    "main.level.WaypointTransmitterMixin",
     "main.level.WorldBorderMixin",
     "main.server.ChunkMapMixin",
     "main.server.EventDispatcherMixin",

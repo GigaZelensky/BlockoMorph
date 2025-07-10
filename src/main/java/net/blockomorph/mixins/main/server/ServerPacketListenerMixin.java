@@ -32,7 +32,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class ServerPacketListenerMixin {
 	@Shadow public ServerPlayer player;
 
-	//@Inject(method = "isEntityCollidingWithAnythingNew", at = @At("HEAD"), cancellable = true) //TODO
+	@Inject(method = "isEntityCollidingWithAnythingNew", at = @At("HEAD"), cancellable = true) //TODO
 	public void checkCollision(LevelReader levelReader, Entity entity, AABB playerBox, double moveX, double moveY, double moveZ, CallbackInfoReturnable<Boolean> cir) {
 		AABB movedBox = entity.getBoundingBox().move(moveX - entity.getX(), moveY - entity.getY(), moveZ - entity.getZ());
 		Iterable<VoxelShape> collisions = levelReader.getCollisions(entity, movedBox.deflate(1.0E-5F));
