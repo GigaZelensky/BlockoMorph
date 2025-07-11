@@ -47,6 +47,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.List;
 import javax.annotation.Nullable;
 
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.event.RenderBlockScreenEffectEvent;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -304,57 +305,61 @@ public class MorphUtils {
 		}
 	}
 
-	@SubscribeEvent
-	public static void onHudRender(RenderGuiLayerEvent.Pre event) {
-		Minecraft mc = Minecraft.getInstance();
-		Entity player = mc.getCameraEntity();
-		ResourceLocation overlayId = event.getName();
-		boolean flag = mc.gameMode.canHurtPlayer();
+	@EventBusSubscriber(Dist.CLIENT)
+	public static class HudRenderer {
 
-		if (player instanceof PlayerAccessor pl && pl.isActive()) {
-			if (flag && overlayId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "player_health"))) {
-				GuiGraphics w = event.getGuiGraphics();
-				int width = w.guiWidth();
-				int height = w.guiHeight();
-				renderBlockHeart(w, pl, width, height);
-				mc.gui.leftHeight += 10;
-				event.setCanceled(true);
-			}
-			if (overlayId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "air_level")))
-				event.setCanceled(true);
-		}
-	}
+		@SubscribeEvent
+		public static void onHudRender(RenderGuiLayerEvent.Pre event) {
+			Minecraft mc = Minecraft.getInstance();
+			Entity player = mc.getCameraEntity();
+			ResourceLocation overlayId = event.getName();
+			boolean flag = mc.gameMode.canHurtPlayer();
 
-	private static void renderBlockHeart(GuiGraphics gui, PlayerAccessor pl, int width, int height) {
-		int maxHearts = 10;
-		int progress = pl.getBiggestProgress();
-
-		BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
-		BlockStateModel model = dispatcher.getBlockModel(pl.getBlockState(InPlayerBlockPos.ZERO));
-		TextureAtlasSprite sprite = model.particleIcon();
-
-
-		int x = width / 2 - 91;
-		int y = height - 39;
-
-		renderBar(gui, x, y, progress);
-
-		for (int i = 0; i < maxHearts; i++) {
-			int xPos = x + i * 8;
-			int yPos = y;
-
-
-			if (i < 9 - progress) {
-				gui.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, xPos + 1, yPos + 1, 7, 7);
+			if (player instanceof PlayerAccessor pl && pl.isActive()) {
+				if (flag && overlayId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "player_health"))) {
+					GuiGraphics w = event.getGuiGraphics();
+					int width = w.guiWidth();
+					int height = w.guiHeight();
+					renderBlockHeart(w, pl, width, height);
+					mc.gui.leftHeight += 10;
+					event.setCanceled(true);
+				}
+				if (overlayId.equals(ResourceLocation.fromNamespaceAndPath("minecraft", "air_level")))
+					event.setCanceled(true);
 			}
 		}
-	}
 
-	private static void renderBar(GuiGraphics graphics, int x, int y, int progress) {
-		if (progress == 9) {
-			graphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 10, 81, 9, 81, 19);
-		} else {
-			graphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 0, 81, 9, 81, 19);
+		private static void renderBlockHeart(GuiGraphics gui, PlayerAccessor pl, int width, int height) {
+			int maxHearts = 10;
+			int progress = pl.getBiggestProgress();
+
+			BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
+			BlockStateModel model = dispatcher.getBlockModel(pl.getBlockState(InPlayerBlockPos.ZERO));
+			TextureAtlasSprite sprite = model.particleIcon();
+
+
+			int x = width / 2 - 91;
+			int y = height - 39;
+
+			renderBar(gui, x, y, progress);
+
+			for (int i = 0; i < maxHearts; i++) {
+				int xPos = x + i * 8;
+				int yPos = y;
+
+
+				if (i < 9 - progress) {
+					gui.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, xPos + 1, yPos + 1, 7, 7);
+				}
+			}
+		}
+
+		private static void renderBar(GuiGraphics graphics, int x, int y, int progress) {
+			if (progress == 9) {
+				graphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 10, 81, 9, 81, 19);
+			} else {
+				graphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 0, 81, 9, 81, 19);
+			}
 		}
 	}
 

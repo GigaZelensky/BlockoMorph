@@ -31,12 +31,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class ServerPacketListenerMixin {
     @Shadow public ServerPlayer player;
 
-    /*@Inject(method = "isPlayerCollidingWithAnythingNew", at = @At("HEAD"), cancellable = true) //TODO
-    public void checkCollision(LevelReader levelReader, AABB playerBox, double moveX, double moveY, double moveZ, CallbackInfoReturnable<Boolean> cir) {
-    	ServerPlayer player = ((ServerGamePacketListenerImpl) (Object)this).player;
-    	
-        AABB movedBox = player.getBoundingBox().move(moveX - player.getX(), moveY - player.getY(), moveZ - player.getZ());
-        Iterable<VoxelShape> collisions = levelReader.getCollisions(player, movedBox.deflate(1.0E-5F));
+    @Inject(method = "isEntityCollidingWithAnythingNew", at = @At("HEAD"), cancellable = true) //TODO
+    public void checkCollision(LevelReader levelReader, Entity entity, AABB playerBox, double moveX, double moveY, double moveZ, CallbackInfoReturnable<Boolean> cir) {
+        AABB movedBox = entity.getBoundingBox().move(moveX - entity.getX(), moveY - entity.getY(), moveZ - entity.getZ());
+        Iterable<VoxelShape> collisions = levelReader.getCollisions(entity, movedBox.deflate(1.0E-5F));
 
         boolean isAlreadyInsideShape = false;
         boolean isTryingToEnterShape = false;
@@ -56,7 +54,7 @@ public abstract class ServerPacketListenerMixin {
         } else {
             cir.setReturnValue(false);
         }
-    }*/
+    }
 
     @Inject(method = "handleUseItemOn", at = @At(ordinal = 1, value = "INVOKE", target = "Lnet/minecraft/server/network/ServerGamePacketListenerImpl;send(Lnet/minecraft/network/protocol/Packet;)V"), cancellable = true)
     private void redirectUpdate(ServerboundUseItemOnPacket packet, CallbackInfo ci) {
