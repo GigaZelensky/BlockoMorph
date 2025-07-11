@@ -2,14 +2,12 @@ package net.blockomorph.core;
 
 import net.blockomorph.BlockomorphServer;
 import net.blockomorph.command.*;
-import net.blockomorph.screens.GuiBlockRenderer;
 import net.blockomorph.screens.PlayerCrackOverlay;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.network.*;
 import net.blockomorph.utils.config.*;
 
 import net.blockomorph.utils.coords.BlockPosBounds;
-import net.fabricmc.fabric.api.client.rendering.v1.SpecialGuiElementRegistry;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
