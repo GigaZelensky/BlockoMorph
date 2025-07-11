@@ -1,4 +1,4 @@
-package net.blockomorph.mixins.temp;
+package net.blockomorph.mixins.main.client.graphic;
 
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import net.blockomorph.screens.GuiBlockRenderState;
