@@ -65,10 +65,6 @@ public class GuiBlockRenderState implements PictureInPictureRenderState {
 		return this.scale;
 	}
 
-	public boolean isFirst() {
-		return first;
-	}
-
 	@Override
 	public @Nullable ScreenRectangle scissorArea() {
 		return this.scrissorsArea;
