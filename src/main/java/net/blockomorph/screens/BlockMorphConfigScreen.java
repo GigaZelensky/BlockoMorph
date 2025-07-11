@@ -114,7 +114,7 @@ public class BlockMorphConfigScreen extends Screen {
 		if (name.length() > 13 && mouseX > this.leftPos + 15 && mouseX < this.leftPos + 75 && mouseY > this.topPos + 18 && mouseY < this.topPos + 78) guiGraphics.setTooltipForNextFrame(this.font, Component.literal(name), mouseX, mouseY);
 		if (!tagException.isEmpty()) {
 		    guiGraphics.fill(this.leftPos, this.topPos + this.imageHeight - 2, this.leftPos + this.font.width(tagException), this.topPos + this.imageHeight + 14, Integer.MIN_VALUE);
-            guiGraphics.drawString(this.font, tagException, this.leftPos, this.topPos + this.imageHeight + 2, 16733525);
+            guiGraphics.drawString(this.font, tagException, this.leftPos, this.topPos + this.imageHeight + 2, (255 << 24) | 16733525);
 		}
 		Property<?> prop = this.getProp(mouseX, mouseY, false);
 		if (prop instanceof EnumProperty enumprop && mouseX > this.leftPos + 93 + 35) {
