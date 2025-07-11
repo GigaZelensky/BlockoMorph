@@ -26,9 +26,8 @@ public class GuiBlockRenderState implements PictureInPictureRenderState {
 	private final BiConsumer<MultiBufferSource.BufferSource, PoseStack> renderDo;
 	private final int x;
 	private final int y;
-	private final boolean first;
 
-	public GuiBlockRenderState(GuiGraphics gui, int x, int y, float scale, BiConsumer<MultiBufferSource.BufferSource, PoseStack> renderOutput, boolean first) {
+	public GuiBlockRenderState(GuiGraphics gui, int x, int y, float scale, BiConsumer<MultiBufferSource.BufferSource, PoseStack> renderOutput) {
 		this.x = x;
 		this.y = y;
 		this.x0 = x - 40;
@@ -39,7 +38,6 @@ public class GuiBlockRenderState implements PictureInPictureRenderState {
 		this.scrissorsArea = gui.peekScissorStack();
 		this.bounds = PictureInPictureRenderState.getBounds(this.x0, this.y0, this.x1, this.y1, this.scrissorsArea);
 		this.renderDo = renderOutput;
-		this.first = first;
 	}
 
 	@Override

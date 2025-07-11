@@ -36,6 +36,7 @@
     "main.level.LevelInjectsMixin",
     "main.level.LevelOverrideMixin",
     "main.level.LevelTicksMixin",
+    "main.level.WaypointTransmitterMixin",
     "main.level.WorldBorderMixin",
     "main.server.ChunkMapMixin",
     "main.server.EventDispatcherMixin",
@@ -66,11 +67,11 @@
     "main.client.graphic.LightEngineMixin",
     "main.client.graphic.ModelRendererMixin",
     "main.client.graphic.ParticleEngineMixin",
+    "main.client.graphic.PiPRegisterMixin",
     "main.client.graphic.entity.EntityRendererMixin",
     "main.client.graphic.entity.HumanoidModelMixin",
     "main.client.graphic.entity.LivingRendererMixin",
-    "main.client.graphic.entity.RenderStateMixin",
-    "temp.PiPRegisterMixin"
+    "main.client.graphic.entity.RenderStateMixin"
   ],
   "minVersion": "0.8"
 }

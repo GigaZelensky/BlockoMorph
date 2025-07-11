@@ -200,7 +200,7 @@ public class MorphScreen extends Screen {
 		this.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
 		if (pageCount > 1) {
 		    Component page = Component.literal(String.format("%d / %d", MorphScreen.page + 1, pageCount));
-		    guiGraphics.drawString(this.font, page.getVisualOrderText(), this.leftPos + (this.imageWidth / 2) - (this.font.width(page) / 2), this.topPos - 34, -1);
+		    guiGraphics.drawString(this.font, page.getVisualOrderText(), this.leftPos + (this.imageWidth / 2) - (this.font.width(page) / 2), this.topPos - 34, 0xffffffff);
 		}
 		if (selectedTab.showTitle())
 		    guiGraphics.drawString(this.font, selectedTab.getDisplayName(), this.leftPos + 8, this.topPos + 6, selectedTab.getLabelColor(), false);
@@ -308,7 +308,7 @@ public class MorphScreen extends Screen {
 
 				states.add(new GuiBlockRenderState(guiGraphics, x, y, 20, ((bufferSource, poseStack) -> {
 					this.renderBlock(poseStack, bufferSource, blockState, ticks, tag);
-				}), xO[0] == 0 && yO[0] == 0));
+				})));
 
 				this.renderFrame(guiGraphics, blockState, xO[0], yO[0], tag);
 
@@ -323,41 +323,6 @@ public class MorphScreen extends Screen {
 			}
 		}
 		states.forEach(guiGraphics::submitPictureInPictureRenderState);
-		//GuiStateAccessor.load(guiGraphics.guiRenderState, states);
-
-		//poseStack.popPose();
-		/*BiConsumer<MultiBufferSource.BufferSource, PoseStack> action2 = (bufer, poseStack) -> {
-			float f = 2 * 20;
-			poseStack.translate((float) this.width* 2/2, (float) this.height * 2 /2, 0);
-			poseStack.translate(10, 10, 0);
-			poseStack.scale(f, f, -f);
-			//poseStack.mulPose((new Matrix4f()).scaling(1.0F, -1.0F, 1.0F));
-			poseStack.translate(-10, -10, 0);
-			//poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
-			//poseStack.mulPose(Axis.YP.rotationDegrees(-45.0F));
-			//
-			//poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
-			//poseStack.translate(1, 0, 0);
-			BlockState blockState = Blocks.GRASS_BLOCK.defaultBlockState();
-			//BlockState blockState = Blocks.DRIED_GHAST.defaultBlockState();
-			//BlockState blockState = Blocks.BAMBOO_BUTTON.defaultBlockState();
-			RandomSource s = RandomSource.create();
-			ModelBlockRenderer renderer = Minecraft.getInstance().getBlockRenderer().getModelRenderer();
-			var renderType = ItemBlockRenderTypes.getMovingBlockRenderType(blockState);
-			List<BlockModelPart> list = Minecraft.getInstance().getBlockRenderer().getBlockModel(blockState).collectParts(s);
-			renderer.tesselateBlock(Minecraft.getInstance().level, list, blockState, new BlockPos(0, 500, 0), poseStack, bufer.getBuffer(renderType), false, OverlayTexture.NO_OVERLAY);
-		};
-		guiGraphics.guiRenderState.submitPicturesInPictureState(new GuiBlockRenderState(
-				this.leftPos + 10, this.topPos + 15, this.leftPos + 153, this.topPos + 158, guiGraphics.scissorStack.peek(), action2));
-		guiGraphics.guiRenderState.submitPicturesInPictureState(new GuiBlockRenderState(
-				this.leftPos + 30, this.topPos + 15, this.leftPos + 183, this.topPos + 158, guiGraphics.scissorStack.peek(), action2));
-				//this.leftPos + 10, this.topPos + 20, this.leftPos + 20, this.topPos + 30, guiGraphics.scissorStack.peek(), action2));
-		guiGraphics.guiRenderState.submitPicturesInPictureState(new GuiBlockRenderState(
-				0, 0, this.width, this.height, guiGraphics.scissorStack.peek(), action2));
-		Pig pig = new Pig(EntityType.PIG, world);
-		Vector3f vector3f = new Vector3f(0.0F, pig.getBbHeight() / 2.0F, 0.0F);
-		Quaternionf quaternionf = (new Quaternionf()).rotateZ((float)Math.PI);
-		//InventoryScreen.renderEntityInInventory(guiGraphics, this.leftPos + 10, this.topPos + 15, this.leftPos + 153, this.topPos + 158, 20, vector3f, quaternionf, null, pig);*/
 	}
 
     private void renderBlock(PoseStack poseStack, MultiBufferSource bufferSource, BlockState blockState, float ticks, @Nullable CompoundTag tag) {

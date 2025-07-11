@@ -185,10 +185,10 @@ public class BlockMorphConfigScreen extends Screen {
    	    	name = name.substring(0, 13);
    	    	name = name + "...";
    	    }
-   	    guiGraphics.drawString(this.font, name, this.leftPos + 6, this.topPos + 6, 4210752, false);
-   	    guiGraphics.drawString(this.font, "BlockStates", this.leftPos + 100, this.topPos + 15, 4210752, false);
-   	    guiGraphics.drawString(this.font, "NBT", this.leftPos + 9, this.topPos + 130, 4210752, false);
-   	    guiGraphics.drawString(this.font, Component.translatable("gui.blockomorph.save"), this.leftPos + 13, this.topPos + 87, 4210752, false);
+   	    guiGraphics.drawString(this.font, name, this.leftPos + 6, this.topPos + 6, -12566464, false);
+   	    guiGraphics.drawString(this.font, "BlockStates", this.leftPos + 100, this.topPos + 15, -12566464, false);
+   	    guiGraphics.drawString(this.font, "NBT", this.leftPos + 9, this.topPos + 130, -12566464, false);
+   	    guiGraphics.drawString(this.font, Component.translatable("gui.blockomorph.save"), this.leftPos + 13, this.topPos + 87, -12566464, false);
    }
 
    private void renderProp(GuiGraphics guiGraphics, int mouseX, int mouseY) {
@@ -530,25 +530,22 @@ public class BlockMorphConfigScreen extends Screen {
    }
 
    public void renderBlockAsIcon(GuiGraphics guiGraphics, float ticks) {
-   	    PoseStack poseStack = new PoseStack();//guiGraphics.pose();
-        MultiBufferSource bufferSource = this.tempBufer;
-        poseStack.pushPose();
-        poseStack.translate(this.leftPos + 71, this.topPos + 63.8, 20); 
-        poseStack.mulPose((new Matrix4f()).scaling(1.0F, -1.0F, 1.0F));
-        poseStack.scale(36.0F, 36.0F, 36.0F); 
-        poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
-        poseStack.mulPose(Axis.YP.rotationDegrees(225.0F)); 
-        BlockPos pos = AIR;
-        BlockState blockState = this.playerState;
-        RandomSource random = RandomSource.create(blockState.getSeed(pos));
-        BlockStateModel model = this.dispatcher.getBlockModel(blockState);
-	   List<BlockModelPart> list = model.collectParts(world, pos, blockState, random);
-	   Function<ChunkSectionLayer, VertexConsumer> bufferLookup = (renderType) -> {
-		   return bufferSource.getBuffer(RenderTypeHelper.getMovingBlockRenderType(renderType));
-	   };
-	   this.dispatcher.getModelRenderer().tesselateBlock(world, list, blockState, pos, poseStack, bufferLookup, true, OverlayTexture.NO_OVERLAY);
-        this.renderBlockEntity(blockState, ticks, poseStack, bufferSource);
-        poseStack.popPose();
+	   guiGraphics.submitPictureInPictureRenderState(new GuiBlockRenderState(guiGraphics, this.leftPos + 71, this.topPos + 64, 36f, (buffer, poseStack) -> {
+		   poseStack.mulPose(Axis.XP.rotationDegrees(30.0F));
+		   poseStack.mulPose(Axis.YP.rotationDegrees(-45.0F));
+		   poseStack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+
+		   BlockPos pos = AIR;
+		   BlockState blockState = this.playerState;
+		   RandomSource random = RandomSource.create(blockState.getSeed(pos));
+		   BlockStateModel model = this.dispatcher.getBlockModel(blockState);
+		   List<BlockModelPart> list = model.collectParts(world, pos, blockState, random);
+		   Function<ChunkSectionLayer, VertexConsumer> bufferLookup = (renderType) -> {
+			   return buffer.getBuffer(RenderTypeHelper.getMovingBlockRenderType(renderType));
+		   };
+		   this.dispatcher.getModelRenderer().tesselateBlock(world, list, blockState, pos, poseStack, bufferLookup, true, OverlayTexture.NO_OVERLAY);
+		   this.renderBlockEntity(blockState, ticks, poseStack, buffer);
+	   }));
    }
 
    private void renderBlockEntity(BlockState blockstate, float partialticks, PoseStack posestack, MultiBufferSource buffer) {
