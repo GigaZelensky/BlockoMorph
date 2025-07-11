@@ -7,6 +7,7 @@ import net.blockomorph.utils.config.*;
 import net.blockomorph.network.*;
 
 import net.blockomorph.utils.coords.InPlayerBlockPos;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Camera;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.RenderPipelines;
@@ -14,6 +15,7 @@ import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.block.model.BlockStateModel;
 import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.minecraft.client.renderer.chunk.RenderSectionRegion;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.player.Player;
@@ -115,13 +117,14 @@ public class BlockMorphConfigScreen extends Screen {
 		this.renderBg(guiGraphics, partialTicks, mouseX, mouseY);
 		this.renderLb(guiGraphics);
 		tagsBox.render(guiGraphics, mouseX, mouseY, partialTicks);
+		savebox.render(guiGraphics, mouseX, mouseY, partialTicks);
 		//guiGraphics.drawSpecial(this::extractBuffer);
 		this.renderBlockAsIcon(guiGraphics, partialTicks);
 	    String name = playerState.getBlock().getName().getString();
 		if (name.length() > 13 && mouseX > this.leftPos + 15 && mouseX < this.leftPos + 75 && mouseY > this.topPos + 18 && mouseY < this.topPos + 78) guiGraphics.setTooltipForNextFrame(this.font, Component.literal(name), mouseX, mouseY);
 		if (!tagException.isEmpty()) {
 		    guiGraphics.fill(this.leftPos, this.topPos + this.imageHeight - 2, this.leftPos + this.font.width(tagException), this.topPos + this.imageHeight + 14, Integer.MIN_VALUE);
-            guiGraphics.drawString(this.font, tagException, this.leftPos, this.topPos + this.imageHeight + 2, 16733525);
+            guiGraphics.drawString(this.font, tagException, this.leftPos, this.topPos + this.imageHeight + 2, (255 << 24) | 16733525);
 		}
 		Property<?> prop = this.getProp(mouseX, mouseY, false);
 		if (prop instanceof EnumProperty enumprop && mouseX > this.leftPos + 93 + 35) {
@@ -487,8 +490,8 @@ public class BlockMorphConfigScreen extends Screen {
 		tagsBox.setBordered(false);
 		tagsBox.setTextColor(-1);
 		tagsBox.setTextColorUneditable(-1);
-		this.addRenderableWidget(tagsBox);
-		this.addRenderableWidget(this.savebox);
+		this.addWidget(tagsBox);
+		this.addWidget(this.savebox);
 		this.playerState = ((PlayerAccessor)this.entity).getBlockState(InPlayerBlockPos.ZERO);
 		BlockState blockState = this.playerState;
 		if (blockState.getBlock() instanceof EntityBlock) {
