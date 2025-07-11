@@ -1,9 +1,6 @@
 package net.blockomorph.core;
 
-import net.blockomorph.screens.BlockMorphConfigScreen;
-import net.blockomorph.screens.ConfigScreen;
-import net.blockomorph.screens.MorphScreen;
-import net.blockomorph.screens.MorphScreen2;
+import net.blockomorph.screens.*;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -18,7 +15,7 @@ public class KeyMappings {
 	private static final ArrayList<KeyMapping> KEYS = new ArrayList<>();
 
 	public static final KeyMapping MORPH = new HandlerKeymapping("key.blockomorph.morph_menu", GLFW.GLFW_KEY_Y, () ->
-			mc.setScreen(new MorphScreen(Config.Mode.NONE, false))
+			mc.setScreen(new MorphScreenOld(Config.Mode.NONE, false))
 	);
 
 	public static final KeyMapping MORPH_CONFIG = new HandlerKeymapping("key.blockomorph.morph_config_menu", GLFW.GLFW_KEY_U, () ->
@@ -32,7 +29,7 @@ public class KeyMappings {
 	});
 
 	public static final KeyMapping DEBUG = new HandlerKeymapping("key.blockomorph.debug", GLFW.GLFW_KEY_J, () -> {
-		mc.setScreen(MorphScreen2.test());
+		mc.setScreen(new MorphScreen());
 	});
 
 	static void registerKeyMappings(Consumer<KeyMapping> register) {

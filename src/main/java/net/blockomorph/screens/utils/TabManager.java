@@ -1,9 +1,8 @@
 package net.blockomorph.screens.utils;
 
 import com.google.common.collect.ImmutableList;
-import net.blockomorph.screens.MorphScreen2;
+import net.blockomorph.screens.AbstractMorphScreen;
 import net.blockomorph.utils.SavedBlock;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.multiplayer.SessionSearchTrees;
@@ -24,7 +23,7 @@ import java.util.function.Function;
 
 public class TabManager {
 	protected static final CreativeModeTab ALLOWED_TAB = CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0).title(Component.translatable("gui.blockomorph.allowedBlocks")).icon(() -> new ItemStack(Items.NETHER_STAR)).build();
-	protected final MorphScreen2 parentScreen;
+	protected final AbstractMorphScreen parentScreen;
 	protected final List<CreativeModeTab> CONTENT_TABS;
 	protected static final Function<String, ResourceLocation> TAB_LOCATION = (tabName) -> GuiUtils.vanillaRes("textures/gui/sprites/advancements/tab_" + tabName+ ".png");
 	protected final List<CreativeModeTab> SPECIAL_TABS;
@@ -32,9 +31,9 @@ public class TabManager {
 	protected static int tabPage = 0;
 	protected final int pageCount;
 
-	public TabManager(MorphScreen2 screen, boolean useAllowedTab, boolean useSavedBlocksTab) {
+	public TabManager(AbstractMorphScreen screen, boolean useAllowedTab, boolean useSavedBlocksTab) {
 		this.parentScreen = screen;
-		MorphScreen2.SAVED_BLOCK_MANAGER.load();
+		AbstractMorphScreen.SAVED_BLOCK_MANAGER.load();
 		this.initTabs();
 		ImmutableList.Builder<CreativeModeTab> list = ImmutableList.builder();
 		list.add(CreativeModeTabs.searchTab());
@@ -147,22 +146,17 @@ public class TabManager {
 	}
 
 	protected void renderItemInTab(GuiUtils gui, @Nullable Boolean isRight, int listIndex, int offsetIndex) {
-		int tabX;
+		float tabX;
 		boolean isDown = isRight == null;
 		if (isDown) {
-			tabX = parentScreen.getLeftPos() + parentScreen.imageLength - 38 - listIndex * 32 + 5;
+			tabX = parentScreen.getLeftPos() + parentScreen.imageLength - 37 - listIndex * 32 + 5;
 		} else {
 			tabX = parentScreen.getLeftPos() + (isRight ? parentScreen.imageLength + 2 : -19);
 		}
 		int tabY = this.getTabY(offsetIndex) + (isDown ? 7 : 5);
 
-		GuiGraphics guiGraphics = gui.getGuiGraphics();
-		guiGraphics.pose().pushPose();
-		guiGraphics.pose().translate(0.5f, 0f, 100f);
 		ItemStack itemstack = (isDown ? SPECIAL_TABS : CONTENT_TABS).get(listIndex).getIconItem();
-		guiGraphics.renderItem(itemstack, tabX, tabY);
-		guiGraphics.renderItemDecorations(parentScreen.getFont(), itemstack, tabX, tabY);
-		guiGraphics.pose().popPose();
+		gui.renderItem(itemstack, tabX, tabY, 1f, 100);
 	}
 
 	protected CreativeModeTab getTabAtPosition(double x, double y) {

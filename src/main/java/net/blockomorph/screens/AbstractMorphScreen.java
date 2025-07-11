@@ -21,8 +21,9 @@ import org.jetbrains.annotations.ApiStatus;
 
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
-public class MorphScreen2 extends Screen {
+public abstract class AbstractMorphScreen extends Screen {
 	private static final ResourceLocation MENU_LOCATION = GuiUtils.res("textures/screens/morph_gui.png");
 	private static final ResourceLocation SEARCH_BAR = GuiUtils.res("textures/screens/searchbar.png");
 	private static final ResourceLocation MODE_TABS = GuiUtils.res("textures/screens/exit_tabs.png");
@@ -34,30 +35,30 @@ public class MorphScreen2 extends Screen {
 	protected PlayerAccessor player;
 	public final int imageLength = 176;
 	public final int imageHeight = 166;
-	private final OnBlockClick onBlockClick;
-	private final OnRenderingFrame onRenderingFrame;
-	private final BiFunction<Integer, Integer, List<AbstractWidget>> onInit;
+	private final MorphScreenOptions options;
 	protected int leftPos;
 	protected int topPos;
 
 
-	protected MorphScreen2(OnBlockClick click, OnRenderingFrame frame, BiFunction<Integer, Integer, List<AbstractWidget>> init, boolean useSpecialTabs, boolean useSavedBlocksTab, boolean needAccessCheck) {
+	protected AbstractMorphScreen(MorphScreenOptions options) {
 		super(Component.literal("morph_screen"));
+		this.options = options;
 		this.player = PlayerAccessor.of(mc.player);
-		this.onBlockClick = click;
-		this.onRenderingFrame = frame;
-		this.onInit = init;
-		this.BLOCKS_MANAGER = new BlocksManager(this, needAccessCheck);
-		this.TAB_MANAGER = new TabManager(this, useSpecialTabs, useSavedBlocksTab);
+		this.BLOCKS_MANAGER = new BlocksManager(this, options.needAccessCheck());
+		this.TAB_MANAGER = new TabManager(this, options.useAllowedTab(), options.useSavedBlocksTab());
 	}
 
-	@ApiStatus.Internal
-	public static MorphScreen2 test() {
-		return new MorphScreen2((lv, pl, block, number, selectedTab, page) -> {
-			return null;
-		}, (utils, lv, pl, block, buffer) -> {
+	protected abstract void initAdditional(Consumer<AbstractWidget> action);
 
-		}, (leftPos, topPos) -> List.of(), true, true, true);
+	protected abstract void renderFrame(SavedBlock block, int x, int y);
+
+	protected abstract SoundInstance onClickOnBlock(SavedBlock block, int number, CreativeModeTab selectedTab, int page);
+
+	protected void renderTooltip() {
+		SavedBlock block = BLOCKS_MANAGER.getBlockAtPosition(gui.getMouseX(), gui.getMouseY());
+		if (block != null) {
+			gui.renderTooltip(block.getState().getBlock().getName(), gui.getMouseX(), gui.getMouseY());
+		}
 	}
 
 	@Override
@@ -91,13 +92,15 @@ public class MorphScreen2 extends Screen {
 
 	private void renderBackground() {
 		this.gui.blitMonoImage(MENU_LOCATION, this.leftPos, this.topPos, this.imageLength, this.imageHeight);
-		this.gui.blit(MODE_TABS, this.leftPos + 4, this.topPos - 19, 0, 0, 80, 22, 80, 46);
+		if (this.options.useUpperTabs()) {
+			this.gui.blit(MODE_TABS, this.leftPos + 4, this.topPos - 19, 0, 0, 80, 22, 80, 46);
+		}
 		if (TAB_MANAGER.hasSearchBar()) {
 			gui.blitMonoImage(SEARCH_BAR, this.leftPos + 90, this.topPos - 19, 80, 23);
 		}
 		TAB_MANAGER.renderTabs(this.gui);
-		BLOCKS_MANAGER.render(this.gui);
-		/* SCROLLER */
+		BLOCKS_MANAGER.render(this.gui, this::renderFrame);
+		this.renderTooltip();
 	}
 
 	@Override
@@ -105,10 +108,13 @@ public class MorphScreen2 extends Screen {
 		if (type == 0) {
 			if (TAB_MANAGER.mouseClicked(x, y)) {
 				return true;
-			} else if (BLOCKS_MANAGER.mouseClicked(x, y, this.onBlockClick)) {
+			} else if (BLOCKS_MANAGER.mouseClicked(x, y, this::onClickOnBlock)) {
 				return true;
-			} else {
-
+			} else if (this.options.useUpperTabs) {
+				if (x > this.leftPos + 4 && x < this.leftPos + 4 + 41 && y > this.topPos - 19 && y < this.topPos - 19 + 22) {
+					mc.setScreen(new BlockMorphConfigScreen(true)); //TODO
+					return true;
+				}
 			}
 		}
 		return super.mouseClicked(x, y, type);
@@ -144,9 +150,7 @@ public class MorphScreen2 extends Screen {
 	protected void init() {
 		this.leftPos = (this.width - this.imageLength) / 2;
 		this.topPos = (this.height - this.imageHeight) / 2;
-		for (AbstractWidget widget : this.onInit.apply(this.leftPos, this.topPos)) {
-			this.addRenderableWidget(widget);
-		}
+		this.initAdditional(this::addRenderableWidget);
 		TAB_MANAGER.init(this::addRenderableWidget);
 		TAB_MANAGER.selectTab(TabManager.getSelectedTab());
 	}
@@ -162,11 +166,15 @@ public class MorphScreen2 extends Screen {
 	
 	@FunctionalInterface
 	public interface OnBlockClick {
-		SoundInstance click(Level lv, PlayerAccessor pl, SavedBlock block, int number, CreativeModeTab selectedTab, int page);
+		SoundInstance click(SavedBlock block, int number, CreativeModeTab selectedTab, int page);
 	}
 	
 	@FunctionalInterface
 	public interface OnRenderingFrame {
-		void render(GuiUtils utils, Level lv, PlayerAccessor pl, SavedBlock block, MultiBufferSource buffer);
+		void render(SavedBlock block, int x, int y);
+	}
+
+	public record MorphScreenOptions(boolean useAllowedTab, boolean useSavedBlocksTab, boolean needAccessCheck, boolean useUpperTabs) {
+		public static MorphScreenOptions ALL = new MorphScreenOptions(true, true, true, true);
 	}
 }

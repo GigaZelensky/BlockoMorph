@@ -1,5 +1,6 @@
 package net.blockomorph.screens.utils;
 
+import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.blockomorph.BlockomorphServer;
@@ -17,16 +18,23 @@ import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.block.model.BlockModelPart;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -37,6 +45,7 @@ public class GuiUtils { //Cross-platform wrapper
 	public static final MultiBufferSource bufferSource = MC.renderBuffers().bufferSource();
 	private static final BlockRenderDispatcher blockRenderer = MC.getBlockRenderer();
 	private static final BlockEntityRenderDispatcher blockEntityRenderer = MC.getBlockEntityRenderDispatcher();
+	private ItemStackRenderState scratchItemStackRenderState;
 	private GuiGraphics GUI;
 	private int mouseX;
 	private int mouseY;
@@ -61,6 +70,7 @@ public class GuiUtils { //Cross-platform wrapper
 		this.mouseX = mouseX;
 		this.mouseY = mouseY;
 		this.tick = tick;
+		this.scratchItemStackRenderState = new ItemStackRenderState();
 	}
 
 	public GuiGraphics getGuiGraphics() {
@@ -102,19 +112,59 @@ public class GuiUtils { //Cross-platform wrapper
 	}
 
 	public void renderTooltip(Component text, int mouseX, int mouseY) {
-		GUI.renderTooltip(this.font, text, mouseX, mouseY);
+		this.renderTooltip(List.of(text), mouseX, mouseY);
+	}
+
+	public void renderTooltip(List<Component> texts, int mouseX, int mouseY) {
+		GUI.renderComponentTooltip(this.font, texts, mouseX, mouseY);
+	}
+
+	public void renderSprite(ResourceLocation resourceLocation, int x, int y, int maxSizeX, int maxSizeY) {
+		GUI.blitSprite(RenderType::guiTextured, resourceLocation, x, y, maxSizeX, maxSizeY);
+	}
+
+	public void renderItem(ItemStack item, float x, float y, float scale, float zDepth) {
+		if (scale == 1) scale = 16f;
+		PoseStack pose = GUI.pose();
+		pose.pushPose();
+
+		MC.getItemModelResolver().updateForTopItem(this.scratchItemStackRenderState, item, ItemDisplayContext.GUI, MC.level, MC.player, 0);
+		pose.translate(x + 8, y + 8, 150 + zDepth);
+		pose.scale(scale, -scale, scale);
+
+		this.doMainRenderingItem(pose);
+
+		pose.popPose();
+	}
+
+	private void doMainRenderingItem(PoseStack stack) {
+		boolean bl = !this.scratchItemStackRenderState.usesBlockLight();
+		if (bl) {
+			GUI.flush();
+			Lighting.setupForFlatItems();
+		}
+
+		this.scratchItemStackRenderState.render(stack, bufferSource, 15728880, OverlayTexture.NO_OVERLAY);
+		GUI.flush();
+		if (bl) {
+			Lighting.setupFor3DItems();
+		}
 	}
 
 	//HINT:   XY - down corner of block
 	public void renderBlockInGui(BlockState blockState, @Nullable BlockEntity blockEntity, float x, float y, float scale) {
 		PoseStack stack = GUI.pose();
+
 		stack.pushPose();
+
 		stack.translate(x, y, 100F);
 		stack.scale(scale, -scale, scale);
 		stack.mulPose(Axis.XP.rotationDegrees(30.0F));
 		stack.mulPose(Axis.YP.rotationDegrees(-225.0F));
+
 		this.renderBlock(stack, blockState);
 		this.renderBlockEntity(stack, blockEntity);
+
 		stack.popPose();
 	}
 
@@ -127,8 +177,16 @@ public class GuiUtils { //Cross-platform wrapper
 			acc.setSpecialRenderingMode(true);
 			blockRenderer.getModelRenderer().tesselateBlock(MC.level, list, blockState, AIR, stack, bufferSource.getBuffer(renderType), false, OverlayTexture.NO_OVERLAY);
 			acc.setSpecialRenderingMode(false);
-		} else if (blockState.getBlock().asItem() == Items.AIR) {
-			//TODO
+		}
+	}
+
+	public void renderAdditionalOnBlock(BlockState blockState, float x, float y, float scale) {
+		if (blockState.getRenderShape() == RenderShape.INVISIBLE) {
+			if (blockState.getBlock() instanceof LiquidBlock) {
+				this.renderItem(new ItemStack(blockState.getFluidState().getType().getBucket()), x, y, scale, 100);
+			} else if (blockState.getBlock().asItem() != Items.AIR) {
+				this.renderItem(new ItemStack(blockState.getBlock().asItem()), x, y, scale, 100);
+			}
 		}
 	}
 

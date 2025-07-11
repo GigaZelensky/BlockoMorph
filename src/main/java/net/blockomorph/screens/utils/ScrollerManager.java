@@ -1,9 +1,5 @@
 package net.blockomorph.screens.utils;
 
-import net.blockomorph.screens.MorphScreen2;
-import net.blockomorph.utils.SavedBlock;
-import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +35,7 @@ public class ScrollerManager<T> {
 	}
 
 	public void renderScroller(GuiUtils gui) {
-		gui.getGuiGraphics().blitSprite(RenderType::guiTextured, this.canScroll() ? SCROLLER_SPRITE : SCROLLER_DISABLED_SPRITE, this.barX.getAsInt(), this.barY.getAsInt() + (int)((float)(this.barHeight - 15) * this.scrollOffset), 12, 15);
+		gui.renderSprite(this.canScroll() ? SCROLLER_SPRITE : SCROLLER_DISABLED_SPRITE, this.barX.getAsInt(), this.barY.getAsInt() + (int)((float)(this.barHeight - 15) * this.scrollOffset), 12, 15);
 	}
 
 	public void setMainList(@Nullable List<T> main) {

@@ -18,7 +18,6 @@ import net.minecraft.sounds.SoundEvents;
 import java.util.List;
 import java.util.Arrays;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.renderer.RenderType;
 
 public class ConfigScreen extends Screen {
@@ -96,9 +95,9 @@ public class ConfigScreen extends Screen {
    	    		if (gx > x + 125 && gx < x + 125 + 16 && gy > y + 2 && gy < y + 2 + 16) {
    	    			this.playDownSound();
    	    			if (e2.getName().equals("allowedBlocks")) {
-   	    			    this.minecraft.setScreen(new MorphScreen(Config.Mode.WHITELIST, true));
+   	    			    this.minecraft.setScreen(new MorphScreenOld(Config.Mode.WHITELIST, true));
    	    			} else if (e2.getName().equals("bannedBlocks")) {
-   	    				this.minecraft.setScreen(new MorphScreen(Config.Mode.BLACKLIST, true));
+   	    				this.minecraft.setScreen(new MorphScreenOld(Config.Mode.BLACKLIST, true));
    	    			}
    	    		}
    	    	} else if (op instanceof EnumConfig e3) {

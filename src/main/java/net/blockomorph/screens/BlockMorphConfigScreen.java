@@ -98,7 +98,7 @@ public class BlockMorphConfigScreen extends Screen {
    	   this.init = init;
    	   this.world = Minecraft.getInstance().level;
 	   this.entity = Minecraft.getInstance().player;
-	   MorphScreen2.SAVED_BLOCK_MANAGER.load();
+	   AbstractMorphScreen.SAVED_BLOCK_MANAGER.load();
    }
 
    @Override
@@ -336,7 +336,7 @@ public class BlockMorphConfigScreen extends Screen {
    public boolean mouseClicked(double x, double y, int type) {
    	    if (type == 0) {
    	    	if (x > this.leftPos + 41 && x < this.leftPos + 4 + 80 && y > this.topPos - 19 && y < this.topPos - 19 + 22) {
-   	    		this.minecraft.setScreen(new MorphScreen(Config.Mode.NONE, true));
+   	    		this.minecraft.setScreen(new MorphScreenOld(Config.Mode.NONE, true));
    	    		return true;
    	    	}
    	    	boolean flag = this.enumClick(x, y);
@@ -436,8 +436,8 @@ public class BlockMorphConfigScreen extends Screen {
    	    	this.editButBucket = false;
    	    	return;
    	    }
-   	    if (MorphScreen2.SAVED_BLOCK_MANAGER.get().containsKey(s)) {
-   	    	if (MorphScreen2.SAVED_BLOCK_MANAGER.get().get(s).equals(new SavedBlock(this.playerState, this.playerTag, s))) {
+   	    if (AbstractMorphScreen.SAVED_BLOCK_MANAGER.get().containsKey(s)) {
+   	    	if (AbstractMorphScreen.SAVED_BLOCK_MANAGER.get().get(s).equals(new SavedBlock(this.playerState, this.playerTag, s))) {
    	    		this.editButBucket = true;
    	    		this.edit.active = true;
    	    	} else {
@@ -492,9 +492,9 @@ public class BlockMorphConfigScreen extends Screen {
 		}
 		this.edit = new ImageButton(this.leftPos + 52, this.topPos + 90, 26, 26, SAVE_BUT, e -> {
 			 if (this.editButBucket) {
-			 	MorphScreen2.SAVED_BLOCK_MANAGER.delete(savebox.getValue());
+			 	AbstractMorphScreen.SAVED_BLOCK_MANAGER.delete(savebox.getValue());
 			 } else {
-			 	MorphScreen2.SAVED_BLOCK_MANAGER.add(new SavedBlock(this.playerState, this.playerTag, this.savebox.getValue()));
+			 	AbstractMorphScreen.SAVED_BLOCK_MANAGER.add(new SavedBlock(this.playerState, this.playerTag, this.savebox.getValue()));
 			 }
 			 this.validSave(this.savebox.getValue());
 		}) {

@@ -1,7 +1,7 @@
 package net.blockomorph.screens.utils;
 
 import com.google.common.collect.ImmutableList;
-import net.blockomorph.screens.MorphScreen2;
+import net.blockomorph.screens.AbstractMorphScreen;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.SavedBlock;
 import net.minecraft.client.player.LocalPlayer;
@@ -10,14 +10,15 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.util.Mth;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.BlockItemStateProperties;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -42,36 +43,34 @@ public class BlocksManager {
 	private static FeatureFlagSet FEATURE_FLAGS;
 	private static HolderLookup.Provider HOLDER;
 	public final ScrollerManager<SavedBlock> scrollerManager;
-	private final MorphScreen2 parentScreen;
+	private final AbstractMorphScreen parentScreen;
 	private final boolean needAccessCheck;
 
-	public BlocksManager(MorphScreen2 screen, boolean needAccessCheck) {
+	public BlocksManager(AbstractMorphScreen screen, boolean needAccessCheck) {
 		this.parentScreen = screen;
 		this.needAccessCheck = needAccessCheck;
 		this.scrollerManager = new ScrollerManager<>(() -> screen.getLeftPos() + 158, () -> screen.getTopPos() + 16, 142, 4, 4, this.renderableBlocks);
 	}
 
-	public void render(GuiUtils gui) {
+	public void render(GuiUtils gui, AbstractMorphScreen.OnRenderingFrame onRendering) {
 		for (int x = 0; x < 4; x++) {
 			for (int y = 0; y < 4; y++) {
 				SavedBlock block = this.renderableBlocks.get(y * 4 + x);
 				if (block != null) {
 					BlockEntity blockEntity = (block.getState().getBlock() instanceof EntityBlock ent ? ent.newBlockEntity(GuiUtils.AIR, block.getState()) : null);
 					if (blockEntity != null) {
-						blockEntity.setLevel(MorphScreen2.mc.level);
+						blockEntity.setLevel(AbstractMorphScreen.mc.level);
 						if (block.getTag() != null) {
 							blockEntity.loadWithComponents(block.getTag(), parentScreen.getPlayer().player().registryAccess());
 						}
 					}
 					gui.renderBlockInGui(block.getState(), blockEntity, parentScreen.getLeftPos() + 28 + x * 36, parentScreen.getTopPos() + 48.5f + y * 36, 20);
+					gui.renderAdditionalOnBlock(block.getState(), parentScreen.getLeftPos() + 20 + x * 36, parentScreen.getTopPos() + 25 + y * 36, 30);
+					onRendering.render(block, parentScreen.getLeftPos() + 10 + x * 36, parentScreen.getTopPos() + 15 + y * 36);
 				}
 			}
 		}
 		this.scrollerManager.renderScroller(gui);
-		SavedBlock block = this.getBlockAtPosition(gui.getMouseX(), gui.getMouseY());
-		if (block != null) {
-			gui.renderTooltip(block.getState().getBlock().getName(), gui.getMouseX(), gui.getMouseY());
-		}
 	}
 
 	@Nullable
@@ -121,12 +120,12 @@ public class BlocksManager {
 		}).filter(Objects::nonNull).toList();
 	}
 
-	public boolean mouseClicked(double x, double y, MorphScreen2.OnBlockClick click) {
+	public boolean mouseClicked(double x, double y, AbstractMorphScreen.OnBlockClick click) {
 		SavedBlock block = parentScreen.BLOCKS_MANAGER.getBlockAtPosition(x, y);
 		if (block != null) {
-			SoundInstance sound = click.click(parentScreen.getPlayer().player().level(), parentScreen.getPlayer(), block, parentScreen.BLOCKS_MANAGER.findBlockIndex(x, y), TabManager.getSelectedTab(), TabManager.getTabPage());
+			SoundInstance sound = click.click(block, parentScreen.BLOCKS_MANAGER.findBlockIndex(x, y), TabManager.getSelectedTab(), TabManager.getTabPage());
 			if (sound != null) {
-				MorphScreen2.mc.getSoundManager().play(sound);
+				AbstractMorphScreen.mc.getSoundManager().play(sound);
 			}
 			return true;
 		} else return this.scrollerManager.mouseClicked(x, y);
@@ -139,7 +138,7 @@ public class BlocksManager {
 			if (tab.getType() == CreativeModeTab.Type.CATEGORY) {
 				List<SavedBlock> blocks = tab.getDisplayItems().stream().map((item) -> {
 					if (item.getItem() instanceof BlockItem block && block.isEnabled(set) && this.isAllowed(block)) {
-						return new SavedBlock(this.prepareBlockStateTag(block.getBlock().defaultBlockState(), item), null, null);
+						return new SavedBlock(this.prepareBlockStateTag(block.getBlock().defaultBlockState(), item), this.getTagForBlockEntity(item), null);
 					}
 					return null;
 				}).filter(Objects::nonNull).toList();
@@ -151,6 +150,15 @@ public class BlocksManager {
 	protected boolean isAllowed(BlockItem block) {
 		boolean allow = MorphUtils.isBannedBlock(block.getBlock().defaultBlockState(), parentScreen.getPlayer().player()) == null;
 		return !this.needAccessCheck || allow;
+	}
+
+	@Nullable
+	private CompoundTag getTagForBlockEntity(ItemStack stack) {
+		CustomData customData = stack.getOrDefault(DataComponents.BLOCK_ENTITY_DATA, CustomData.EMPTY);
+		if (!customData.isEmpty()) {
+			return customData.copyTag();
+		}
+		return null;
 	}
 
 	private BlockState prepareBlockStateTag(BlockState blockState, ItemStack item) {
@@ -192,7 +200,7 @@ public class BlocksManager {
 	}
 
 	protected void putSavedTab() {
-		ALL_TAB_CONTENTS.put(CreativeModeTabs.HOTBAR, MorphScreen2.SAVED_BLOCK_MANAGER.get().values().stream().toList());
+		ALL_TAB_CONTENTS.put(CreativeModeTabs.HOTBAR, AbstractMorphScreen.SAVED_BLOCK_MANAGER.get().values().stream().toList());
 	}
 
 	protected void putAllowedTab() {

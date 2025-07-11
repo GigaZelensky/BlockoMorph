@@ -8,6 +8,7 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 
 public class ServerBoundBlockMorphPacket implements BlockMorphPacket {
 	public static final String ID = "server_bound_block_morph_packet";
@@ -48,10 +49,10 @@ public class ServerBoundBlockMorphPacket implements BlockMorphPacket {
 		}
 	}
 
-	public static ServerBoundBlockMorphPacket create(BlockState state, CompoundTag tagMorph) {
+	public static ServerBoundBlockMorphPacket create(BlockState state, @Nullable CompoundTag tagMorph) {
 		CompoundTag tag = new CompoundTag();
 		tag.put("BlockState", NbtUtils.writeBlockState(state));
-		tag.put("Tags", tagMorph);
+		if (tagMorph != null) tag.put("Tags", tagMorph);
 		return new ServerBoundBlockMorphPacket(tag);
 	}
 

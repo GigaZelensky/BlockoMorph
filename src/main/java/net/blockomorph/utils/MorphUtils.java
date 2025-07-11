@@ -102,6 +102,8 @@ public class MorphUtils {
 	public static BannedBlock isBannedBlock(BlockState state, @Nullable Player pl) {
 		if (state.getBlock() instanceof LiquidBlock) {
 			return new BannedBlock("Morphing in liquids in development!", Component.translatable("commands.blockmorph.liquid"));
+		} else if (state.getBlock() == Blocks.AIR) {
+			return null;
 		}
 		String name = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
 		Config.Mode mode = Config.getInstance().getValue("listMode");
