@@ -1,5 +1,6 @@
 package net.blockomorph.network;
 
+import net.blockomorph.screens.AbstractMorphScreen;
 import net.blockomorph.screens.MorphScreenOld;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.Minecraft;
@@ -30,8 +31,8 @@ public class ClientBoundConfigUpdatePacket implements BlockMorphPacket {
 	@Override
 	public void handle(Player player) {
 		Config.load(this.config);
-		if (Minecraft.getInstance().screen instanceof MorphScreenOld s) {
-			s.updateAllowed();
+		if (Minecraft.getInstance().screen instanceof AbstractMorphScreen gui) {
+			gui.BLOCKS_MANAGER.updateAllowedBlocks();
 		}
 	}
 }

@@ -84,7 +84,7 @@ public class TabManager {
 
 	public boolean selectTab(CreativeModeTab tab) {
 		List<SavedBlock> list = BlocksManager.ALL_TAB_CONTENTS.get(getKeyFromTab(tab));
-		if (list != null && !list.isEmpty()) {
+		if (list != null) {
 			selectedTab = tab;
 			ScrollerManager<SavedBlock> manager = parentScreen.BLOCKS_MANAGER.scrollerManager;
 			manager.setScrollOffset(0f);

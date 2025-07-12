@@ -44,7 +44,7 @@ public abstract class AbstractMorphScreen extends Screen {
 		super(Component.literal("morph_screen"));
 		this.options = options;
 		this.player = PlayerAccessor.of(mc.player);
-		this.BLOCKS_MANAGER = new BlocksManager(this, options.needAccessCheck());
+		this.BLOCKS_MANAGER = new BlocksManager(this);
 		this.TAB_MANAGER = new TabManager(this, options.useAllowedTab(), options.useSavedBlocksTab());
 	}
 
@@ -174,7 +174,7 @@ public abstract class AbstractMorphScreen extends Screen {
 		void render(SavedBlock block, int x, int y);
 	}
 
-	public record MorphScreenOptions(boolean useAllowedTab, boolean useSavedBlocksTab, boolean needAccessCheck, boolean useUpperTabs) {
-		public static MorphScreenOptions ALL = new MorphScreenOptions(true, true, true, true);
+	public record MorphScreenOptions(boolean useAllowedTab, boolean useSavedBlocksTab, boolean useUpperTabs) {
+		public static MorphScreenOptions ALL = new MorphScreenOptions(true, true, true);
 	}
 }

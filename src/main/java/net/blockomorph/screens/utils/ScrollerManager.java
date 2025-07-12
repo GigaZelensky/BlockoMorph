@@ -50,12 +50,12 @@ public class ScrollerManager<T> {
 		return this.scrollOffset;
 	}
 
-	protected int calculateRowCount() {
+	private int findRowNumber() {
 		return Mth.positiveCeilDiv(this.list != null ? this.list.size() : 0, 4) - 4;
 	}
 
-	protected int getRowIndexForScroll(float f) {
-		return Math.max((int)((double)(f * (float)this.calculateRowCount()) + (double)0.5F), 0);
+	protected int findRowIndexForScrollOffset(float f) {
+		return Math.max((int)((double)(f * (float)this.findRowNumber()) + (double)0.5F), 0);
 	}
 
 	public boolean mouseClicked(double x, double y) {
@@ -82,7 +82,7 @@ public class ScrollerManager<T> {
 
 	public boolean mouseScrolled(double yScrolled) {
 		if (!this.canScroll()) return false;
-		this.scrollOffset = Mth.clamp(this.scrollOffset - (float)(yScrolled / (double)this.calculateRowCount()), 0.0F, 1.0F);
+		this.scrollOffset = Mth.clamp(this.scrollOffset - (float)(yScrolled / (double)this.findRowNumber()), 0.0F, 1.0F);
 		this.refreshList();
 		return true;
 	}
@@ -90,7 +90,7 @@ public class ScrollerManager<T> {
 	public void refreshList() {
 		this.renderable.clear();
 		if (this.list != null && !this.list.isEmpty()) {
-			int i = this.getRowIndexForScroll(this.scrollOffset);
+			int i = this.findRowIndexForScrollOffset(this.scrollOffset);
 			int startIndex = i * this.row;
 
 			for (int j = 0; j < this.column; ++j) {

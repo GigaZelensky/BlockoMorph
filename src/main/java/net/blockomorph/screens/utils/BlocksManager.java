@@ -26,6 +26,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Predicate;
 
 public class BlocksManager {
 	protected static final ResourceKey<CreativeModeTab> ALLOWED_TAB_KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB, GuiUtils.res("allowed_blocks"));
@@ -44,11 +45,9 @@ public class BlocksManager {
 	private static HolderLookup.Provider HOLDER;
 	public final ScrollerManager<SavedBlock> scrollerManager;
 	private final AbstractMorphScreen parentScreen;
-	private final boolean needAccessCheck;
 
-	public BlocksManager(AbstractMorphScreen screen, boolean needAccessCheck) {
+	public BlocksManager(AbstractMorphScreen screen) {
 		this.parentScreen = screen;
-		this.needAccessCheck = needAccessCheck;
 		this.scrollerManager = new ScrollerManager<>(() -> screen.getLeftPos() + 158, () -> screen.getTopPos() + 16, 142, 4, 4, this.renderableBlocks);
 	}
 
@@ -120,6 +119,30 @@ public class BlocksManager {
 		}).filter(Objects::nonNull).toList();
 	}
 
+	public void searchBlocks(String searchName) {
+		TabManager tabs = this.parentScreen.TAB_MANAGER;
+		if (tabs.hasSearchBar()) {
+			if (searchName.isEmpty()) {
+				tabs.selectTab(TabManager.selectedTab);
+			} else {
+				List<SavedBlock> list = BlocksManager.ALL_TAB_CONTENTS.get(TabManager.getKeyFromTab(TabManager.selectedTab));
+				if (list != null) {
+					this.scrollerManager.setScrollOffset(0f);
+
+					List<SavedBlock> blocks = list.stream().filter(block -> {
+						String name;
+						if (block.getName() == null) {
+							name = block.getName();
+						} else name = block.getState().getBlock().getName().getString();
+						return name.toLowerCase().contains(searchName.toLowerCase());
+					}).toList();
+					this.scrollerManager.setMainList(blocks);
+					this.scrollerManager.refreshList();
+				}
+			}
+		}
+	}
+
 	public boolean mouseClicked(double x, double y, AbstractMorphScreen.OnBlockClick click) {
 		SavedBlock block = parentScreen.BLOCKS_MANAGER.getBlockAtPosition(x, y);
 		if (block != null) {
@@ -137,7 +160,7 @@ public class BlocksManager {
 			CreativeModeTab tab = entry.getValue();
 			if (tab.getType() == CreativeModeTab.Type.CATEGORY) {
 				List<SavedBlock> blocks = tab.getDisplayItems().stream().map((item) -> {
-					if (item.getItem() instanceof BlockItem block && block.isEnabled(set) && this.isAllowed(block)) {
+					if (item.getItem() instanceof BlockItem block && block.isEnabled(set)) {
 						return new SavedBlock(this.prepareBlockStateTag(block.getBlock().defaultBlockState(), item), this.getTagForBlockEntity(item), null);
 					}
 					return null;
@@ -145,11 +168,6 @@ public class BlocksManager {
 				ALL_TAB_CONTENTS.put(key, blocks);
 			}
 		});
-	}
-
-	protected boolean isAllowed(BlockItem block) {
-		boolean allow = MorphUtils.isBannedBlock(block.getBlock().defaultBlockState(), parentScreen.getPlayer().player()) == null;
-		return !this.needAccessCheck || allow;
 	}
 
 	@Nullable
@@ -210,5 +228,12 @@ public class BlocksManager {
 			}
 			return null;
 		})).filter(Objects::nonNull).toList());
+	}
+
+	public void updateAllowedBlocks() {
+		this.putAllowedTab();
+		if (TabManager.selectedTab == TabManager.ALLOWED_TAB) {
+			this.parentScreen.TAB_MANAGER.selectTab(TabManager.ALLOWED_TAB);
+		}
 	}
 }

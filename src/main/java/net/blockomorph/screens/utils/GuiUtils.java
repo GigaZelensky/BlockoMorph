@@ -123,6 +123,7 @@ public class GuiUtils { //Cross-platform wrapper
 		GUI.blitSprite(RenderType::guiTextured, resourceLocation, x, y, maxSizeX, maxSizeY);
 	}
 
+	//HINT:   XY - upper left corner of item
 	public void renderItem(ItemStack item, float x, float y, float scale, float zDepth) {
 		if (scale == 1) scale = 16f;
 		PoseStack pose = GUI.pose();
