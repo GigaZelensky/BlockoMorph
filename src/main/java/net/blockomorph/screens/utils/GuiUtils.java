@@ -21,23 +21,29 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.BlockItemStateProperties;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GuiUtils { //Cross-platform wrapper
 	protected static final BlockPos AIR = new BlockPos(0, 500, 0);
@@ -123,6 +129,10 @@ public class GuiUtils { //Cross-platform wrapper
 		GUI.blitSprite(RenderType::guiTextured, resourceLocation, x, y, maxSizeX, maxSizeY);
 	}
 
+	public void drawString(Component text, int x, int y, int color, boolean useShadow) {
+		GUI.drawString(this.font, text, x, y, color, useShadow);
+	}
+
 	//HINT:   XY - upper left corner of item
 	public void renderItem(ItemStack item, float x, float y, float scale, float zDepth) {
 		if (scale == 1) scale = 16f;
@@ -183,10 +193,20 @@ public class GuiUtils { //Cross-platform wrapper
 
 	public void renderAdditionalOnBlock(BlockState blockState, float x, float y, float scale) {
 		if (blockState.getRenderShape() == RenderShape.INVISIBLE) {
+			Item item = null;
 			if (blockState.getBlock() instanceof LiquidBlock) {
-				this.renderItem(new ItemStack(blockState.getFluidState().getType().getBucket()), x, y, scale, 100);
+				item = blockState.getFluidState().getType().getBucket();
 			} else if (blockState.getBlock().asItem() != Items.AIR) {
-				this.renderItem(new ItemStack(blockState.getBlock().asItem()), x, y, scale, 100);
+				item = blockState.getBlock().asItem();
+			}
+			if (item != null) {
+				ItemStack itemStack = new ItemStack(item);
+				Map<String, String> map = new HashMap<>();
+				for (Property<?> property : blockState.getProperties()) {
+					map.put(property.getName(), blockState.getValue(property).toString());
+				}
+				itemStack.set(DataComponents.BLOCK_STATE, new BlockItemStateProperties(map));
+				this.renderItem(itemStack, x, y, scale, 100);
 			}
 		}
 	}

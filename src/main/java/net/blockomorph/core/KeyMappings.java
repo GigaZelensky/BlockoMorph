@@ -24,12 +24,16 @@ public class KeyMappings {
 
 	public static final KeyMapping CONFIG = new HandlerKeymapping("key.blockomorph.config_menu", GLFW.GLFW_KEY_N, () -> {
 		if (canOpenConfig()) {
-			mc.setScreen(new ConfigScreen());
+			mc.setScreen(new ConfigScreenOld());
 		}
 	});
 
 	public static final KeyMapping DEBUG = new HandlerKeymapping("key.blockomorph.debug", GLFW.GLFW_KEY_J, () -> {
-		mc.setScreen(new MorphScreen());
+		mc.setScreen(new MorphScreen().ignoreInitInput());
+	});
+
+	public static final KeyMapping DEBUG2 = new HandlerKeymapping("key.blockomorph.debug2", GLFW.GLFW_KEY_K, () -> {
+		mc.setScreen(new ConfigScreen());
 	});
 
 	static void registerKeyMappings(Consumer<KeyMapping> register) {

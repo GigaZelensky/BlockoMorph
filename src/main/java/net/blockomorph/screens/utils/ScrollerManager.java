@@ -59,7 +59,7 @@ public class ScrollerManager<T> {
 	}
 
 	public boolean mouseClicked(double x, double y) {
-		if (x > this.barY.getAsInt() + 157 && x < this.barX.getAsInt() + 157 + 13 && y > this.barY.getAsInt() && y < this.barY.getAsInt() + this.barHeight) {
+		if (x > this.barX.getAsInt() && x < this.barX.getAsInt() + 13 && y > this.barY.getAsInt() && y < this.barY.getAsInt() + this.barHeight) {
 			this.scrollWork = this.canScroll();
 			return true;
 		}

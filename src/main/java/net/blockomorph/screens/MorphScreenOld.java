@@ -72,7 +72,7 @@ public class MorphScreenOld extends Screen {
 	private final BlockEntityRenderDispatcher blockEntityRenderDispatcher = Minecraft.getInstance().getBlockEntityRenderDispatcher();
 	private static final ResourceLocation SCROLLER_SPRITE = ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller");
     private static final ResourceLocation SCROLLER_DISABLED_SPRITE = ResourceLocation.withDefaultNamespace("container/creative_inventory/scroller_disabled");
-    private static final CreativeModeTab allowed = CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0).title(Component.translatable("gui.blockomorph.allowedBlocks")).icon(() -> {return new ItemStack(Items.NETHER_STAR);}).build();
+    private static final CreativeModeTab allowed = CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0).title(Component.translatable("blockomorph.gui.morphScreen.allowed_tab")).icon(() -> new ItemStack(Items.NETHER_STAR)).build();
     private static final WidgetSprites DEMORPH_BUT = new WidgetSprites(
    	 ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/demorph_def.png"),
    	 ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/demorph_dis.png"),
@@ -740,7 +740,7 @@ public class MorphScreenOld extends Screen {
 		this.fuse.active = this.activeFlameBut();
 		this.fuse.visible = this.needFlameBut();
 		this.addRenderableWidget(this.fuse);
-		if (this.isConfig()) this.addRenderableWidget(Button.builder(Component.literal("<--"), b -> this.minecraft.setScreen(new ConfigScreen()) ).pos(this.leftPos + 10, this.topPos + this.imageHeight + 1).size(20, 20).build());
+		if (this.isConfig()) this.addRenderableWidget(Button.builder(Component.literal("<--"), b -> this.minecraft.setScreen(new ConfigScreenOld()) ).pos(this.leftPos + 10, this.topPos + this.imageHeight + 1).size(20, 20).build());
 		if (pageCount > 1) {
             this.addRenderableWidget(Button.builder(Component.literal("<"), b -> this.setPage(false)).pos(leftPos - 22,  topPos - 22).size(20, 20).build());
             this.addRenderableWidget(Button.builder(Component.literal(">"), b -> this.setPage(true)).pos(leftPos + imageWidth, topPos - 22).size(20, 20).build());

@@ -1,6 +1,7 @@
 package net.blockomorph.screens.utils;
 
 import com.google.common.collect.ImmutableList;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.blockomorph.screens.AbstractMorphScreen;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.SavedBlock;
@@ -65,7 +66,12 @@ public class BlocksManager {
 					}
 					gui.renderBlockInGui(block.getState(), blockEntity, parentScreen.getLeftPos() + 28 + x * 36, parentScreen.getTopPos() + 48.5f + y * 36, 20);
 					gui.renderAdditionalOnBlock(block.getState(), parentScreen.getLeftPos() + 20 + x * 36, parentScreen.getTopPos() + 25 + y * 36, 30);
+
+					PoseStack stack = gui.getGuiGraphics().pose();
+					stack.pushPose();
+					stack.translate(0, 0, 200);
 					onRendering.render(block, parentScreen.getLeftPos() + 10 + x * 36, parentScreen.getTopPos() + 15 + y * 36);
+					stack.popPose();
 				}
 			}
 		}
@@ -95,7 +101,7 @@ public class BlocksManager {
 		LocalPlayer player = (LocalPlayer)parentScreen.getPlayer();
 		FeatureFlagSet set = player.connection.enabledFeatures();
 		HolderLookup.Provider holder = player.level().registryAccess();
-		if (!set.equals(FEATURE_FLAGS) || HOLDER != holder) {
+		if (!set.equals(FEATURE_FLAGS) || HOLDER != holder || true) {
 			ALL_TAB_CONTENTS.clear();
 			ALL_BLOCKS = BuiltInRegistries.BLOCK.stream().filter((block -> block.isEnabled(set))).toList();
 
@@ -131,7 +137,7 @@ public class BlocksManager {
 
 					List<SavedBlock> blocks = list.stream().filter(block -> {
 						String name;
-						if (block.getName() == null) {
+						if (block.getName() != null) {
 							name = block.getName();
 						} else name = block.getState().getBlock().getName().getString();
 						return name.toLowerCase().contains(searchName.toLowerCase());
@@ -232,8 +238,15 @@ public class BlocksManager {
 
 	public void updateAllowedBlocks() {
 		this.putAllowedTab();
+		TabManager tabs = this.parentScreen.TAB_MANAGER;
+		tabs.putAllowedTabIfNeed();
 		if (TabManager.selectedTab == TabManager.ALLOWED_TAB) {
-			this.parentScreen.TAB_MANAGER.selectTab(TabManager.ALLOWED_TAB);
+			if (tabs.SPECIAL_TABS.contains(TabManager.ALLOWED_TAB)) {
+				tabs.selectTab(TabManager.ALLOWED_TAB);
+			} else {
+				tabs.selectTab(CreativeModeTabs.getDefaultTab());
+				TabManager.tabPage = 0;
+			}
 		}
 	}
 }

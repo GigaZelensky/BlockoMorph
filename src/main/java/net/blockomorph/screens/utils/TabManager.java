@@ -1,10 +1,11 @@
 package net.blockomorph.screens.utils;
 
-import com.google.common.collect.ImmutableList;
 import net.blockomorph.screens.AbstractMorphScreen;
+import net.blockomorph.screens.MorphScreenOld;
 import net.blockomorph.utils.SavedBlock;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.multiplayer.SessionSearchTrees;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -17,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -30,31 +32,43 @@ public class TabManager {
 	protected static CreativeModeTab selectedTab = CreativeModeTabs.getDefaultTab();
 	protected static int tabPage = 0;
 	protected final int pageCount;
+	protected EditBox searchBox;
+	protected final boolean needAllowedTab;
 
 	public TabManager(AbstractMorphScreen screen, boolean useAllowedTab, boolean useSavedBlocksTab) {
 		this.parentScreen = screen;
+		this.needAllowedTab = useAllowedTab;
 		AbstractMorphScreen.SAVED_BLOCK_MANAGER.load();
 		this.initTabs();
-		ImmutableList.Builder<CreativeModeTab> list = ImmutableList.builder();
+		List<CreativeModeTab> list = new ArrayList<>();
 		list.add(CreativeModeTabs.searchTab());
 		list.add(getTabFromKey(CreativeModeTabs.OP_BLOCKS));
 		if (useSavedBlocksTab) list.add(getTabFromKey(CreativeModeTabs.HOTBAR));
-		if (useAllowedTab) list.add(ALLOWED_TAB);
-		SPECIAL_TABS = list.build();
+		SPECIAL_TABS = list;
 		CONTENT_TABS = screen.BLOCKS_MANAGER.sortTabsIfItemsIsBlocks();
+		this.putAllowedTabIfNeed();
 		this.pageCount = (int) Math.ceil((double) CONTENT_TABS.size() / 10);
 	}
 
 	public void renderTabs(GuiUtils gui) {
+		this.searchBox.visible = this.hasSearchBar();
 		this.renderTabsInGui(gui);
 		CreativeModeTab tab = this.getTabAtPosition(gui.getMouseX(), gui.getMouseY());
 		if (tab != null) gui.renderTooltip(tab.getDisplayName(), gui.getMouseX(), gui.getMouseY());
 		if (selectedTab.showTitle())
-			gui.getGuiGraphics().drawString(gui.getFont(), selectedTab.getDisplayName(), parentScreen.getLeftPos() + 8, parentScreen.getTopPos() + 6, 0x404040, false);
+			gui.drawString(selectedTab.getDisplayName(), parentScreen.getLeftPos() + 8, parentScreen.getTopPos() + 6, 0x404040, false);
+		if (this.pageCount > 1) {
+			Component pageCounter = Component.literal(String.format("%d / %d", tabPage + 1, this.pageCount));
+			gui.drawString(pageCounter, parentScreen.getLeftPos() + (parentScreen.imageLength / 2) - (gui.getFont().width(pageCounter) / 2), parentScreen.getTopPos() - 34, -1, true);
+		}
 	}
 
 	public boolean hasSearchBar() {
 		return selectedTab == CreativeModeTabs.searchTab() || selectedTab == ALLOWED_TAB || selectedTab == getTabFromKey(CreativeModeTabs.HOTBAR);
+	}
+
+	public EditBox getSearchBox() {
+		return this.searchBox;
 	}
 
 	public static CreativeModeTab getSelectedTab() {
@@ -72,6 +86,11 @@ public class TabManager {
 			action.accept(Button.builder(Component.literal("<"), b -> this.setPage(false)).pos(leftPos - 22,  topPos - 22).size(20, 20).build());
 			action.accept(Button.builder(Component.literal(">"), b -> this.setPage(true)).pos(leftPos + parentScreen.imageLength, topPos - 22).size(20, 20).build());
 		}
+		this.searchBox = new ListenerEditBox(this.parentScreen.getFont(), this.parentScreen.getLeftPos() + 99, this.parentScreen.getTopPos() - 10, 70, 12, Component.translatable("itemGroup.search"), parentScreen.BLOCKS_MANAGER::searchBlocks);
+		this.searchBox.setMaxLength(32767);
+		this.searchBox.setBordered(false);
+		this.searchBox.setTextColor(16777215);
+		action.accept(this.searchBox);
 	}
 
 	public boolean mouseClicked(double x, double y) {
@@ -90,6 +109,11 @@ public class TabManager {
 			manager.setScrollOffset(0f);
 			manager.setMainList(list);
 			manager.refreshList();
+			this.searchBox.setValue("");
+			boolean flag = this.hasSearchBar();
+			this.searchBox.visible = flag;
+			this.searchBox.setCanLoseFocus(!flag);
+			this.searchBox.setFocused(flag);
 			return true;
 		}
 		return false;
@@ -115,6 +139,18 @@ public class TabManager {
 
 	protected boolean isSelected(boolean special, int i) {
 		return (special ? SPECIAL_TABS : CONTENT_TABS).get(i) == selectedTab;
+	}
+
+	protected void putAllowedTabIfNeed() {
+		List<SavedBlock> blocks = BlocksManager.ALL_TAB_CONTENTS.get(getKeyFromTab(ALLOWED_TAB));
+		if (blocks != null) {
+			if (blocks.size() == BlocksManager.ALL_BLOCKS.size()) { //TODO
+				SPECIAL_TABS.remove(ALLOWED_TAB);
+			} else {
+				if (!SPECIAL_TABS.contains(ALLOWED_TAB))
+					SPECIAL_TABS.add(ALLOWED_TAB);
+			}
+		}
 	}
 	
 	protected void renderTabsInGui(GuiUtils gui) {

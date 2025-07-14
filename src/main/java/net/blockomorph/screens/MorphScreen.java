@@ -90,10 +90,8 @@ public class MorphScreen extends AbstractMorphScreen {
 		if (block != null) {
 			MorphUtils.BannedBlock ban = MorphUtils.isBannedBlock(block.getState(), this.player.player());
 			if (ban != null) {
-				List<Component> hints = List.of(
-						block.getState().getBlock().getName(),
-						Component.literal(ChatFormatting.RED + ban.text().getString())
-				);
+				Component name = block.getName() == null ? block.getState().getBlock().getName() : Component.literal(block.getName());
+				List<Component> hints = List.of(name, Component.literal(ChatFormatting.RED + ban.text().getString()));
 				gui.renderTooltip(hints, gui.getMouseX(), gui.getMouseY());
 			} else {
 				super.renderTooltip();

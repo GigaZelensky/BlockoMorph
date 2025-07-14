@@ -11,16 +11,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.ApiStatus;
 
-import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 public abstract class AbstractMorphScreen extends Screen {
@@ -38,6 +33,7 @@ public abstract class AbstractMorphScreen extends Screen {
 	private final MorphScreenOptions options;
 	protected int leftPos;
 	protected int topPos;
+	protected boolean ignoreSearchBoxInput;
 
 
 	protected AbstractMorphScreen(MorphScreenOptions options) {
@@ -57,7 +53,8 @@ public abstract class AbstractMorphScreen extends Screen {
 	protected void renderTooltip() {
 		SavedBlock block = BLOCKS_MANAGER.getBlockAtPosition(gui.getMouseX(), gui.getMouseY());
 		if (block != null) {
-			gui.renderTooltip(block.getState().getBlock().getName(), gui.getMouseX(), gui.getMouseY());
+			Component name = block.getName() == null ? block.getState().getBlock().getName() : Component.literal(block.getName());
+			gui.renderTooltip(name, gui.getMouseX(), gui.getMouseY());
 		}
 	}
 
@@ -85,12 +82,20 @@ public abstract class AbstractMorphScreen extends Screen {
 
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
-		super.render(guiGraphics, mouseX, mouseY, tick);
 		this.gui.setGuiGraphics(guiGraphics, this.font, mouseX, mouseY, tick);
-		this.renderBackground();
+		super.render(guiGraphics, mouseX, mouseY, tick);
+		this.renderContent();
+		this.renderTooltip();
 	}
 
-	private void renderBackground() {
+	private void renderContent() {
+		TAB_MANAGER.renderTabs(this.gui);
+		BLOCKS_MANAGER.render(this.gui, this::renderFrame);
+	}
+
+	@Override
+	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
+		super.renderBackground(guiGraphics, mouseX, mouseY, tick);
 		this.gui.blitMonoImage(MENU_LOCATION, this.leftPos, this.topPos, this.imageLength, this.imageHeight);
 		if (this.options.useUpperTabs()) {
 			this.gui.blit(MODE_TABS, this.leftPos + 4, this.topPos - 19, 0, 0, 80, 22, 80, 46);
@@ -98,9 +103,6 @@ public abstract class AbstractMorphScreen extends Screen {
 		if (TAB_MANAGER.hasSearchBar()) {
 			gui.blitMonoImage(SEARCH_BAR, this.leftPos + 90, this.topPos - 19, 80, 23);
 		}
-		TAB_MANAGER.renderTabs(this.gui);
-		BLOCKS_MANAGER.render(this.gui, this::renderFrame);
-		this.renderTooltip();
 	}
 
 	@Override
@@ -146,6 +148,34 @@ public abstract class AbstractMorphScreen extends Screen {
 		return super.mouseScrolled(x, y, xScrolled, yScrolled);
 	}
 
+	public AbstractMorphScreen ignoreInitInput() {
+		this.ignoreSearchBoxInput = true;
+		return this;
+	}
+
+	@Override
+	public boolean charTyped(char codePoint, int mods) {
+		if (this.ignoreSearchBoxInput) {
+			this.ignoreSearchBoxInput = false;
+			return false;
+		} else if (TAB_MANAGER.getSearchBox().charTyped(codePoint, mods)) {
+			return true;
+		}
+		return super.charTyped(codePoint, mods);
+	}
+
+	@Override
+	public boolean keyPressed(int keyboardButton, int scanCode, int mods) {
+		if (keyboardButton == 256) {
+			this.onClose();
+		} else {
+			if (TAB_MANAGER.getSearchBox().keyPressed(keyboardButton, scanCode, mods)) {
+				return true;
+			}
+		}
+		return super.keyPressed(keyboardButton, scanCode, mods);
+	}
+
 	@Override
 	protected void init() {
 		this.leftPos = (this.width - this.imageLength) / 2;
@@ -159,7 +189,10 @@ public abstract class AbstractMorphScreen extends Screen {
 	public void resize(Minecraft minecraft, int width, int height) {
 		ScrollerManager<SavedBlock> manager = BLOCKS_MANAGER.scrollerManager;
 		float scroll = manager.getScrollerOffset();
+		String value = TAB_MANAGER.getSearchBox().getValue();
 		super.resize(minecraft, width, height);
+		TAB_MANAGER.getSearchBox().setValue(value);
+		BLOCKS_MANAGER.searchBlocks(value);
 		manager.setScrollOffset(scroll);
 		manager.refreshList();
 	}

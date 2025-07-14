@@ -16,7 +16,7 @@ public class ListenerEditBox extends EditBox {
     }
 
     public boolean keyPressed(int key, int b, int c) {
-    	if (this.active) {
+    	if (this.active && this.visible) {
             boolean flag = super.keyPressed(key, b, c);
       	    if (this.edit) this.run.accept(this.getValue());
       	    return flag;
@@ -25,7 +25,7 @@ public class ListenerEditBox extends EditBox {
     }
 
     public boolean charTyped(char c, int type) {
-    	if (this.active) {
+    	if (this.active && this.visible) {
       	    boolean flag = super.charTyped(c, type);
       	    if (this.edit) this.run.accept(this.getValue());
       	    return flag;
