@@ -56,11 +56,8 @@ public class BooleanConfig extends ConfigInstance<Boolean> {
 	}
 
 	@Override
-	public BooleanConfigRenderer getRenderer() {
-		if (RENDERER == null) {
-			RENDERER = new BooleanConfigRenderer();
-		}
-		return RENDERER;
+	public <U extends ConfigInstance<Boolean>> ConfigRenderer<U> getRenderer() {
+		return (ConfigRenderer<U>) new BooleanConfigRenderer();
 	}
 
 	@Override
