@@ -1,8 +1,9 @@
-package net.blockomorph.screens.utils;
+package net.blockomorph.screens.morph;
 
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.blockomorph.screens.AbstractMorphScreen;
+import net.blockomorph.screens.utils.GuiUtils;
+import net.blockomorph.screens.utils.ScrollerManager;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.SavedBlock;
 import net.minecraft.client.player.LocalPlayer;
@@ -27,7 +28,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
-import java.util.function.Predicate;
 
 public class BlocksManager {
 	protected static final ResourceKey<CreativeModeTab> ALLOWED_TAB_KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB, GuiUtils.res("allowed_blocks"));

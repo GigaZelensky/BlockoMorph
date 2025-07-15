@@ -1,9 +1,9 @@
-package net.blockomorph.screens;
+package net.blockomorph.screens.morph;
 
-import net.blockomorph.screens.utils.BlocksManager;
+import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ScrollerManager;
-import net.blockomorph.screens.utils.TabManager;
+import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
 import net.blockomorph.utils.SavedBlock;
 import net.blockomorph.utils.SavedBlockManager;
@@ -24,7 +24,7 @@ public abstract class AbstractMorphScreen extends Screen {
 	private static final ResourceLocation MODE_TABS = GuiUtils.res("textures/screens/exit_tabs.png");
 	public static final Minecraft mc = Minecraft.getInstance();
 	protected final GuiUtils gui = new GuiUtils();
-	public static final SavedBlockManager SAVED_BLOCK_MANAGER = new SavedBlockManager(GuiUtils.getSavedBlockManagerPath());
+	public static final SavedBlockManager SAVED_BLOCK_MANAGER = new SavedBlockManager(MorphUtils.getGameDir());
 	public final TabManager TAB_MANAGER;
 	public final BlocksManager BLOCKS_MANAGER;
 	protected PlayerAccessor player;

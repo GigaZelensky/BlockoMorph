@@ -69,7 +69,7 @@ public abstract class ServerPlayerMixin extends Player {
 	public void restoreBlockMorphData(ServerPlayer old, boolean fromEnd, CallbackInfo ci) {
 		PlayerAccessor pl = PlayerAccessor.of(this);
 		PlayerAccessor oldPl = PlayerAccessor.of(old);
-		if (!fromEnd && (Boolean) Config.getInstance().getValue("playerDieAfterDestroy")) {
+		if (!fromEnd && Config.getInstance().getValue("playerDieAfterDestroy", Boolean.class)) {
 			pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), null);
 			for (InPlayerBlockPos pos : oldPl.getUpdates()) {
 				pl.prepareSync(pos);

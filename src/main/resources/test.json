@@ -1,4 +1,12 @@
 {
   "blockomorph.gui.morphScreen.allowed_tab": "Allowed blocks",
-  ""
+
+
+  "blockomorph.commands.option_change.default": "Value of option \"%s\" changed to %s.",
+  "blockomorph.commands.option_change.list.clear": "List-option \"%s\" has been cleared.",
+  "blockomorph.commands.option_change.list.add": "Value %s added to list-option \"%s\".",
+  "blockomorph.commands.option_change.list.remove": "Value %s removed from list-option \"%s\".",
+  "blockomorph.commands.enum_argument.wrong": "Selected wrong value %s from list %s.",
+  "blockomorph.commands.option_get.default": "Value of option \"%s\" is %s.",
+  "blockomorph.commands.option_get.list": "Values of list-option \"%s\" with size %s is: %s"
 }

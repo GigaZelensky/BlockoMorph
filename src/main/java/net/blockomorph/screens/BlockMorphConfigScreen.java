@@ -1,5 +1,7 @@
 package net.blockomorph.screens;
 
+import net.blockomorph.screens.morph.AbstractMorphScreen;
+import net.blockomorph.screens.morph.MorphScreenOld;
 import net.blockomorph.screens.utils.ListenerEditBox;
 import net.blockomorph.utils.*;
 import net.blockomorph.network.*;
@@ -160,16 +162,16 @@ public class BlockMorphConfigScreen extends Screen {
 		if (!tagsBox.canConsumeInput()) 
 		    guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/morph_gui_icons.png"), this.leftPos + 7, this.topPos + 139, 0, 0, 162, 19, 162, 19);
 		guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/exit_tabs.png"), this.leftPos + 4, this.topPos - 19, 0, 23, 80, 22, 80, 46);
-		this.renderMbButton(guiGraphics, partialTicks, gx, gy);
+		//this.renderMbButton(guiGraphics, partialTicks, gx, gy);
 		this.renderProp(guiGraphics, gx, gy);
    }
 
-   private void renderMbButton(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
+   /*private void renderMbButton(GuiGraphics guiGraphics, float partialTicks, int gx, int gy) {
    	    if (false && Config.getInstance() != null && (boolean)Config.getInstance().getValue("advancedMode")) {
    	    	guiGraphics.blit(RenderType::guiTextured, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/mb_but.png"), this.leftPos + 93, this.topPos + 120, 0, this.mb ? 10:0, 67, 10, 67, 20);
    	    	guiGraphics.drawCenteredString(this.font, Component.translatable("gui.blockomorph.mb"), this.leftPos + 93 + 33, this.topPos + 121, -1);
    	    }
-   }
+   }*/
 
    protected void renderLb(GuiGraphics guiGraphics) {
    	    String name = playerState.getBlock().getName().getString();
@@ -344,7 +346,7 @@ public class BlockMorphConfigScreen extends Screen {
    	    	this.listProp = null;
    	    	if (false && !flag && prop == null) {
    	    		if (x > this.leftPos + 93 && x < this.leftPos + 93 + 67 && y > this.topPos + 120 && y < this.topPos + 130) {
-   	    			if (Config.getInstance() != null && (boolean)Config.getInstance().getValue("advancedMode")) {
+   	    			if (Config.getInstance() != null && Config.getInstance().getValue("advancedMode", Boolean.class)) {
    	    				MorphUtils.sendServer(ServerBoundBlockMorphPacket.create(this.playerState, this.playerTag));
    	    			    sound.play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F));
    	    			}

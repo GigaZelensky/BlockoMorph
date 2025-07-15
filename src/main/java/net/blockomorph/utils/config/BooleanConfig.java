@@ -1,48 +1,70 @@
 package net.blockomorph.utils.config;
 
+import net.blockomorph.screens.config.ConfigRenderer;
+import net.blockomorph.screens.config.renderers.BooleanConfigRenderer;
+import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.FriendlyByteBuf;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonPrimitive;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
-import com.mojang.brigadier.builder.ArgumentBuilder;
 import net.minecraft.commands.Commands;
 import com.mojang.brigadier.arguments.BoolArgumentType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.commands.CommandBuildContext;
+import org.jetbrains.annotations.Nullable;
 
 public class BooleanConfig extends ConfigInstance<Boolean> {
-   public BooleanConfig(String n, boolean value) {
-   	  super(n, value);
-   }
+	private BooleanConfigRenderer RENDERER;
+	public BooleanConfig(String name, Boolean initialValue, boolean canOperatorModify, @Nullable Component tip) {
+		super(name, initialValue, canOperatorModify, tip);
+	}
 
-   public BooleanConfig(String n, boolean value, Component t) {
-   	  super(n, value, t);
-   }
-   
-   public void parse(String value) {
-   	  this.value = Boolean.parseBoolean(value);
-   }
+	@Override
+	public void readFromStorage(JsonElement option) {
+		this.value = option.getAsBoolean();
+	}
 
-   public JsonElement serialize() {
-   	  return new JsonPrimitive(value);
-   }
+	@Override
+	public JsonElement getDataForStorage() {
+		return new JsonPrimitive(this.value);
+	}
 
-   public ArgumentBuilder work(LiteralArgumentBuilder b, CommandBuildContext c) {
-   	  return b.then(Commands.argument("value", BoolArgumentType.bool()).executes(args -> {
-   	  	 this.value = BoolArgumentType.getBool(args, "value");
-   	  	 Config.getInstance().getOption(this.getName()).setValue(this.value);
-   	  	 Config.getInstance().makeDirty();
-   	  	 args.getSource().sendSuccess(() -> {
-            return Component.translatable("commands.blockmorph.config", this.getName(), this.value + "");
-         }, true);
-         return 1;
-	  }));
-   }
+	@Override
+	public void parseFromUser(String value) {
+		this.value = Boolean.parseBoolean(value);
+	}
 
-   public void readBufer(FriendlyByteBuf buf) {
-   	  this.value = buf.readBoolean();
-   }
-   public void writeBufer(FriendlyByteBuf buf) {
-   	  buf.writeBoolean(this.value);
-   }
+	@Override
+	public void readFromNetwork(FriendlyByteBuf buf) {
+		this.value = buf.readBoolean();
+	}
+
+	@Override
+	public void writeToNetwork(FriendlyByteBuf buf) {
+		buf.writeBoolean(this.value);
+	}
+
+	public LiteralArgumentBuilder<CommandSourceStack> buildArgument(LiteralArgumentBuilder<CommandSourceStack> optionNameArgument, CommandBuildContext context, Commands.CommandSelection environment) {
+		return optionNameArgument.then(Commands.argument("value", BoolArgumentType.bool()).executes(args -> {
+			this.value = BoolArgumentType.getBool(args, "value");
+			Config.getInstance().writeAndSend();
+			args.getSource().sendSuccess(() -> {
+				return Component.translatable("blockomorph.commands.option_change.default", this.name, this.value.toString());
+			}, true);
+			return 1;
+		}));
+	}
+
+	@Override
+	public <CFG extends ConfigInstance<Boolean>> ConfigRenderer<CFG> getRenderer() {
+		if (RENDERER == null) {
+			RENDERER = new BooleanConfigRenderer();
+		}
+		return RENDERER;
+	}
+
+	@Override
+	public <CFG extends ConfigInstance<Boolean>> Class<CFG> getType() {
+		return null;
+	}
 }

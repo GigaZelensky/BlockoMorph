@@ -1,6 +1,10 @@
 package net.blockomorph.core;
 
 import net.blockomorph.screens.*;
+import net.blockomorph.screens.config.ConfigScreen;
+import net.blockomorph.screens.config.ConfigScreenOld;
+import net.blockomorph.screens.morph.MorphScreen;
+import net.blockomorph.screens.morph.MorphScreenOld;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
@@ -43,7 +47,7 @@ public class KeyMappings {
 	}
 
 	private static boolean canOpenConfig() {
-		return mc.player != null && mc.player.hasPermissions(2) && (boolean)Config.getInstance().getValue("canOperatorModifyConfig");
+		return mc.player != null && mc.player.hasPermissions(2) && Config.getInstance().getValue("canOperatorModifyConfig", Boolean.class);
 	}
 
 	private static class HandlerKeymapping extends KeyMapping {

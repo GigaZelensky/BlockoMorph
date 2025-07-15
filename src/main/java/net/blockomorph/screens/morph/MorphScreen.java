@@ -1,4 +1,4 @@
-package net.blockomorph.screens;
+package net.blockomorph.screens.morph;
 
 import net.blockomorph.network.ServerBoundBlockMorphPacket;
 import net.blockomorph.screens.utils.GuiUtils;

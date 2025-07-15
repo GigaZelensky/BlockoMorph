@@ -1,5 +1,6 @@
-package net.blockomorph.screens;
+package net.blockomorph.screens.config;
 
+import net.blockomorph.screens.morph.MorphScreenOld;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.*;
 import net.blockomorph.network.ServerBoundConfigUpdatePacket;
@@ -72,9 +73,9 @@ public class ConfigScreenOld extends Screen {
 
    public ConfigInstance<?> getProp(double x, double y) {
    	    if (x < this.leftPos + 10 || x > this.leftPos + 153 || y < this.topPos + 15 || y > this.topPos + 154) return null;
-   	    for (int i = 0; i < Config.getInstance().options.size() - 1; i++) { //max 7
+   	    for (int i = 0; i < Config.getInstance().OPTIONS.size() - 1; i++) { //max 7
    	    	if (y > this.topPos + 15 + i * 20 && y < this.topPos + 15 + i * 20 + 20) {
-   	    		return Config.getInstance().options.get(i);
+   	    		return Config.getInstance().OPTIONS.get(i);
    	    	}
    	    }
    	    return null;
@@ -91,7 +92,7 @@ public class ConfigScreenOld extends Screen {
    	    		this.playDownSound();
    	    	} else if (op instanceof ListConfig e2) {
    	    		int x = this.leftPos + 10;
-   	    		int y = this.topPos + 15 + Config.getInstance().options.indexOf(op) * 20;
+   	    		int y = this.topPos + 15 + Config.getInstance().OPTIONS.indexOf(op) * 20;
    	    		if (gx > x + 125 && gx < x + 125 + 16 && gy > y + 2 && gy < y + 2 + 16) {
    	    			this.playDownSound();
    	    			if (e2.getName().equals("allowedBlocks")) {
@@ -126,7 +127,7 @@ public class ConfigScreenOld extends Screen {
 
    private void renderConfigs(GuiGraphics guiGraphics, int gx, int gy) {
    	    int i = 0;
-   	    for (ConfigInstance<?> op : Config.getInstance().options) {
+   	    for (ConfigInstance<?> op : Config.getInstance().OPTIONS) {
    	    	if (i > 6) break;
    	    	if (op.getName().equals("canOperatorModifyConfig")) continue;
    	    	if (op instanceof BooleanConfig e) {
@@ -164,7 +165,7 @@ public class ConfigScreenOld extends Screen {
    private void renderEnumList(GuiGraphics guiGraphics, int mouseX, int mouseY) { //new
    	    List<Enum<?>> vals = Arrays.asList(enumList.getAllEnumValues());
         int maxWidth = this.getLongWord(vals);
-        int posY = this.topPos + 15 + (Config.getInstance().options.indexOf(this.enumList)) * 20 + 14;
+        int posY = this.topPos + 15 + (Config.getInstance().OPTIONS.indexOf(this.enumList)) * 20 + 14;
         int height = 12 * Math.min(vals.size(), 7);
         int weidth = this.leftPos + 97 + 10;
    	    guiGraphics.fill(weidth, posY, weidth + maxWidth + 4, posY + height, Integer.MIN_VALUE);
@@ -209,7 +210,7 @@ public class ConfigScreenOld extends Screen {
    	    if (this.enumList != null) {
    	        List<Enum<?>> vals = Arrays.asList(enumList.getAllEnumValues());
             int maxWidth = this.getLongWord(vals);
-            int posY = this.topPos + 15 + (Config.getInstance().options.indexOf(this.enumList)) * 20 + 14;
+            int posY = this.topPos + 15 + (Config.getInstance().OPTIONS.indexOf(this.enumList)) * 20 + 14;
             int count = Math.min(vals.size(), 7);
             int height = 12 * count;
             int weidth = this.leftPos + 97 + 10;

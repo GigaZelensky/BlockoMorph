@@ -3,34 +3,29 @@ package net.blockomorph.command;
 
 import net.blockomorph.utils.config.*;
 
-import net.minecraft.world.level.Level;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.core.Direction;
-import net.minecraft.commands.arguments.MessageArgument;
 import net.minecraft.commands.Commands;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
-import com.mojang.brigadier.tree.CommandNode;
 import net.minecraft.commands.CommandBuildContext;
 import com.mojang.brigadier.CommandDispatcher;
-import net.minecraft.server.MinecraftServer;
 
 public class BlockmorphconfigCommand {
 
 	public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext commandBuildContext, Commands.CommandSelection environment) {
-	  Config.load();
-	  LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("blockmorphconfig").requires((p) -> {
-         return p.hasPermission(2) && (boolean)Config.getInstance().getValue("canOperatorModifyConfig");
-      });
-      
-      for (ConfigInstance<?> op : Config.getInstance().options) {
-      	 if (!op.getName().equals("canOperatorModifyConfig"))
-            builder = builder.then(op.work(Commands.literal(op.getName()), commandBuildContext));
-      }
-      
-      dispatcher.register(builder);
+		Config.load();
+		LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("blockmorphconfig").requires((p) -> {
+			return p.hasPermission(2) && Config.getInstance().getValue("canOperatorModifyConfig", Boolean.class);
+		});
+
+		for (ConfigInstance<?> option : Config.getInstance().OPTIONS) {
+			if (option.canEditedByOperators()) {
+				LiteralArgumentBuilder<CommandSourceStack> optionName = Commands.literal(option.getName());
+				optionName = optionName.executes(option.buildGetter());
+				builder = builder.then(option.buildArgument(optionName, commandBuildContext, environment));
+			}
+		}
+
+		dispatcher.register(builder);
 	}
 }

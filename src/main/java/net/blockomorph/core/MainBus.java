@@ -3,6 +3,7 @@ package net.blockomorph.core;
 import net.blockomorph.BlockomorphServer;
 import net.blockomorph.command.*;
 import net.blockomorph.screens.PlayerCrackOverlay;
+import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.network.*;
 import net.blockomorph.utils.config.*;
@@ -39,12 +40,13 @@ public class MainBus {
 		registerMain();
 	}
 
+	//@SuppressWarnings("rawtypes")
 	private static void registerMain() {
-		ArgumentTypeRegistry.registerArgumentType(
-				ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, "enum_argument"),
-				EnumArgument.class,
-				new EnumArgument.ContextInfo()
-		);
+		/*ArgumentTypeRegistry.registerArgumentType(
+				GuiUtils.res("enum_argument"),//ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, "enum_argument"),
+				Enum2Argument.class,//EnumArgument.class,
+				new Enum2Argument.ContextInfo<>()//new EnumArgument.ContextInfo()
+		);*/
 		CommandRegistrationCallback.EVENT.register((dispatcher, commandBuildContext, environment) -> {
 			BlockmorphCommand.register(dispatcher, commandBuildContext, environment);
 			BlockmorphconfigCommand.register(dispatcher, commandBuildContext, environment);

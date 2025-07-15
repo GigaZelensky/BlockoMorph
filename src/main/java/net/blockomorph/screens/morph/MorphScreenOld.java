@@ -1,6 +1,8 @@
-package net.blockomorph.screens;
+package net.blockomorph.screens.morph;
 
 import net.blockomorph.BlockomorphServer;
+import net.blockomorph.screens.BlockMorphConfigScreen;
+import net.blockomorph.screens.config.ConfigScreenOld;
 import net.blockomorph.screens.utils.ListenerEditBox;
 import net.blockomorph.screens.utils.SoftSpritedImageButton;
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
@@ -390,9 +392,9 @@ public class MorphScreenOld extends Screen {
             	guiGraphics.blit(RenderType::guiTextured, ResourceLocation.tryParse("blockomorph:textures/screens/selected.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
             }
         } else if (this.mode == Config.Mode.WHITELIST) {
-            if (((List<String>)Config.getInstance().getValue("allowedBlocks")).contains(name)) guiGraphics.blit(RenderType::guiTextured, ResourceLocation.tryParse("blockomorph:textures/screens/sel_good.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
+            //if (((List<String>)Config.getInstance().getValue("allowedBlocks")).contains(name)) guiGraphics.blit(RenderType::guiTextured, ResourceLocation.tryParse("blockomorph:textures/screens/sel_good.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
         } else if (this.mode == Config.Mode.BLACKLIST) {
-            if (((List<String>)Config.getInstance().getValue("bannedBlocks")).contains(name)) guiGraphics.blit(RenderType::guiTextured, ResourceLocation.tryParse("blockomorph:textures/screens/sel_bad.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
+            //if (((List<String>)Config.getInstance().getValue("bannedBlocks")).contains(name)) guiGraphics.blit(RenderType::guiTextured, ResourceLocation.tryParse("blockomorph:textures/screens/sel_bad.png"), this.leftPos + 10 + xO*36, this.topPos + 15 + yO*36, 0, 0, 36, 36, 36, 36);
         }
     }
 
@@ -420,7 +422,7 @@ public class MorphScreenOld extends Screen {
     }
 
     private boolean needAllowedTab() {
-    	return !this.isConfig() && ((Config.Mode)Config.getInstance().getValue("listMode") != Config.Mode.NONE || (boolean)Config.getInstance().getValue("solidBlocksOnly"));
+    	return true;//!this.isConfig() && ((Config.Mode)Config.getInstance().getValue("listMode") != Config.Mode.NONE || (boolean)Config.getInstance().getValue("solidBlocksOnly"));
     }
 
     private CreativeModeTab getTabAtPosition(double x, double y) {
@@ -569,7 +571,7 @@ public class MorphScreenOld extends Screen {
    	    	}
 			int i = this.findBlockIndex(x, y);
 			if (i != -1) {
-				String ac;
+				String ac = "null";
 				BlockState st;
 				CompoundTag tg = new CompoundTag();
 				Block bl = this.findBlockClick(x, y);
@@ -588,14 +590,14 @@ public class MorphScreenOld extends Screen {
 				        MorphUtils.sendServer(ServerBoundBlockMorphPacket.create(st, tg));
 					}
 				} else if (this.mode == Config.Mode.WHITELIST) {
-					if (((List<String>)Config.getInstance().getValue("allowedBlocks")).contains(name)) {
-						ac = " -";
-					} else ac = " +";
+					//if (((List<String>)Config.getInstance().getValue("allowedBlocks")).contains(name)) {
+					//	ac = " -";
+					//} else ac = " +";
 					this.send(new ServerBoundConfigUpdatePacket("allowedBlocks", name + ac));
 				} else if (this.mode == Config.Mode.BLACKLIST) {
-					if (((List<String>)Config.getInstance().getValue("bannedBlocks")).contains(name)) {
-						ac = " -";
-					} else ac = " +";
+					//if (((List<String>)Config.getInstance().getValue("bannedBlocks")).contains(name)) {
+					//	ac = " -";
+					//} else ac = " +";
 					this.send(new ServerBoundConfigUpdatePacket("bannedBlocks", name + ac));
 				}
 				this.playDownSound();

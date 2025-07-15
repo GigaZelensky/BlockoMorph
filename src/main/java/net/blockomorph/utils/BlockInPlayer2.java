@@ -165,7 +165,7 @@ public class BlockInPlayer2 {
 					blockEntityTicker.tick(this.player.level(), this.pos, this.blockState, this.blockEntity);
 				} catch (Exception e) {
 					this.blockEntityTicker = null;
-					BlockomorphServer.LOGGER.error(
+					MorphUtils.LOGGER.error(
 							"An unexpected exception occurred while ticking a block entity in a transformed player with username " +
 									this.player.getName().getString() +
 									": ", e

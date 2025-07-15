@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.blockomorph.BlockomorphServer;
+import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Camera;
@@ -46,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 
 public class GuiUtils { //Cross-platform wrapper
-	protected static final BlockPos AIR = new BlockPos(0, 500, 0);
+	public static final BlockPos AIR = new BlockPos(0, 500, 0);
 	private static final Minecraft MC = Minecraft.getInstance();
 	public static final MultiBufferSource bufferSource = MC.renderBuffers().bufferSource();
 	private static final BlockRenderDispatcher blockRenderer = MC.getBlockRenderer();
@@ -59,15 +60,11 @@ public class GuiUtils { //Cross-platform wrapper
 	private Font font;
 
 	public static ResourceLocation res(String path) {
-		return ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, path);
+		return MorphUtils.res(path);
 	}
 
 	public static ResourceLocation vanillaRes(String path) {
-		return ResourceLocation.withDefaultNamespace(path);
-	}
-
-	public static Path getSavedBlockManagerPath() {
-		return FabricLoader.getInstance().getGameDir();
+		return MorphUtils.vanillaRes(path);
 	}
 
 	public void setGuiGraphics(GuiGraphics gui, Font font, int mouseX, int mouseY, float tick) {

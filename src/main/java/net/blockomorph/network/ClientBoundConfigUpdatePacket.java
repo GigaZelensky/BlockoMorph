@@ -1,7 +1,6 @@
 package net.blockomorph.network;
 
-import net.blockomorph.screens.AbstractMorphScreen;
-import net.blockomorph.screens.MorphScreenOld;
+import net.blockomorph.screens.morph.AbstractMorphScreen;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
@@ -11,7 +10,7 @@ public class ClientBoundConfigUpdatePacket implements BlockMorphPacket {
 	public static final String ID = "client_bound_config_update_packet";
 	Config config;
 	public ClientBoundConfigUpdatePacket(FriendlyByteBuf buf) {
-		this.config = Config.readFromBufer(buf);
+		this.config = Config.readFromBuffer(buf);
 	}
 
 	public ClientBoundConfigUpdatePacket(Config cfg) {
@@ -20,7 +19,7 @@ public class ClientBoundConfigUpdatePacket implements BlockMorphPacket {
 
 	@Override
 	public void write(FriendlyByteBuf buffer) {
-		this.config.writeInBufer(buffer);
+		this.config.writeInBuffer(buffer);
 	}
 
 	@Override
@@ -30,7 +29,8 @@ public class ClientBoundConfigUpdatePacket implements BlockMorphPacket {
 
 	@Override
 	public void handle(Player player) {
-		Config.load(this.config);
+		if (!Minecraft.getInstance().isLocalServer())
+			Config.loadExternal(this.config);
 		if (Minecraft.getInstance().screen instanceof AbstractMorphScreen gui) {
 			gui.BLOCKS_MANAGER.updateAllowedBlocks();
 		}

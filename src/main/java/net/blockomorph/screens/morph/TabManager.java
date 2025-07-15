@@ -1,8 +1,10 @@
-package net.blockomorph.screens.utils;
+package net.blockomorph.screens.morph;
 
-import net.blockomorph.screens.AbstractMorphScreen;
-import net.blockomorph.screens.MorphScreenOld;
+import net.blockomorph.screens.utils.GuiUtils;
+import net.blockomorph.screens.utils.ListenerEditBox;
+import net.blockomorph.screens.utils.ScrollerManager;
 import net.blockomorph.utils.SavedBlock;
+import net.blockomorph.utils.config.Config;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -24,7 +26,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class TabManager {
-	protected static final CreativeModeTab ALLOWED_TAB = CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0).title(Component.translatable("gui.blockomorph.allowedBlocks")).icon(() -> new ItemStack(Items.NETHER_STAR)).build();
+	protected static final CreativeModeTab ALLOWED_TAB = CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0).title(Component.translatable("blockomorph.gui.morphScreen.allowed_tab")).icon(() -> new ItemStack(Items.NETHER_STAR)).build();
 	protected final AbstractMorphScreen parentScreen;
 	protected final List<CreativeModeTab> CONTENT_TABS;
 	protected static final Function<String, ResourceLocation> TAB_LOCATION = (tabName) -> GuiUtils.vanillaRes("textures/gui/sprites/advancements/tab_" + tabName+ ".png");
@@ -144,7 +146,7 @@ public class TabManager {
 	protected void putAllowedTabIfNeed() {
 		List<SavedBlock> blocks = BlocksManager.ALL_TAB_CONTENTS.get(getKeyFromTab(ALLOWED_TAB));
 		if (blocks != null) {
-			if (blocks.size() == BlocksManager.ALL_BLOCKS.size()) { //TODO
+			if (Config.getInstance().getValue("listMode", Config.Mode.class) == Config.Mode.NONE) {
 				SPECIAL_TABS.remove(ALLOWED_TAB);
 			} else {
 				if (!SPECIAL_TABS.contains(ALLOWED_TAB))

@@ -1,4 +1,4 @@
-package net.blockomorph.screens;
+package net.blockomorph.screens.config;
 
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.client.gui.GuiGraphics;
