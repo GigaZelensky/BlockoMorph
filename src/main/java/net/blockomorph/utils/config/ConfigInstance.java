@@ -50,7 +50,7 @@ public abstract class ConfigInstance<T> {
 			return 1;
 		};
 	}
-	public abstract <CFG extends ConfigInstance<T>> ConfigRenderer<CFG> getRenderer();
+	public abstract <U extends ConfigInstance<?>> ConfigRenderer<U> getRenderer();
 	public abstract <CFG extends ConfigInstance<T>> Class<CFG> getType();
 
 	public T setValue(T value) {

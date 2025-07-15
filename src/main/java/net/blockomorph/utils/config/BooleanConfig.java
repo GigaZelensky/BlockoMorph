@@ -56,7 +56,7 @@ public class BooleanConfig extends ConfigInstance<Boolean> {
 	}
 
 	@Override
-	public <CFG extends ConfigInstance<Boolean>> ConfigRenderer<CFG> getRenderer() {
+	public BooleanConfigRenderer getRenderer() {
 		if (RENDERER == null) {
 			RENDERER = new BooleanConfigRenderer();
 		}
@@ -64,7 +64,7 @@ public class BooleanConfig extends ConfigInstance<Boolean> {
 	}
 
 	@Override
-	public <CFG extends ConfigInstance<Boolean>> Class<CFG> getType() {
-		return null;
+	public Class<BooleanConfig> getType() {
+		return BooleanConfig.class;
 	}
 }

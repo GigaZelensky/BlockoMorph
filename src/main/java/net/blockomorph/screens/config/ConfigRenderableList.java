@@ -9,7 +9,6 @@ import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
 
-import java.util.HashMap;
 import java.util.List;
 
 public class ConfigRenderableList extends ContainerObjectSelectionList<ConfigRenderableList.RenderableConfigInstance> {
@@ -28,7 +27,7 @@ public class ConfigRenderableList extends ContainerObjectSelectionList<ConfigRen
 		if (type == 0) {
 			RenderableConfigInstance entry = this.getEntryAtPosition(mouseX, mouseY);
 			if (entry != null) {
-				entry.instance.getRenderer().mouseClicked(entry.instance, mouseX, mouseY);
+				entry.mouseClicked(mouseX, mouseY, 0);
 			}
 		}
 		return super.mouseClicked(mouseX, mouseY, type);
@@ -52,11 +51,22 @@ public class ConfigRenderableList extends ContainerObjectSelectionList<ConfigRen
 		public void render(GuiGraphics guiGraphics, int numberInList, int y, int x, int length, int height, int mouseX, int mouseY, boolean isHovered, float delta) {
 			gui.setGuiGraphics(guiGraphics, this.minecraft.font, mouseX, mouseY, delta);
 			this.instance.getRenderer().render(this.gui, this.instance, x, y, length,height);
+			this.render(this.instance);
 		}
 
 		@Override
 		public List<? extends GuiEventListener> children() {
 			return this.instance.getRenderer().getButtons(this.instance);
+		}
+
+		@Override
+		public boolean mouseClicked(double d, double e, int i) {
+			return super.mouseClicked(d, e, i);
+		}
+
+		private <U extends ConfigInstance<?>> void render(U instance) {
+			ConfigRenderer<U> renderer = instance.getRenderer();
+			renderer.render(null, instance, 0 , 0 ,0, 0);
 		}
 	}
 }
