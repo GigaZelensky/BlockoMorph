@@ -6,6 +6,7 @@ import com.google.gson.JsonArray;
 import java.util.List;
 
 import com.mojang.brigadier.Command;
+import net.blockomorph.screens.config.renderers.StringListConfigRenderer;
 import net.minecraft.network.FriendlyByteBuf;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.Commands;
@@ -17,6 +18,7 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 public class ListConfig extends ConfigInstance<List<String>> {
+	private static StringListConfigRenderer RENDERER;
 
 	public ListConfig(String name, List<String> initialValue, boolean canOperatorModify, @Nullable Component tip) {
 		super(name, initialValue, canOperatorModify, tip);
@@ -121,5 +123,13 @@ public class ListConfig extends ConfigInstance<List<String>> {
 			}, true);
 			return 1;
 		};
+	}
+
+	@Override
+	public StringListConfigRenderer getRenderer() {
+		if (RENDERER == null) {
+			RENDERER = new StringListConfigRenderer();
+		}
+		return RENDERER;
 	}
 }

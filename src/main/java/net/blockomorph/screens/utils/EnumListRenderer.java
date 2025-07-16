@@ -2,6 +2,7 @@ package net.blockomorph.screens.utils;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -22,14 +23,26 @@ public class EnumListRenderer {
 		this.maxWordsOnList = maxWordsOnList;
 	}
 
-	public void render(GuiUtils gui, int x, int y, int startOfX, int startOfY, Component string, int stringColor) {
+	@SuppressWarnings("unchecked")
+	@Nullable
+	public Class<? extends Enum<?>> getEnumClass() {
+		if (this.enumList != null && !this.enumList.isEmpty()) {
+			return (Class<? extends Enum<?>>) this.enumList.getFirst().getClass();
+		}
+		return null;
+	}
+
+	public void renderName(GuiUtils gui, int x, int y, Component string, int stringColor) {
+		gui.drawString(string, x, y, stringColor, false);
+	}
+
+	public void render(GuiUtils gui, int x, int y, int startOfX, int startOfY) {
 		this.x = x;
 		this.y = y;
 		this.startOfX = startOfX;
 		this.startOfY = startOfY;
 		this.font = gui.getFont();
 
-		gui.drawString(string, x, y, stringColor, false);
 		if (this.dropped) {
 			int startX = this.x + this.startOfX;
 			int startY = this.y + this.startOfY;

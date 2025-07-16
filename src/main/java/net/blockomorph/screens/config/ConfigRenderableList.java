@@ -13,14 +13,35 @@ import net.minecraft.client.renderer.Rect2i;
 import java.util.List;
 
 public class ConfigRenderableList extends ContainerObjectSelectionList<ConfigRenderableList.RenderableConfigInstance<?>> {
+	private final int rowLeft;
+	private final int screenHeight;
+	private boolean mainPhase;
 
-	public ConfigRenderableList(Minecraft minecraft, int length, int height, int y, int configPlateHeight) {
+	public ConfigRenderableList(Minecraft minecraft, int length, int height, int y, int configPlateHeight, int rowLeft, int screenHeight) {
 		super(minecraft, length, height, y, configPlateHeight);
+		this.rowLeft = rowLeft;
+		this.headerHeight = -4;
 		for (ConfigInstance<?> option : Config.getInstance().OPTIONS) {
 			if (option.canEditedByOperators()) {
 				this.addEntry(new RenderableConfigInstance<>(minecraft, option));
 			}
 		}
+		this.screenHeight = screenHeight;
+	}
+
+	@Override
+	protected void enableScissor(GuiGraphics guiGraphics) {
+		guiGraphics.enableScissor(this.getX(), this.getY(), this.getRight(), this.screenHeight);
+	}
+
+	@Override
+	public int getRowWidth() {
+		return 144;
+	}
+
+	@Override
+	public int getRowLeft() {
+		return this.rowLeft;
 	}
 
 	@Override
@@ -45,7 +66,20 @@ public class ConfigRenderableList extends ContainerObjectSelectionList<ConfigRen
 		return super.mouseScrolled(x, y, xScrolled, yScrolled);
 	}
 
-	public static class RenderableConfigInstance<T extends ConfigInstance<?>> extends ContainerObjectSelectionList.Entry<RenderableConfigInstance<?>> {
+	@Override
+	protected void renderListItems(GuiGraphics guiGraphics, int i, int j, float f) {
+		this.mainPhase = false;
+		super.renderListItems(guiGraphics, i, j, f);
+		this.mainPhase = true;
+		super.renderListItems(guiGraphics, i, j, f);
+	}
+
+	@Override
+	protected boolean isSelectedItem(int i) {
+		return false;
+	}
+
+	protected class RenderableConfigInstance<T extends ConfigInstance<?>> extends ContainerObjectSelectionList.Entry<RenderableConfigInstance<?>> {
 		private final Minecraft minecraft;
 		private final GuiUtils gui = new GuiUtils();
 		private final T instance;
@@ -70,7 +104,11 @@ public class ConfigRenderableList extends ContainerObjectSelectionList<ConfigRen
 			this.box.setPosition(x, y);
 			this.box.setWidth(length);
 			this.box.setHeight(height);
-			this.renderer.render(this.gui, this.instance, this.box);
+			if (ConfigRenderableList.this.mainPhase) {
+				this.renderer.render(this.gui, this.instance, this.box);
+			} else {
+				this.renderer.renderBackground(this.gui, this.instance, this.box);
+			}
 		}
 
 		@Override

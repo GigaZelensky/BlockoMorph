@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.Rect2i;
 
 public class BooleanConfigRenderer implements ConfigRenderer<BooleanConfig> {
 	@Override
-	public void render(GuiUtils gui, BooleanConfig configInstance, Rect2i box) {
+	public void renderBackground(GuiUtils gui, BooleanConfig configInstance, Rect2i box) {
 		gui.blit(PLATES_SPRITE, box.getX(), box.getY(), 0, 0, 144, 20, 144, 74);
 		if (configInstance.getValue()) {
 			gui.blit(PLATES_SPRITE, box.getX() + 105, box.getY() + 3, 0, 60, 24, 14, 144, 74);
@@ -17,10 +17,14 @@ public class BooleanConfigRenderer implements ConfigRenderer<BooleanConfig> {
 	}
 
 	@Override
+	public void render(GuiUtils gui, BooleanConfig configInstance, Rect2i box) {}
+
+	@Override
 	public boolean mouseClicked(BooleanConfig configInstance, double mouseX, double mouseY, Rect2i box) {
 		if (this.isInBounds(box, mouseX, mouseY)) {
 			boolean value = !configInstance.getValue();
 			MorphUtils.sendServer(new ServerBoundConfigUpdatePacket(configInstance.getName(), value + ""));
+			this.playClickSound();
 			return true;
 		}
 		return false;

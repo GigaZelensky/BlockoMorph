@@ -25,6 +25,10 @@ public class EnumConfig<T extends Enum<T>> extends ConfigInstance<T> {
 		this.classType = value.getDeclaringClass();
 	}
 
+	public Class<T> getEnumClass() {
+		return this.classType;
+	}
+
 	@Override
 	public void readFromStorage(JsonElement option) {
 		this.parseFromUser(option.getAsString());

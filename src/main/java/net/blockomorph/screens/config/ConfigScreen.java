@@ -2,13 +2,18 @@ package net.blockomorph.screens.config;
 
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Optional;
 
 public class ConfigScreen extends Screen {
 	private static final ResourceLocation MENU_LOCATION = GuiUtils.res("textures/screens/config_screen.png");
 	protected final GuiUtils gui = new GuiUtils();
+	private ConfigRenderableList configList;
 	public final int imageLength = 176;
 	public final int imageHeight = 166;
 	protected int leftPos;
@@ -35,5 +40,17 @@ public class ConfigScreen extends Screen {
 	protected void init() {
 		this.leftPos = (this.width - this.imageLength) / 2;
 		this.topPos = (this.height - this.imageHeight) / 2;
+		this.configList = new ConfigRenderableList(this.minecraft, this.width , 140, this.topPos + 15, 20, this.leftPos + 10, this.height);
+		this.addRenderableWidget(this.configList);
+	}
+
+	@Override
+	public Optional<GuiEventListener> getChildAt(double mouseX, double mouseY) {
+		return Optional.of(this.configList);
+	}
+
+	@Override
+	public GuiEventListener getFocused() {
+		return this.configList;
 	}
 }

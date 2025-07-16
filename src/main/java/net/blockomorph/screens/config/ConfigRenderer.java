@@ -2,14 +2,19 @@ package net.blockomorph.screens.config;
 
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.config.ConfigInstance;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvents;
 
 import java.util.List;
 
 public interface ConfigRenderer<T extends ConfigInstance<?>> {
 	ResourceLocation PLATES_SPRITE = GuiUtils.res("textures/screens/configs.png");
+
+	void renderBackground(GuiUtils gui, T configInstance, Rect2i box);
 
 	void render(GuiUtils gui, T configInstance, Rect2i box);
 
@@ -23,5 +28,9 @@ public interface ConfigRenderer<T extends ConfigInstance<?>> {
 
 	default boolean isInBounds(Rect2i box, double mouseX, double mouseY) {
 		return GuiUtils.isMouseOver(box.getX(), box.getY(), box.getX() + box.getWidth(), box.getY() + box.getHeight(), mouseX, mouseY);
+	}
+
+	default void playClickSound() {
+		Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1f));
 	}
 }
