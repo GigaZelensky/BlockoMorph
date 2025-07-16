@@ -3,6 +3,7 @@ package net.blockomorph.utils.config;
 import net.blockomorph.command.EnumArgument;
 
 import net.blockomorph.screens.config.ConfigRenderer;
+import net.blockomorph.screens.config.renderers.EnumConfigRenderer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.FriendlyByteBuf;
 import com.google.gson.JsonPrimitive;
@@ -13,7 +14,10 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.CommandBuildContext;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class EnumConfig<T extends Enum<T>> extends ConfigInstance<T> {
+	private static EnumConfigRenderer RENDERER;
 	private final Class<T> classType;
 
 	public EnumConfig(String name, T initialValue, boolean canOperatorModify, @Nullable Component tip) {
@@ -50,8 +54,8 @@ public class EnumConfig<T extends Enum<T>> extends ConfigInstance<T> {
 		buf.writeEnum(this.value);
 	}
 
-	public T[] getAllEnumValues() {
-		return this.classType.getEnumConstants();
+	public List<T> getAllEnumValues() {
+		return List.of(this.classType.getEnumConstants());
 	}
 
 	public LiteralArgumentBuilder<CommandSourceStack> buildArgument(LiteralArgumentBuilder<CommandSourceStack> optionNameArgument, CommandBuildContext context, Commands.CommandSelection environment) {
@@ -67,6 +71,9 @@ public class EnumConfig<T extends Enum<T>> extends ConfigInstance<T> {
 
 	@Override
 	public ConfigRenderer<?> getRenderer() {
-		return null;
+		if (RENDERER == null) {
+			RENDERER = new EnumConfigRenderer();
+		}
+		return RENDERER;
 	}
 }

@@ -130,6 +130,10 @@ public class GuiUtils { //Cross-platform wrapper
 		GUI.drawString(this.font, text, x, y, color, useShadow);
 	}
 
+	public void fill(int x, int y, int endX, int endY, int color) {
+		GUI.fill(x, y, endX, endY, color);
+	}
+
 	//HINT:   XY - upper left corner of item
 	public void renderItem(ItemStack item, float x, float y, float scale, float zDepth) {
 		if (scale == 1) scale = 16f;
@@ -223,5 +227,9 @@ public class GuiUtils { //Cross-platform wrapper
 				}
 			}
 		}
+	}
+
+	public static boolean isMouseOver(int x, int y, int endX, int endY, double mouseX, double mouseY) {
+		return mouseX >= x && mouseX <= endX && mouseY >= y && mouseY < endY;
 	}
 }

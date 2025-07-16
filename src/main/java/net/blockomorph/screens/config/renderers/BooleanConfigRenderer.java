@@ -5,19 +5,29 @@ import net.blockomorph.screens.config.ConfigRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.BooleanConfig;
+import net.minecraft.client.renderer.Rect2i;
 
 public class BooleanConfigRenderer implements ConfigRenderer<BooleanConfig> {
 	@Override
-	public void render(GuiUtils gui, BooleanConfig configInstance, int plateX, int plateY, int plateLength, int plateHeight) {
-		gui.blit(PLATES_SPRITE, plateX, plateY, 0, 0, 144, 20, 144, 74);
+	public void render(GuiUtils gui, BooleanConfig configInstance, Rect2i box) {
+		gui.blit(PLATES_SPRITE, box.getX(), box.getY(), 0, 0, 144, 20, 144, 74);
 		if (configInstance.getValue()) {
-			gui.blit(PLATES_SPRITE, plateX + 105, plateY + 3, 0, 60, 24, 14, 144, 74);
+			gui.blit(PLATES_SPRITE, box.getX() + 105, box.getY() + 3, 0, 60, 24, 14, 144, 74);
 		}
 	}
 
 	@Override
-	public void mouseClicked(BooleanConfig configInstance, double mouse, double mouseY) {
-		boolean value = !configInstance.getValue();
-		MorphUtils.sendServer(new ServerBoundConfigUpdatePacket(configInstance.getName(), value + ""));
+	public boolean mouseClicked(BooleanConfig configInstance, double mouseX, double mouseY, Rect2i box) {
+		if (this.isInBounds(box, mouseX, mouseY)) {
+			boolean value = !configInstance.getValue();
+			MorphUtils.sendServer(new ServerBoundConfigUpdatePacket(configInstance.getName(), value + ""));
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public boolean mouseScrolled(BooleanConfig configInstance, double mouseX, double mouseY, double yOffsetWheel, Rect2i box) {
+		return false;
 	}
 }

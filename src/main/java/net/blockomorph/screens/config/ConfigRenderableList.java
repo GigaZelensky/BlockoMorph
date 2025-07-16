@@ -8,6 +8,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.ContainerObjectSelectionList;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarratableEntry;
+import net.minecraft.client.renderer.Rect2i;
 
 import java.util.List;
 
@@ -25,12 +26,23 @@ public class ConfigRenderableList extends ContainerObjectSelectionList<ConfigRen
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int type) {
 		if (type == 0) {
-			RenderableConfigInstance<?> entry = this.getEntryAtPosition(mouseX, mouseY);
-			if (entry != null) {
-				entry.mouseClicked(mouseX, mouseY);
+			for (RenderableConfigInstance<?> instance : this.children()) {
+				if (instance.mouseClicked(mouseX, mouseY)) {
+					return true;
+				}
 			}
 		}
 		return super.mouseClicked(mouseX, mouseY, type);
+	}
+
+	@Override
+	public boolean mouseScrolled(double x, double y, double xScrolled, double yScrolled) {
+		for (RenderableConfigInstance<?> instance : this.children()) {
+			if (instance.mouseScrolled(x, y, yScrolled)) {
+				return true;
+			}
+		}
+		return super.mouseScrolled(x, y, xScrolled, yScrolled);
 	}
 
 	public static class RenderableConfigInstance<T extends ConfigInstance<?>> extends ContainerObjectSelectionList.Entry<RenderableConfigInstance<?>> {
@@ -38,6 +50,7 @@ public class ConfigRenderableList extends ContainerObjectSelectionList<ConfigRen
 		private final GuiUtils gui = new GuiUtils();
 		private final T instance;
 		private final ConfigRenderer<T> renderer;
+		private final Rect2i box = new Rect2i(0, 0, 0, 0);
 
 		@SuppressWarnings("unchecked")
 		protected RenderableConfigInstance(Minecraft mc, T instance) {
@@ -53,8 +66,11 @@ public class ConfigRenderableList extends ContainerObjectSelectionList<ConfigRen
 
 		@Override
 		public void render(GuiGraphics guiGraphics, int numberInList, int y, int x, int length, int height, int mouseX, int mouseY, boolean isHovered, float delta) {
-			gui.setGuiGraphics(guiGraphics, this.minecraft.font, mouseX, mouseY, delta);
-			this.renderer.render(this.gui, this.instance, x, y, length,height);
+			this.gui.setGuiGraphics(guiGraphics, this.minecraft.font, mouseX, mouseY, delta);
+			this.box.setPosition(x, y);
+			this.box.setWidth(length);
+			this.box.setHeight(height);
+			this.renderer.render(this.gui, this.instance, this.box);
 		}
 
 		@Override
@@ -62,8 +78,12 @@ public class ConfigRenderableList extends ContainerObjectSelectionList<ConfigRen
 			return this.renderer.getButtons(this.instance);
 		}
 
-		public void mouseClicked(double mouseX, double mouseY) {
-			this.renderer.mouseClicked(this.instance, mouseX, mouseY);
+		public boolean mouseClicked(double mouseX, double mouseY) {
+			return this.renderer.mouseClicked(this.instance, mouseX, mouseY, this.box);
+		}
+
+		public boolean mouseScrolled(double mouseX, double mouseY, double yOffsetWheel) {
+			return this.renderer.mouseScrolled(this.instance, mouseX, mouseY, yOffsetWheel, this.box);
 		}
 	}
 }
