@@ -52,8 +52,7 @@ public abstract class ConfigInstance<T> {
 	}
 
 
-	public abstract <U extends ConfigInstance<T>> ConfigRenderer<U> getRenderer();
-	public abstract <CFG extends ConfigInstance<T>> Class<CFG> getType();
+	public abstract ConfigRenderer<?> getRenderer();
 
 	public T setValue(T value) {
 		this.value = value;

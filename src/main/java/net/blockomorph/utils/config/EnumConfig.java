@@ -2,6 +2,7 @@ package net.blockomorph.utils.config;
 
 import net.blockomorph.command.EnumArgument;
 
+import net.blockomorph.screens.config.ConfigRenderer;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.network.FriendlyByteBuf;
 import com.google.gson.JsonPrimitive;
@@ -62,5 +63,10 @@ public class EnumConfig<T extends Enum<T>> extends ConfigInstance<T> {
 			}, true);
 			return 1;
 		}));
+	}
+
+	@Override
+	public ConfigRenderer<?> getRenderer() {
+		return null;
 	}
 }

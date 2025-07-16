@@ -14,7 +14,7 @@ import net.minecraft.commands.CommandBuildContext;
 import org.jetbrains.annotations.Nullable;
 
 public class BooleanConfig extends ConfigInstance<Boolean> {
-	private BooleanConfigRenderer RENDERER;
+	private static BooleanConfigRenderer RENDERER;
 	public BooleanConfig(String name, Boolean initialValue, boolean canOperatorModify, @Nullable Component tip) {
 		super(name, initialValue, canOperatorModify, tip);
 	}
@@ -56,12 +56,10 @@ public class BooleanConfig extends ConfigInstance<Boolean> {
 	}
 
 	@Override
-	public <U extends ConfigInstance<Boolean>> ConfigRenderer<U> getRenderer() {
-		return (ConfigRenderer<U>) new BooleanConfigRenderer();
-	}
-
-	@Override
-	public Class<BooleanConfig> getType() {
-		return BooleanConfig.class;
+	public BooleanConfigRenderer getRenderer() {
+		if (RENDERER == null) {
+			RENDERER = new BooleanConfigRenderer();
+		}
+		return RENDERER;
 	}
 }
