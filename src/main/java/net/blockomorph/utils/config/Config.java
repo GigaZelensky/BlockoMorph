@@ -8,6 +8,7 @@ import com.google.gson.*;
 import java.util.List;
 import java.nio.file.Files;
 
+import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.MorphUtils;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.MinecraftServer;
@@ -22,8 +23,8 @@ public class Config {
 	public final List<ConfigInstance<?>> OPTIONS = List.of(
 			new EnumConfig<>("listMode", Mode.NONE, true, null),
 			new BooleanConfig("solidBlocksOnly", false, true, null),
-			new ListConfig("allowedBlocks", new ArrayList<>(), true, null),
-			new ListConfig("bannedBlocks", new ArrayList<>(), true, null),
+			new BlockListConfig("allowedBlocks", new ArrayList<>(), true, null, MorphUtils.res("textures/screens/sel_good.png")),
+			new BlockListConfig("bannedBlocks", new ArrayList<>(), true, null, MorphUtils.res("textures/screens/sel_bad.png")),
 			new BooleanConfig("playerDieAfterDestroy", true, true, null),
 			new EnumConfig<>("useMode", UseMode.ALL, true, null),
 			new EnumConfig<>("placeMode", PlaceMode.OUT, true, null),

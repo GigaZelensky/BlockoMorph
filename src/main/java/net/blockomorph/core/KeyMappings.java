@@ -41,7 +41,7 @@ public class KeyMappings {
 	});
 
 	public static final KeyMapping DEBUG3 = new HandlerKeymapping("key.blockomorph.debug3", GLFW.GLFW_KEY_L, () -> {
-		mc.setScreen(new TestScreen());
+		//mc.setScreen(new TestScreen());
 	});
 
 	static void registerKeyMappings(Consumer<KeyMapping> register) {

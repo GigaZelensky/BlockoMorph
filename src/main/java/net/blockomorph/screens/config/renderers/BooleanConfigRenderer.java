@@ -5,6 +5,7 @@ import net.blockomorph.screens.config.ConfigRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.BooleanConfig;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 
 public class BooleanConfigRenderer implements ConfigRenderer<BooleanConfig> {
@@ -20,7 +21,7 @@ public class BooleanConfigRenderer implements ConfigRenderer<BooleanConfig> {
 	public void render(GuiUtils gui, BooleanConfig configInstance, Rect2i box) {}
 
 	@Override
-	public boolean mouseClicked(BooleanConfig configInstance, double mouseX, double mouseY, Rect2i box) {
+	public boolean mouseClicked(BooleanConfig configInstance, double mouseX, double mouseY, Rect2i box, Screen parentScreen) {
 		if (this.isInBounds(box, mouseX, mouseY)) {
 			boolean value = !configInstance.getValue();
 			MorphUtils.sendServer(new ServerBoundConfigUpdatePacket(configInstance.getName(), value + ""));
@@ -31,7 +32,7 @@ public class BooleanConfigRenderer implements ConfigRenderer<BooleanConfig> {
 	}
 
 	@Override
-	public boolean mouseScrolled(BooleanConfig configInstance, double mouseX, double mouseY, double yOffsetWheel, Rect2i box) {
+	public boolean mouseScrolled(BooleanConfig configInstance, double mouseX, double mouseY, double yOffsetWheel, Rect2i box, Screen parentScreen) {
 		return false;
 	}
 }

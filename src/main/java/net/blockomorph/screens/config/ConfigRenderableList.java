@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.CommonComponents;
 
@@ -24,12 +25,12 @@ public class ConfigRenderableList extends AbstractWidget {
 	private final int plateHeight;
 	private final int plateLength;
 
-	public ConfigRenderableList(int x, int y, int length, int height, int barX, int barY, int barHeight, int plateHeight, int plateLength) {
+	public ConfigRenderableList(int x, int y, int length, int height, int barX, int barY, int barHeight, int plateHeight, int plateLength, Screen parentScreen) {
 		super(x, y, length, height, CommonComponents.EMPTY);
 		ImmutableList.Builder<RenderableConfigInstance<?>> builder = new ImmutableList.Builder<>();
 		for (ConfigInstance<?> option : Config.getInstance().OPTIONS) {
 			if (option.canEditedByOperators()) {
-				builder.add(new RenderableConfigInstance<>(option));
+				builder.add(new RenderableConfigInstance<>(option, parentScreen));
 				if (!types.contains(option.getRenderer())) {
 					this.types.add(option.getRenderer());
 				}
@@ -38,7 +39,6 @@ public class ConfigRenderableList extends AbstractWidget {
 		this.types.forEach(ConfigRenderer::init);
 		this.scrollerManager = new ScrollerManager<>(() -> barX, () -> barY, barHeight, 1, 7, this.renderables);
 		this.scrollerManager.setMainList(builder.build());
-		this.scrollerManager.refreshList();
 		this.plateHeight = plateHeight;
 		this.plateLength = plateLength;
 	}
@@ -101,13 +101,15 @@ public class ConfigRenderableList extends AbstractWidget {
 	}
 
 	protected static class RenderableConfigInstance<T extends ConfigInstance<?>> {
+		private final Screen parentScreen;
 		private final T instance;
 		private final ConfigRenderer<T> renderer;
 		private final Rect2i box = new Rect2i(0, 0, 0, 0);
 
 		@SuppressWarnings("unchecked")
-		protected RenderableConfigInstance(T instance) {
+		protected RenderableConfigInstance(T instance, Screen parentScreen) {
 			this.instance = instance;
+			this.parentScreen = parentScreen;
 			this.renderer = (ConfigRenderer<T>)instance.getRenderer();
 		}
 
@@ -127,16 +129,12 @@ public class ConfigRenderableList extends AbstractWidget {
 			this.renderer.renderTooltip(gui, this.instance, this.box);
 		}
 
-		public List<? extends GuiEventListener> children() {
-			return this.renderer.getButtons(this.instance);
-		}
-
 		public boolean mouseClicked(double mouseX, double mouseY) {
-			return this.renderer.mouseClicked(this.instance, mouseX, mouseY, this.box);
+			return this.renderer.mouseClicked(this.instance, mouseX, mouseY, this.box, this.parentScreen);
 		}
 
 		public boolean mouseScrolled(double mouseX, double mouseY, double yOffsetWheel) {
-			return this.renderer.mouseScrolled(this.instance, mouseX, mouseY, yOffsetWheel, this.box);
+			return this.renderer.mouseScrolled(this.instance, mouseX, mouseY, yOffsetWheel, this.box, this.parentScreen);
 		}
 	}
 }

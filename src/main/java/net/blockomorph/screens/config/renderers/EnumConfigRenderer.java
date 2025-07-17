@@ -6,6 +6,7 @@ import net.blockomorph.screens.utils.EnumListRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.EnumConfig;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 
 public class EnumConfigRenderer implements ConfigRenderer<EnumConfig<?>> {
@@ -25,7 +26,7 @@ public class EnumConfigRenderer implements ConfigRenderer<EnumConfig<?>> {
 	}
 
 	@Override
-	public boolean mouseClicked(EnumConfig<?> configInstance, double mouseX, double mouseY, Rect2i box) {
+	public boolean mouseClicked(EnumConfig<?> configInstance, double mouseX, double mouseY, Rect2i box, Screen parentScreen) {
 		if (this.isThisList(configInstance) && ENUM_LIST_RENDERER.mouseClicked(mouseX, mouseY)) {
 			return true;
 		} else if (this.isInBounds(box, mouseX, mouseY)) {//if (GuiUtils.isMouseOver(box.getX() + 94, box.getY() + 4, box.getX() + 139, box.getY() + 17, mouseX, mouseY)) {
@@ -41,7 +42,7 @@ public class EnumConfigRenderer implements ConfigRenderer<EnumConfig<?>> {
 	}
 
 	@Override
-	public boolean mouseScrolled(EnumConfig<?> configInstance, double mouseX, double mouseY, double yOffsetWheel, Rect2i box) {
+	public boolean mouseScrolled(EnumConfig<?> configInstance, double mouseX, double mouseY, double yOffsetWheel, Rect2i box, Screen parentScreen) {
 		if (this.isThisList(configInstance)) {
 			return ENUM_LIST_RENDERER.mouseScrolled(mouseX, mouseY, yOffsetWheel);
 		}

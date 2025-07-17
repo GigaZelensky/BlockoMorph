@@ -40,17 +40,14 @@ public class ConfigScreen extends Screen {
 	protected void init() {
 		this.leftPos = (this.width - this.imageLength) / 2;
 		this.topPos = (this.height - this.imageHeight) / 2;
-		this.configList = new ConfigRenderableList(this.leftPos + 10, this.topPos + 15, 144, 140, this.leftPos + 158, this.topPos + 16, 142, 20, 144);
-		this.addRenderableWidget(this.configList);
-	}
-
-	@Override
-	public void resize(Minecraft minecraft, int width, int height) {
-		float scrollOffset = this.configList.scrollerManager.getScrollerOffset();
-		super.resize(minecraft, width, height);
-		this.configList.scrollerManager.setScrollOffset(scrollOffset);
+		float scrollOff = 0f;
+		if (this.configList != null) {
+			scrollOff = this.configList.scrollerManager.getScrollerOffset();
+		}
+		this.configList = new ConfigRenderableList(this.leftPos + 10, this.topPos + 15, 144, 140, this.leftPos + 158, this.topPos + 16, 142, 20, 144, this);
+		this.configList.scrollerManager.setScrollOffset(scrollOff);
 		this.configList.scrollerManager.refreshList();
-
+		this.addRenderableWidget(this.configList);
 	}
 
 	@Override

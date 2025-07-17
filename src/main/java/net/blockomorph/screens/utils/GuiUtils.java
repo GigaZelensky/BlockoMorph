@@ -48,7 +48,7 @@ import java.util.Map;
 
 public class GuiUtils { //Cross-platform wrapper
 	public static final BlockPos AIR = new BlockPos(0, 500, 0);
-	private static final Minecraft MC = Minecraft.getInstance();
+	public static final Minecraft MC = Minecraft.getInstance();
 	public static final MultiBufferSource bufferSource = MC.renderBuffers().bufferSource();
 	private static final BlockRenderDispatcher blockRenderer = MC.getBlockRenderer();
 	private static final BlockEntityRenderDispatcher blockEntityRenderer = MC.getBlockEntityRenderDispatcher();

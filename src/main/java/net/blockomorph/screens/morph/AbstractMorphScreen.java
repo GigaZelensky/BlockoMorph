@@ -22,7 +22,7 @@ public abstract class AbstractMorphScreen extends Screen {
 	private static final ResourceLocation MENU_LOCATION = GuiUtils.res("textures/screens/morph_gui.png");
 	private static final ResourceLocation SEARCH_BAR = GuiUtils.res("textures/screens/searchbar.png");
 	private static final ResourceLocation MODE_TABS = GuiUtils.res("textures/screens/exit_tabs.png");
-	public static final Minecraft mc = Minecraft.getInstance();
+	public static final Minecraft mc = GuiUtils.MC;
 	protected final GuiUtils gui = new GuiUtils();
 	public static final SavedBlockManager SAVED_BLOCK_MANAGER = new SavedBlockManager(MorphUtils.getGameDir());
 	public final TabManager TAB_MANAGER;
@@ -209,5 +209,6 @@ public abstract class AbstractMorphScreen extends Screen {
 
 	public record MorphScreenOptions(boolean useAllowedTab, boolean useSavedBlocksTab, boolean useUpperTabs) {
 		public static MorphScreenOptions ALL = new MorphScreenOptions(true, true, true);
+		public static MorphScreenOptions CONFIG = new MorphScreenOptions(false, true, false);
 	}
 }

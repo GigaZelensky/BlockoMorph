@@ -6,7 +6,7 @@ import com.google.gson.JsonArray;
 import java.util.List;
 
 import com.mojang.brigadier.Command;
-import net.blockomorph.screens.config.renderers.StringListConfigRenderer;
+import net.blockomorph.screens.config.renderers.BlockListConfigRenderer;
 import net.minecraft.network.FriendlyByteBuf;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.Commands;
@@ -15,13 +15,16 @@ import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.arguments.ResourceArgument;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
-public class ListConfig extends ConfigInstance<List<String>> {
-	private static StringListConfigRenderer RENDERER;
+public class BlockListConfig extends ConfigInstance<List<String>> {
+	private static BlockListConfigRenderer RENDERER;
+	private final ResourceLocation frameTexture;
 
-	public ListConfig(String name, List<String> initialValue, boolean canOperatorModify, @Nullable Component tip) {
+	public BlockListConfig(String name, List<String> initialValue, boolean canOperatorModify, @Nullable Component tip, ResourceLocation frame) {
 		super(name, initialValue, canOperatorModify, tip);
+		this.frameTexture = frame;
 	}
 
 	@Override
@@ -56,6 +59,10 @@ public class ListConfig extends ConfigInstance<List<String>> {
 		for (String element : this.value) {
 			buf.writeUtf(element);
 		}
+	}
+
+	public ResourceLocation getFrameTexture() {
+		return this.frameTexture;
 	}
 
 	@Override
@@ -126,9 +133,9 @@ public class ListConfig extends ConfigInstance<List<String>> {
 	}
 
 	@Override
-	public StringListConfigRenderer getRenderer() {
+	public BlockListConfigRenderer getRenderer() {
 		if (RENDERER == null) {
-			RENDERER = new StringListConfigRenderer();
+			RENDERER = new BlockListConfigRenderer();
 		}
 		return RENDERER;
 	}

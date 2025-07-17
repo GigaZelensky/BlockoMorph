@@ -17,7 +17,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.sounds.SoundEvents;
 import java.util.List;
-import java.util.Arrays;
 
 import net.minecraft.client.renderer.RenderType;
 
@@ -90,7 +89,7 @@ public class ConfigScreenOld extends Screen {
    	    	if (op instanceof BooleanConfig e) {
    	    		this.send(new ServerBoundConfigUpdatePacket(op.getName(), e.setValue(!e.getValue()) + "" ));
    	    		this.playDownSound();
-   	    	} else if (op instanceof ListConfig e2) {
+   	    	} else if (op instanceof BlockListConfig e2) {
    	    		int x = this.leftPos + 10;
    	    		int y = this.topPos + 15 + Config.getInstance().OPTIONS.indexOf(op) * 20;
    	    		if (gx > x + 125 && gx < x + 125 + 16 && gy > y + 2 && gy < y + 2 + 16) {
@@ -141,7 +140,7 @@ public class ConfigScreenOld extends Screen {
    	    	    	value = value + "..";
    	    	    }
    	    	    guiGraphics.drawString(this.font, value, this.leftPos + 97 + 10, this.topPos + 15 + i * 20 + 6, -12821534, false); //render enum value
-   	    	} else if (op instanceof ListConfig e3) {
+   	    	} else if (op instanceof BlockListConfig e3) {
    	    		int x = this.leftPos + 10;
    	    		int y = this.topPos + 15 + i * 20;
    	    		guiGraphics.blit(RenderType::guiTextured, CONF, x, y, 0, 40, 144, 20, 144, 74);
@@ -156,7 +155,7 @@ public class ConfigScreenOld extends Screen {
    	    	    name = name.substring(0, 13);
    	    	    name = name + "..";
    	        }
-   	    	guiGraphics.drawString(this.font, name, this.leftPos + 10 + 4, this.topPos + 15 + i * 20 + 5, op instanceof ListConfig ? -6710887 : -1, false);
+   	    	guiGraphics.drawString(this.font, name, this.leftPos + 10 + 4, this.topPos + 15 + i * 20 + 5, op instanceof BlockListConfig ? -6710887 : -1, false);
    	    	i++;
    	    }
    	    if (this.enumList != null) this.renderEnumList(guiGraphics, gx, gy);
