@@ -40,6 +40,10 @@ public class KeyMappings {
 		mc.setScreen(new ConfigScreen());
 	});
 
+	public static final KeyMapping DEBUG3 = new HandlerKeymapping("key.blockomorph.debug3", GLFW.GLFW_KEY_L, () -> {
+		mc.setScreen(new TestScreen());
+	});
+
 	static void registerKeyMappings(Consumer<KeyMapping> register) {
 		for (KeyMapping key : KEYS) {
 			register.accept(key);

@@ -1,12 +1,12 @@
 package net.blockomorph.screens.config;
 
 import net.blockomorph.screens.utils.GuiUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -40,8 +40,17 @@ public class ConfigScreen extends Screen {
 	protected void init() {
 		this.leftPos = (this.width - this.imageLength) / 2;
 		this.topPos = (this.height - this.imageHeight) / 2;
-		this.configList = new ConfigRenderableList(this.minecraft, this.width , 140, this.topPos + 15, 20, this.leftPos + 10, this.height);
+		this.configList = new ConfigRenderableList(this.leftPos + 10, this.topPos + 15, 144, 140, this.leftPos + 158, this.topPos + 16, 142, 20, 144);
 		this.addRenderableWidget(this.configList);
+	}
+
+	@Override
+	public void resize(Minecraft minecraft, int width, int height) {
+		float scrollOffset = this.configList.scrollerManager.getScrollerOffset();
+		super.resize(minecraft, width, height);
+		this.configList.scrollerManager.setScrollOffset(scrollOffset);
+		this.configList.scrollerManager.refreshList();
+
 	}
 
 	@Override

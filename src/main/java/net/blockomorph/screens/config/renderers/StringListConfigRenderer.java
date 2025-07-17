@@ -26,4 +26,9 @@ public class StringListConfigRenderer implements ConfigRenderer<ListConfig> {
 	public boolean mouseScrolled(ListConfig configInstance, double mouseX, double mouseY, double yOffsetWheel, Rect2i box) {
 		return false;
 	}
+
+	@Override
+	public int getOptionColor(ListConfig configInstance) {
+		return -6710887;
+	}
 }

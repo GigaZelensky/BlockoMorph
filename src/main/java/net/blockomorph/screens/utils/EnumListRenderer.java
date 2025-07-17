@@ -32,8 +32,8 @@ public class EnumListRenderer {
 		return null;
 	}
 
-	public void renderName(GuiUtils gui, int x, int y, Component string, int stringColor) {
-		gui.drawString(string, x, y, stringColor, false);
+	public void renderName(GuiUtils gui, int x, int y, Enum<?> enumValue, int stringColor) {
+		gui.drawString(Component.literal(enumValue.toString().toLowerCase()), x, y, stringColor, false);
 	}
 
 	public void render(GuiUtils gui, int x, int y, int startOfX, int startOfY) {
@@ -53,18 +53,18 @@ public class EnumListRenderer {
 			int textX = startX + 2;
 			for (int i = 0; i < Math.min(this.maxWordsOnList, this.enumList.size()); i++) {
 				int textY = startY + i*12 + 2;
-				int color = GuiUtils.isMouseOver(textX, textY - 2, textX + longestWord, textY + 12, gui.getMouseX(), gui.getMouseY()) ? this.hoveredTextColor : this.textColor;
-				gui.drawString(Component.literal(this.enumList.get(Math.min(i + this.listOffset, this.enumList.size() - 1)).toString()), textX, textY, color, true);
+				int color = GuiUtils.isMouseOver(textX, textY - 2, textX + longestWord, textY + 10, gui.getMouseX(), gui.getMouseY()) ? this.hoveredTextColor : this.textColor;
+				gui.drawString(Component.literal(this.enumList.get(Math.min(i + this.listOffset, this.enumList.size() - 1)).toString().toLowerCase()), textX, textY, color, true);
 			}
 
 			if (this.enumList.size() > this.maxWordsOnList) {
 				if (this.listOffset + this.maxWordsOnList < this.enumList.size()) {
-					this.renderDots(gui, startX, heightWords, longestWord); //down dots
+					this.renderDots(gui, startX, startY + heightWords, longestWord + 4); //down dots
 				}
 			}
 
 			if (this.listOffset > 0) {
-				this.renderDots(gui, startX, startY, longestWord); //up dots
+				this.renderDots(gui, startX, startY, longestWord + 4); //up dots
 			}
 		}
 	}
@@ -85,14 +85,14 @@ public class EnumListRenderer {
 			int endX = startX + this.getLongestWord();
 			int endY = startY + 12 * Math.min(this.enumList.size(), this.maxWordsOnList);
 			if (GuiUtils.isMouseOver(startX, startY, endX, endY, mouseX, mouseY)) {
-				if (yScrolled < 0) {
+				if (yScrolled > 0) {
 					int result = this.listOffset - 1;
 					if (result >= 0) {
 						this.listOffset = result;
 					}
-				} else if (yScrolled > 0) {
+				} else if (yScrolled < 0) {
 					int result = this.listOffset + 1;
-					if (result + this.maxWordsOnList < this.enumList.size()) {
+					if (result + this.maxWordsOnList <= this.enumList.size()) {
 						this.listOffset = result;
 					}
 				}
@@ -108,7 +108,7 @@ public class EnumListRenderer {
 			int textXend = this.getLongestWord() + textX;
 			for (int i = 0; i < Math.min(this.maxWordsOnList, this.enumList.size()); i++) {
 				int textY = this.y + this.startOfY + i*12 + 2;
-				if (GuiUtils.isMouseOver(textX, textY - 2, textXend, textY + 12, mouseX, mouseY)) {
+				if (GuiUtils.isMouseOver(textX, textY - 2, textXend, textY + 10, mouseX, mouseY)) {
 					Enum<?> enumValue = this.enumList.get(Math.min(i + this.listOffset, this.enumList.size() - 1));
 					this.onClick.accept(enumValue);
 					this.close();

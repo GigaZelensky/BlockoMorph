@@ -8,5 +8,7 @@
   "blockomorph.commands.option_change.list.remove": "Value %s removed from list-option \"%s\".",
   "blockomorph.commands.enum_argument.wrong": "Selected wrong value %s from list %s.",
   "blockomorph.commands.option_get.default": "Value of option \"%s\" is %s.",
-  "blockomorph.commands.option_get.list": "Values of list-option \"%s\" with size %s is: %s"
+  "blockomorph.commands.option_get.list": "Values of list-option \"%s\" with size %s is: %s",
+
+  "blockomorph.config_option."
 }

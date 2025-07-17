@@ -51,7 +51,7 @@ public class ScrollerManager<T> {
 	}
 
 	private int findRowNumber() {
-		return Mth.positiveCeilDiv(this.list != null ? this.list.size() : 0, 4) - 4;
+		return Mth.positiveCeilDiv(this.list != null ? this.list.size() : 0, this.row) - this.column;
 	}
 
 	protected int findRowIndexForScrollOffset(float f) {

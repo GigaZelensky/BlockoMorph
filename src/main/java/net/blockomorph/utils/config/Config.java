@@ -27,7 +27,8 @@ public class Config {
 			new BooleanConfig("playerDieAfterDestroy", true, true, null),
 			new EnumConfig<>("useMode", UseMode.ALL, true, null),
 			new EnumConfig<>("placeMode", PlaceMode.OUT, true, null),
-			new BooleanConfig("canOperatorModifyConfig", true, false, null)
+			new BooleanConfig("canOperatorModifyConfig", true, false, null),
+			new BooleanConfig("testOption", false, true, null)
 	);
 
 	private Config() {}

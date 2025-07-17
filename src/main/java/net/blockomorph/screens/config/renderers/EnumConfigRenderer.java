@@ -7,35 +7,36 @@ import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.EnumConfig;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.network.chat.Component;
 
 public class EnumConfigRenderer implements ConfigRenderer<EnumConfig<?>> {
-	private static final EnumListRenderer ENUM_LIST_RENDERER = new EnumListRenderer(-1, 0xFFFF00FF, 7);
+	private final EnumListRenderer ENUM_LIST_RENDERER = new EnumListRenderer(-1, 0xFFFF00FF, 7);
+	private boolean notClose;
 
 	@Override
 	public void renderBackground(GuiUtils gui, EnumConfig<?> configInstance, Rect2i box) {
 		gui.blit(PLATES_SPRITE, box.getX(), box.getY(), 0, 20, 144, 20, 144, 74);
+		ENUM_LIST_RENDERER.renderName(gui, box.getX() + 97, box.getY() + 7, configInstance.getValue(), -12821534);
 	}
 
 	@Override
 	public void render(GuiUtils gui, EnumConfig<?> configInstance, Rect2i box) {
-		ENUM_LIST_RENDERER.renderName(gui, box.getX() + 97, box.getY() + 7, Component.literal(configInstance.getValue().toString()), -1);
 		if (this.isThisList(configInstance))
-			ENUM_LIST_RENDERER.render(gui, box.getX() + 97, box.getY() + 7, -4, 11);
+			ENUM_LIST_RENDERER.render(gui, box.getX() + 97, box.getY() + 7, -3, 10);
 	}
 
 	@Override
 	public boolean mouseClicked(EnumConfig<?> configInstance, double mouseX, double mouseY, Rect2i box) {
-		if (GuiUtils.isMouseOver(box.getX() + 94, box.getY() + 4, box.getX() + 139, box.getY() + 17, mouseX, mouseY)) {
+		if (this.isThisList(configInstance) && ENUM_LIST_RENDERER.mouseClicked(mouseX, mouseY)) {
+			return true;
+		} else if (this.isInBounds(box, mouseX, mouseY)) {//if (GuiUtils.isMouseOver(box.getX() + 94, box.getY() + 4, box.getX() + 139, box.getY() + 17, mouseX, mouseY)) {
 			ENUM_LIST_RENDERER.drop(configInstance.getAllEnumValues(), (value) -> {
 				this.playClickSound();
 				MorphUtils.sendServer(new ServerBoundConfigUpdatePacket(configInstance.getName(), value.name()));
 			});
-			return true;
-		} else if (this.isThisList(configInstance) && ENUM_LIST_RENDERER.mouseClicked(mouseX, mouseY)) {
+			this.notClose = true;
+			this.playClickSound();
 			return true;
 		}
-		ENUM_LIST_RENDERER.close();
 		return false;
 	}
 
@@ -45,6 +46,22 @@ public class EnumConfigRenderer implements ConfigRenderer<EnumConfig<?>> {
 			return ENUM_LIST_RENDERER.mouseScrolled(mouseX, mouseY, yOffsetWheel);
 		}
 		return false;
+	}
+
+	@Override
+	public void init() {
+		ENUM_LIST_RENDERER.close();
+	}
+
+	@Override
+	public void startClick() {
+		this.notClose = false;
+	}
+
+	@Override
+	public void endClick() {
+		if (!this.notClose)
+			ENUM_LIST_RENDERER.close();
 	}
 
 	private boolean isThisList(EnumConfig<?> configInstance) {
