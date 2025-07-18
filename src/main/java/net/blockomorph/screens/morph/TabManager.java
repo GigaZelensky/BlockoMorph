@@ -106,9 +106,10 @@ public class TabManager {
 	public boolean selectTab(CreativeModeTab tab) {
 		List<SavedBlock> list = BlocksManager.ALL_TAB_CONTENTS.get(getKeyFromTab(tab));
 		if (list != null) {
+			CreativeModeTab old = selectedTab;
 			selectedTab = tab;
 			ScrollerManager<SavedBlock> manager = parentScreen.BLOCKS_MANAGER.scrollerManager;
-			manager.setScrollOffset(0f);
+			if (old != tab) manager.setScrollOffset(0f);
 			manager.setMainList(list);
 			manager.refreshList();
 			this.searchBox.setValue("");

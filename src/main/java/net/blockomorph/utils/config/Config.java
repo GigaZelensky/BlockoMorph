@@ -11,8 +11,10 @@ import java.nio.file.Files;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.MorphUtils;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.Main;
 import net.minecraft.server.MinecraftServer;
 import net.blockomorph.network.ClientBoundConfigUpdatePacket;
+import net.minecraft.world.level.block.state.properties.RailShape;
 
 public class Config {
 	private static final Gson WRITER = new GsonBuilder().setPrettyPrinting().create();
@@ -29,7 +31,7 @@ public class Config {
 			new EnumConfig<>("useMode", UseMode.ALL, true, null),
 			new EnumConfig<>("placeMode", PlaceMode.OUT, true, null),
 			new BooleanConfig("canOperatorModifyConfig", true, false, null),
-			new BooleanConfig("testOption", false, true, null)
+			new BooleanConfig("canNonOperatorOpenMorphMenu", true, true, null)
 	);
 
 	private Config() {}

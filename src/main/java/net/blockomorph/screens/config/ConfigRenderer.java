@@ -12,7 +12,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public interface ConfigRenderer<T extends ConfigInstance<?>> {
+	String LOCAL_KEY = "blockomorph.config_option.";
+	int MAX_NAME_WIDTH = 85;
 	ResourceLocation PLATES_SPRITE = GuiUtils.res("textures/screens/configs.png");
 
 	void renderBackground(GuiUtils gui, T configInstance, Rect2i box);
@@ -32,27 +37,32 @@ public interface ConfigRenderer<T extends ConfigInstance<?>> {
 	}
 
 	default void renderOptionName(GuiUtils gui, T configInstance, Rect2i box) {
-		MutableComponent name = Component.translatable("blockomorph.config_option." + configInstance.getName());
+		MutableComponent name = Component.translatable(LOCAL_KEY + configInstance.getName());
 		int stringLength = gui.getFont().width(name.getString());
-		if (stringLength > 85) {
-			name = Component.literal(gui.getFont().plainSubstrByWidth(name.getString(), 85) + "..");
+		if (stringLength > MAX_NAME_WIDTH) {
+			name = Component.literal(gui.getFont().plainSubstrByWidth(name.getString(), MAX_NAME_WIDTH) + "..");
 		}
 		gui.drawString(name, box.getX() + 4, box.getY() + 5, this.getOptionColor(configInstance), false);
 	}
 
 	default void renderTooltip(GuiUtils gui, T configInstance, Rect2i box) {
 		if (GuiUtils.isMouseOver(box.getX(), box.getY(), box.getX() + 90, box.getY() + box.getHeight(), gui.getMouseX(), gui.getMouseY())) {
+			List<Component> tooltips = new ArrayList<>();
 			Component tooltip = this.getTooltip(gui, configInstance);
 			if (tooltip != null) {
-				gui.renderTooltip(this.getTooltip(gui, configInstance), gui.getMouseX(), gui.getMouseY());
+				tooltips.add(tooltip);
 			}
+			if (configInstance.getTooltip() != null) {
+				tooltips.add(configInstance.getTooltip());
+			}
+			gui.renderTooltip(tooltips, gui.getMouseX(), gui.getMouseY());
 		}
 	}
 
 	@Nullable
 	default Component getTooltip(GuiUtils gui, T configInstance) {
-		MutableComponent name = Component.translatable("blockomorph.config_option." + configInstance.getName());
-		if (gui.getFont().width(name.getString()) > 85) {
+		MutableComponent name = Component.translatable(LOCAL_KEY + configInstance.getName());
+		if (gui.getFont().width(name.getString()) > MAX_NAME_WIDTH) {
 			return name;
 		}
 		return null;

@@ -19,7 +19,7 @@ import java.util.List;
 
 public class ConfigRenderableList extends AbstractWidget {
 	private final GuiUtils gui = new GuiUtils();
-	private final List<RenderableConfigInstance<?>> renderables = new ArrayList<>();
+	private final List<RenderableConfigInstance<?>> renderables = new ArrayList<>(7);
 	private final List<ConfigRenderer<?>> types = new ArrayList<>();
 	protected final ScrollerManager<RenderableConfigInstance<?>> scrollerManager;
 	private final int plateHeight;

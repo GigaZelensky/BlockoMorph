@@ -5,6 +5,7 @@ import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class EnumListRenderer {
@@ -32,8 +33,16 @@ public class EnumListRenderer {
 		return null;
 	}
 
-	public void renderName(GuiUtils gui, int x, int y, Enum<?> enumValue, int stringColor) {
-		gui.drawString(Component.literal(enumValue.toString().toLowerCase()), x, y, stringColor, false);
+	public boolean renderName(GuiUtils gui, int x, int y, int maxLength, Enum<?> enumValue, int stringColor) {
+		boolean flag = false;
+		String name = enumValue.toString().toLowerCase();
+		String newName = gui.getFont().plainSubstrByWidth(name, maxLength);
+		if (!newName.equals(name)) {
+			newName = newName + "..";
+			flag = true;
+		}
+		gui.drawString(Component.literal(newName), x, y, stringColor, false);
+		return flag;
 	}
 
 	public void render(GuiUtils gui, int x, int y, int startOfX, int startOfY) {
@@ -120,9 +129,13 @@ public class EnumListRenderer {
 	}
 
 	public void drop(List<? extends Enum<?>> list, Consumer<Enum<?>> onClick) {
-		this.enumList = list;
-		this.onClick = onClick;
+		List<?> old = this.enumList;
+		this.enumList = Objects.requireNonNull(list);
+		this.onClick = Objects.requireNonNull(onClick);
 		this.dropped = true;
+		if (!list.equals(old)) {
+			this.listOffset = 0;
+		}
 	}
 
 	public void close() {

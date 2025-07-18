@@ -16,7 +16,7 @@ public class EnumConfigRenderer implements ConfigRenderer<EnumConfig<?>> {
 	@Override
 	public void renderBackground(GuiUtils gui, EnumConfig<?> configInstance, Rect2i box) {
 		gui.blit(PLATES_SPRITE, box.getX(), box.getY(), 0, 20, 144, 20, 144, 74);
-		ENUM_LIST_RENDERER.renderName(gui, box.getX() + 97, box.getY() + 7, configInstance.getValue(), -12821534);
+		ENUM_LIST_RENDERER.renderName(gui, box.getX() + 97, box.getY() + 7, 42, configInstance.getValue(), -12821534);
 	}
 
 	@Override
