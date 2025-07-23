@@ -2,42 +2,40 @@ package net.blockomorph.screens.utils;
 
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class ObjectListRenderer<T> {
+public class ObjectListRenderer<PROPERTY, VALUE> {
 	private final int textColor, hoveredTextColor, maxWordsOnList;
 	private int x, y;
 	private int startOfX, startOfY;
-	protected List<T> list;
-	protected Consumer<T> onClick;
-	protected final Function<T, String> toString;
+	protected List<VALUE> list;
+	protected Consumer<VALUE> onClick;
+	protected final BiFunction<PROPERTY, VALUE, String> toString;
+	protected final Function<PROPERTY, List<VALUE>> toValues;
 	private Font font;
 	private boolean dropped;
 	private int listOffset;
+	protected PROPERTY currentProperty;
 
-	public ObjectListRenderer(int textColor, int hoveredTextColor, int maxWordsOnList, Function<T, String> toString) {
+	public ObjectListRenderer(int textColor, int hoveredTextColor, int maxWordsOnList, BiFunction<PROPERTY, VALUE, String> toString, Function<PROPERTY, List<VALUE>> toValues) {
 		this.textColor = textColor;
 		this.hoveredTextColor = hoveredTextColor;
 		this.maxWordsOnList = maxWordsOnList;
 		this.toString = toString;
+		this.toValues = toValues;
 	}
 
-	@SuppressWarnings("unchecked")
-	@Nullable
-	public Class<T> getValuesClass() {
-		if (this.list != null && !this.list.isEmpty()) {
-			return (Class<T>) this.list.getFirst().getClass();
-		}
-		return null;
+	public boolean isCurrentProperty(PROPERTY prop) {
+		return prop == currentProperty;
 	}
 
-	public void renderName(GuiUtils gui, int x, int y, int maxLength, T value, int stringColor) {
-		String name = this.toString.apply(value);
+	public void renderName(GuiUtils gui, int x, int y, int maxLength, PROPERTY property, VALUE value, int stringColor) {
+		String name = this.toString.apply(property, value);
 		String newName = gui.getFont().plainSubstrByWidth(name, maxLength);
 		if (!newName.equals(name)) {
 			newName = newName + "..";
@@ -78,8 +76,8 @@ public class ObjectListRenderer<T> {
 		}
 	}
 
-	private Component getName(T value) {
-		return Component.literal(this.toString.apply(value));
+	private Component getName(VALUE value) {
+		return Component.literal(this.toString.apply(this.currentProperty, value));
 	}
 
 	private void renderDots(GuiUtils gui, int x, int y, int length) {
@@ -122,7 +120,7 @@ public class ObjectListRenderer<T> {
 			for (int i = 0; i < Math.min(this.maxWordsOnList, this.list.size()); i++) {
 				int textY = this.y + this.startOfY + i*12 + 2;
 				if (GuiUtils.isMouseOver(textX, textY - 2, textXend, textY + 10, mouseX, mouseY)) {
-					T value = this.list.get(Math.min(i + this.listOffset, this.list.size() - 1));
+					VALUE value = this.list.get(Math.min(i + this.listOffset, this.list.size() - 1));
 					this.onClick.accept(value);
 					this.close();
 					return true;
@@ -132,9 +130,10 @@ public class ObjectListRenderer<T> {
 		return false;
 	}
 
-	public void drop(List<T> list, Consumer<T> onClick) {
+	public void drop(PROPERTY property, Consumer<VALUE> onClick) {
+		this.currentProperty = property;
 		List<?> old = this.list;
-		this.list = Objects.requireNonNull(list);
+		this.list = Objects.requireNonNull(this.toValues.apply(property));
 		this.onClick = Objects.requireNonNull(onClick);
 		this.dropped = true;
 		if (!list.equals(old)) {
@@ -151,8 +150,8 @@ public class ObjectListRenderer<T> {
 
 	private int getLongestWord() {
 		int maxWidth = 0;
-		for (T value : this.list) {
-			String string = this.toString.apply(value);
+		for (VALUE value : this.list) {
+			String string = this.toString.apply(this.currentProperty, value);
 			int stringWidth = this.font.width(string);
 			if (stringWidth > maxWidth) {
 				maxWidth = stringWidth;

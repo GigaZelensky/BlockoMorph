@@ -162,7 +162,7 @@ public class ConfigScreenOld extends Screen {
    }
 
    private void renderEnumList(GuiGraphics guiGraphics, int mouseX, int mouseY) { //new
-   	    List<Enum<?>> vals = enumList.getAllEnumValues();
+   	    List<Enum<?>> vals = (List<Enum<?>>) (Object)List.of(enumList.getEnumClass().getEnumConstants());
         int maxWidth = this.getLongWord(vals);
         int posY = this.topPos + 15 + (Config.getInstance().OPTIONS.indexOf(this.enumList)) * 20 + 14;
         int height = 12 * Math.min(vals.size(), 7);
@@ -207,7 +207,7 @@ public class ConfigScreenOld extends Screen {
 
    private boolean enumClick(double mouseX, double mouseY) {
    	    if (this.enumList != null) {
-   	        List<Enum<?>> vals = enumList.getAllEnumValues();
+   	        List<Enum<?>> vals = (List<Enum<?>>) (Object)List.of(enumList.getEnumClass().getEnumConstants());
             int maxWidth = this.getLongWord(vals);
             int posY = this.topPos + 15 + (Config.getInstance().OPTIONS.indexOf(this.enumList)) * 20 + 14;
             int count = Math.min(vals.size(), 7);

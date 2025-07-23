@@ -1,14 +1,20 @@
 package net.blockomorph.core;
 
+import net.blockomorph.screens.TestScreen;
 import net.blockomorph.screens.config.ConfigScreen;
 import net.blockomorph.screens.config.ConfigScreenOld;
+import net.blockomorph.screens.morph.AbstractMorphScreen;
 import net.blockomorph.screens.morph.MorphScreen;
 import net.blockomorph.screens.morph.MorphScreenOld;
 import net.blockomorph.screens.morphConfig.BlockMorphConfigScreenOld;
 import net.blockomorph.screens.morphConfig.MorphConfigScreen;
+import net.blockomorph.utils.SavedBlock;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.world.item.CreativeModeTab;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -42,7 +48,20 @@ public class KeyMappings {
 	});
 
 	public static final KeyMapping DEBUG3 = new HandlerKeymapping("key.blockomorph.debug3", GLFW.GLFW_KEY_L, () -> {
-		mc.setScreen(new MorphConfigScreen(false));
+		//mc.setScreen(new MorphConfigScreen(false));
+		mc.setScreen(new AbstractMorphScreen(new AbstractMorphScreen.MorphScreenOptions(false, true, false)) {
+			@Override
+			protected void initAdditional(Consumer<AbstractWidget> action) {}
+
+			@Override
+			protected void renderFrame(SavedBlock block, int x, int y) {}
+
+			@Override
+			protected SoundInstance onClickOnBlock(SavedBlock block, int number, CreativeModeTab selectedTab, int page) {
+				mc.setScreen(new TestScreen(block.getState()));
+				return null;
+			}
+		});
 	});
 
 	static void registerKeyMappings(Consumer<KeyMapping> register) {
