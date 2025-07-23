@@ -14,8 +14,6 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.CommandBuildContext;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 public class EnumConfig<T extends Enum<T>> extends ConfigInstance<T> {
 	private static EnumConfigRenderer RENDERER;
 	private final Class<T> classType;
@@ -56,10 +54,6 @@ public class EnumConfig<T extends Enum<T>> extends ConfigInstance<T> {
 	@Override
 	public void writeToNetwork(FriendlyByteBuf buf) {
 		buf.writeEnum(this.value);
-	}
-
-	public List<T> getAllEnumValues() {
-		return List.of(this.classType.getEnumConstants());
 	}
 
 	public LiteralArgumentBuilder<CommandSourceStack> buildArgument(LiteralArgumentBuilder<CommandSourceStack> optionNameArgument, CommandBuildContext context, Commands.CommandSelection environment) {

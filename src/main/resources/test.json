@@ -1,5 +1,6 @@
 {
   "blockomorph.gui.morphScreen.allowed_tab": "Allowed blocks",
+  "blockomorph.gui.morphConfigScreen.save": "Save",
 
 
   "blockomorph.commands.option_change.default": "Value of option \"%s\" changed to %s.",

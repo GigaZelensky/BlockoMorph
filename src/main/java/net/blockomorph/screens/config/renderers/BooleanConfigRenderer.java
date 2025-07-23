@@ -22,10 +22,10 @@ public class BooleanConfigRenderer implements ConfigRenderer<BooleanConfig> {
 
 	@Override
 	public boolean mouseClicked(BooleanConfig configInstance, double mouseX, double mouseY, Rect2i box, Screen parentScreen) {
-		if (this.isInBounds(box, mouseX, mouseY)) {
+		if (GuiUtils.isInBounds(box, mouseX, mouseY)) {
 			boolean value = !configInstance.getValue();
 			MorphUtils.sendServer(new ServerBoundConfigUpdatePacket(configInstance.getName(), value + ""));
-			this.playClickSound();
+			GuiUtils.playClickSound();
 			return true;
 		}
 		return false;

@@ -1,4 +1,4 @@
-package net.blockomorph.screens;
+package net.blockomorph.screens.morphConfig;
 
 import net.blockomorph.screens.morph.AbstractMorphScreen;
 import net.blockomorph.screens.morph.MorphScreenOld;
@@ -58,7 +58,7 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
 
-public class BlockMorphConfigScreen extends Screen {
+public class BlockMorphConfigScreenOld extends Screen {
    private static final ResourceLocation texture = ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/morph_config_gui.png");
    private static final WidgetSprites SAVE_BUT = new WidgetSprites(
    	ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/save_but_def.png"),
@@ -95,7 +95,7 @@ public class BlockMorphConfigScreen extends Screen {
    EditBox tagsBox;
    EditBox savebox;
 
-   public BlockMorphConfigScreen(boolean init) {
+   public BlockMorphConfigScreenOld(boolean init) {
    	   super(Component.literal("morph_config_screen"));
    	   this.init = init;
    	   this.world = Minecraft.getInstance().level;
@@ -502,7 +502,7 @@ public class BlockMorphConfigScreen extends Screen {
 		}) {
 			public void renderWidget(GuiGraphics g, int gx, int gy, float ticks) {
 				WidgetSprites sp = this.sprites;
-				if (BlockMorphConfigScreen.this.editButBucket) sp = BUCKET;
+				if (BlockMorphConfigScreenOld.this.editButBucket) sp = BUCKET;
 				ResourceLocation loc = sp.get(this.isActive(), this.isHoveredOrFocused());
                 g.blit(RenderType::guiTextured, loc, this.getX(), this.getY(), 0, 0, this.width, this.height, this.width, this.height);
             }

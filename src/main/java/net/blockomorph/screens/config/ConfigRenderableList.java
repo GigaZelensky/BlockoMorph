@@ -3,12 +3,10 @@ package net.blockomorph.screens.config;
 import com.google.common.collect.ImmutableList;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ScrollerManager;
-import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.config.ConfigInstance;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
@@ -25,10 +23,10 @@ public class ConfigRenderableList extends AbstractWidget {
 	private final int plateHeight;
 	private final int plateLength;
 
-	public ConfigRenderableList(int x, int y, int length, int height, int barX, int barY, int barHeight, int plateHeight, int plateLength, Screen parentScreen) {
+	public ConfigRenderableList(List<ConfigInstance<?>> options, int x, int y, int length, int height, int barX, int barY, int barHeight, int plateHeight, int plateLength, Screen parentScreen) {
 		super(x, y, length, height, CommonComponents.EMPTY);
 		ImmutableList.Builder<RenderableConfigInstance<?>> builder = new ImmutableList.Builder<>();
-		for (ConfigInstance<?> option : Config.getInstance().OPTIONS) {
+		for (ConfigInstance<?> option : options) {
 			if (option.canEditedByOperators()) {
 				builder.add(new RenderableConfigInstance<>(option, parentScreen));
 				if (!types.contains(option.getRenderer())) {

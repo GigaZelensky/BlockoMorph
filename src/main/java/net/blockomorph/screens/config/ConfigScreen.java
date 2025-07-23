@@ -1,6 +1,7 @@
 package net.blockomorph.screens.config;
 
 import net.blockomorph.screens.utils.GuiUtils;
+import net.blockomorph.utils.config.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.GuiEventListener;
@@ -44,7 +45,7 @@ public class ConfigScreen extends Screen {
 		if (this.configList != null) {
 			scrollOff = this.configList.scrollerManager.getScrollerOffset();
 		}
-		this.configList = new ConfigRenderableList(this.leftPos + 10, this.topPos + 15, 144, 140, this.leftPos + 158, this.topPos + 16, 142, 20, 144, this);
+		this.configList = new ConfigRenderableList(Config.getInstance().OPTIONS, this.leftPos + 10, this.topPos + 15, 144, 140, this.leftPos + 158, this.topPos + 16, 142, 20, 144, this);
 		this.configList.scrollerManager.setScrollOffset(scrollOff);
 		this.configList.scrollerManager.refreshList();
 		this.addRenderableWidget(this.configList);
@@ -58,5 +59,10 @@ public class ConfigScreen extends Screen {
 	@Override
 	public GuiEventListener getFocused() {
 		return this.configList;
+	}
+
+	@Override
+	public boolean isPauseScreen() {
+		return false;
 	}
 }

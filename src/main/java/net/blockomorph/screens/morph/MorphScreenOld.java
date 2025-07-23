@@ -1,7 +1,7 @@
 package net.blockomorph.screens.morph;
 
 import net.blockomorph.BlockomorphServer;
-import net.blockomorph.screens.BlockMorphConfigScreen;
+import net.blockomorph.screens.morphConfig.BlockMorphConfigScreenOld;
 import net.blockomorph.screens.config.ConfigScreenOld;
 import net.blockomorph.screens.utils.ListenerEditBox;
 import net.blockomorph.screens.utils.SoftSpritedImageButton;
@@ -566,7 +566,7 @@ public class MorphScreenOld extends Screen {
 	public boolean mouseClicked(double x, double y, int type) {
 		if (type == 0) {
 			if (x > this.leftPos + 4 && x < this.leftPos + 4 + 41 && y > this.topPos - 19 && y < this.topPos - 19 + 22) {
-				this.minecraft.setScreen(new BlockMorphConfigScreen(true));
+				this.minecraft.setScreen(new BlockMorphConfigScreenOld(true));
    	    		return true;
    	    	}
 			int i = this.findBlockIndex(x, y);

@@ -1,6 +1,6 @@
 package net.blockomorph.screens.morph;
 
-import net.blockomorph.screens.BlockMorphConfigScreen;
+import net.blockomorph.screens.morphConfig.BlockMorphConfigScreenOld;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ScrollerManager;
 import net.blockomorph.utils.MorphUtils;
@@ -114,7 +114,7 @@ public abstract class AbstractMorphScreen extends Screen {
 				return true;
 			} else if (this.options.useUpperTabs) {
 				if (x > this.leftPos + 4 && x < this.leftPos + 4 + 41 && y > this.topPos - 19 && y < this.topPos - 19 + 22) {
-					mc.setScreen(new BlockMorphConfigScreen(true)); //TODO
+					mc.setScreen(new BlockMorphConfigScreenOld(true)); //TODO
 					return true;
 				}
 			}

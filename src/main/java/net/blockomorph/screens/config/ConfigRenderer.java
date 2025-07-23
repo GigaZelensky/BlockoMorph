@@ -28,14 +28,6 @@ public interface ConfigRenderer<T extends ConfigInstance<?>> {
 
 	boolean mouseScrolled(T configInstance, double mouseX, double mouseY, double yOffsetWheel, Rect2i box, Screen parentScreen);
 
-	default boolean isInBounds(Rect2i box, double mouseX, double mouseY) {
-		return GuiUtils.isMouseOver(box.getX(), box.getY(), box.getX() + box.getWidth(), box.getY() + box.getHeight(), mouseX, mouseY);
-	}
-
-	default void playClickSound() {
-		Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1f));
-	}
-
 	default void renderOptionName(GuiUtils gui, T configInstance, Rect2i box) {
 		MutableComponent name = Component.translatable(LOCAL_KEY + configInstance.getName());
 		int stringLength = gui.getFont().width(name.getString());

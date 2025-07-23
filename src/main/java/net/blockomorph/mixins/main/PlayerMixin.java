@@ -1,10 +1,9 @@
 package net.blockomorph.mixins.main;
 
-import net.blockomorph.BlockomorphServer;
 import net.blockomorph.network.ClientBoundApplyBlockMorphPacket;
 import net.blockomorph.network.ClientBoundMorphUpdatePacket;
 import net.blockomorph.network.ClientBoundServerBlockEntityTagPacket;
-import net.blockomorph.screens.BlockMorphConfigScreen;
+import net.blockomorph.screens.morphConfig.BlockMorphConfigScreenOld;
 import net.blockomorph.utils.*;
 import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
@@ -414,7 +413,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 
 	@Environment(EnvType.CLIENT)
 	public void clientUpdate() {
-		if (Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc && Minecraft.getInstance().player == (PlayerAccessor)this)
+		if (Minecraft.getInstance().screen instanceof BlockMorphConfigScreenOld sc && Minecraft.getInstance().player == (PlayerAccessor)this)
 			sc.morphUpdate(this.getBlockState(InPlayerBlockPos.ZERO));
 	}
 

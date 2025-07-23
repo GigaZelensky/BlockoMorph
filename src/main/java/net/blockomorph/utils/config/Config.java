@@ -68,7 +68,8 @@ public class Config {
 		try (BufferedReader reader = new BufferedReader(new FileReader(CONFIG_FILE))) {
 			JsonObject jsonObject = JsonParser.parseReader(reader).getAsJsonObject();
 			for (ConfigInstance<?> option : INSTANCE.OPTIONS) {
-				option.readFromStorage(jsonObject.get(option.getName()));
+				JsonElement property = jsonObject.get(option.getName());
+				if (property != null) option.readFromStorage(property);
 			}
 		} catch (Exception e) {
 			MorphUtils.LOGGER.error("Cannot read Blockomorph config: ", e);

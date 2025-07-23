@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
-//HINT: ENUM - enum class
 public class EnumArgument<ENUM extends Enum<ENUM>> implements ArgumentType<ENUM> {
 	private static final Dynamic2CommandExceptionType INVALID_VALUE = new Dynamic2CommandExceptionType(
 			(found, constants) -> Component.translatable("blockomorph.commands.enum_argument.wrong", found, constants)

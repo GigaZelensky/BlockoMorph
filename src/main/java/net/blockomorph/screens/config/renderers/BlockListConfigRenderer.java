@@ -29,7 +29,7 @@ public class BlockListConfigRenderer implements ConfigRenderer<BlockListConfig> 
 		int buttonX = box.getX() + 125;
 		int buttonY = box.getY() + 2;
 		if (this.isButtonHovered(buttonX, buttonY, mouseX, mouseY)) {
-			this.playClickSound();
+			GuiUtils.playClickSound();
 			GuiUtils.MC.setScreen(new ListOptionEditingMorphScreen(configInstance, parentScreen));
 			return true;
 		}
