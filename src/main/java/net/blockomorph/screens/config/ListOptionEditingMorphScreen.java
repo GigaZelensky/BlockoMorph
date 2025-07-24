@@ -2,6 +2,7 @@ package net.blockomorph.screens.config;
 
 import net.blockomorph.network.ServerBoundConfigUpdatePacket;
 import net.blockomorph.screens.morph.AbstractMorphScreen;
+import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.SavedBlock;
 import net.blockomorph.utils.config.BlockListConfig;
@@ -30,7 +31,7 @@ public class ListOptionEditingMorphScreen extends AbstractMorphScreen {
 	@Override
 	protected void initAdditional(Consumer<AbstractWidget> action) {
 		Button butt = Button.builder(Component.literal("<--"), b -> {
-			mc.setScreen(this.parentScreen);
+			GuiUtils.MC.setScreen(this.parentScreen);
 		}).pos(this.leftPos + 10, this.topPos + this.imageHeight + 1).size(20, 20).build();
 		action.accept(butt);
 	}

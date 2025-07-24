@@ -1,5 +1,6 @@
-package net.blockomorph.screens.morphConfig.widget;
+package net.blockomorph.screens.morphConfig.widget.renderers;
 
+import net.blockomorph.screens.morphConfig.widget.PropertyRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;

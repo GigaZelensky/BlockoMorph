@@ -1,6 +1,7 @@
 package net.blockomorph.screens.morph;
 
 import net.blockomorph.screens.morphConfig.BlockMorphConfigScreenOld;
+import net.blockomorph.screens.morphConfig.MorphConfigScreen;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ScrollerManager;
 import net.blockomorph.utils.MorphUtils;
@@ -8,6 +9,7 @@ import net.blockomorph.utils.PlayerAccessor;
 import net.blockomorph.utils.SavedBlock;
 import net.blockomorph.utils.SavedBlockManager;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
@@ -22,7 +24,6 @@ public abstract class AbstractMorphScreen extends Screen {
 	private static final ResourceLocation MENU_LOCATION = GuiUtils.res("textures/screens/morph_gui.png");
 	private static final ResourceLocation SEARCH_BAR = GuiUtils.res("textures/screens/searchbar.png");
 	private static final ResourceLocation MODE_TABS = GuiUtils.res("textures/screens/exit_tabs.png");
-	public static final Minecraft mc = GuiUtils.MC;
 	protected final GuiUtils gui = new GuiUtils();
 	public static final SavedBlockManager SAVED_BLOCK_MANAGER = new SavedBlockManager(MorphUtils.getGameDir());
 	public final TabManager TAB_MANAGER;
@@ -39,7 +40,7 @@ public abstract class AbstractMorphScreen extends Screen {
 	protected AbstractMorphScreen(MorphScreenOptions options) {
 		super(Component.literal("morph_screen"));
 		this.options = options;
-		this.player = PlayerAccessor.of(mc.player);
+		this.player = PlayerAccessor.of(GuiUtils.MC.player);
 		this.BLOCKS_MANAGER = new BlocksManager(this);
 		this.TAB_MANAGER = new TabManager(this, options.useAllowedTab(), options.useSavedBlocksTab());
 	}
@@ -65,7 +66,7 @@ public abstract class AbstractMorphScreen extends Screen {
 
 	@Override
 	public void tick() {
-		this.player = PlayerAccessor.of(mc.player);
+		this.player = PlayerAccessor.of(GuiUtils.MC.player);
 	}
 
 	public int getLeftPos() {
@@ -114,7 +115,7 @@ public abstract class AbstractMorphScreen extends Screen {
 				return true;
 			} else if (this.options.useUpperTabs) {
 				if (x > this.leftPos + 4 && x < this.leftPos + 4 + 41 && y > this.topPos - 19 && y < this.topPos - 19 + 22) {
-					mc.setScreen(new BlockMorphConfigScreenOld(true)); //TODO
+					GuiUtils.MC.setScreen(new MorphConfigScreen(true)); //TODO
 					return true;
 				}
 			}

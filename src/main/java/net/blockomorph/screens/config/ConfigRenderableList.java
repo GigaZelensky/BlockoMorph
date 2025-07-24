@@ -47,7 +47,7 @@ public class ConfigRenderableList extends AbstractWidget {
 		this.scrollerManager.renderScroller(this.gui);
 		this.renderPlates(false);
 		this.renderPlates(true);
-		this.renderables.forEach(renderer -> renderer.renderTooltip(gui));
+		this.renderables.forEach(renderer -> renderer.renderTooltip(this.gui));
 	}
 
 	private void renderPlates(boolean mainPhase) {

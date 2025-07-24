@@ -2,6 +2,7 @@ package net.blockomorph.screens.morphConfig.widget;
 
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
@@ -25,6 +26,24 @@ public interface PropertyRenderer<VALUE extends Comparable<VALUE>, T extends Pro
 
 	default void renderPlate(GuiUtils gui, Rect2i box, int number) {
 		gui.blit(PROPERTIES_SPRITE, box.getX(), box.getY(), 0, PLATE_HEIGHT * number, SPRITE_LENGTH, PLATE_HEIGHT, SPRITE_LENGTH, SPRITE_HEIGHT);
+	}
+
+	default void renderPropertyName(GuiUtils gui, T property, Rect2i box) {
+		String name = property.getName();
+		if (gui.getFont().width(name) > 31) {
+			name = gui.getFont().plainSubstrByWidth(name, 29) + "..";
+		}
+		gui.drawString(Component.literal(name), box.getX() + 3, box.getY() + 6, -1, false);
+	}
+
+	//HINT: return true to brake tooltip render in all properties
+	default boolean renderTooltip(GuiUtils gui, T property, VALUE value, Rect2i box) {
+		if (GuiUtils.isMouseOver(box.getX(), box.getY(), box.getX() + 36, box.getY() + box.getHeight(), gui.getMouseX(), gui.getMouseY())) {
+			if (gui.getFont().width(property.getName()) > 31) {
+				gui.renderTooltip(Component.literal(property.getName()), gui.getMouseX(), gui.getMouseY());
+			}
+		}
+		return false;
 	}
 
 	default void startClick() {}

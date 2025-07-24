@@ -59,7 +59,7 @@ public class BlocksManager {
 				if (block != null) {
 					BlockEntity blockEntity = (block.getState().getBlock() instanceof EntityBlock ent ? ent.newBlockEntity(GuiUtils.AIR, block.getState()) : null);
 					if (blockEntity != null) {
-						blockEntity.setLevel(AbstractMorphScreen.mc.level);
+						blockEntity.setLevel(GuiUtils.MC.level);
 						if (block.getTag() != null) {
 							blockEntity.loadWithComponents(block.getTag(), parentScreen.getPlayer().player().registryAccess());
 						}
@@ -154,7 +154,7 @@ public class BlocksManager {
 		if (block != null) {
 			SoundInstance sound = click.click(block, parentScreen.BLOCKS_MANAGER.findBlockIndex(x, y), TabManager.getSelectedTab(), TabManager.getTabPage());
 			if (sound != null) {
-				AbstractMorphScreen.mc.getSoundManager().play(sound);
+				GuiUtils.MC.getSoundManager().play(sound);
 			}
 			return true;
 		} else return this.scrollerManager.mouseClicked(x, y);

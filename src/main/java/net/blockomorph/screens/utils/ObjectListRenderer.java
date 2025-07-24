@@ -34,6 +34,17 @@ public class ObjectListRenderer<PROPERTY, VALUE> {
 		return prop == currentProperty;
 	}
 
+	public boolean isListFocused(double mouseX, double mouseY) {
+		if (this.dropped) {
+			int startX = this.x + this.startOfX;
+			int startY = this.y + this.startOfY;
+			int endX = startX + this.getLongestWord();
+			int endY = startY + 12 * Math.min(this.list.size(), this.maxWordsOnList);
+			return GuiUtils.isMouseOver(startX, startY, endX, endY, mouseX, mouseY);
+		}
+		return false;
+	}
+
 	public void renderName(GuiUtils gui, int x, int y, int maxLength, PROPERTY property, VALUE value, int stringColor) {
 		String name = this.toString.apply(property, value);
 		String newName = gui.getFont().plainSubstrByWidth(name, maxLength);
@@ -91,11 +102,7 @@ public class ObjectListRenderer<PROPERTY, VALUE> {
 
 	public boolean mouseScrolled(double mouseX, double mouseY, double yScrolled) {
 		if (this.dropped) {
-			int startX = this.x + this.startOfX;
-			int startY = this.y + this.startOfY;
-			int endX = startX + this.getLongestWord();
-			int endY = startY + 12 * Math.min(this.list.size(), this.maxWordsOnList);
-			if (GuiUtils.isMouseOver(startX, startY, endX, endY, mouseX, mouseY)) {
+			if (this.isListFocused(mouseX, mouseY)) {
 				if (yScrolled > 0) {
 					int result = this.listOffset - 1;
 					if (result >= 0) {
@@ -146,6 +153,7 @@ public class ObjectListRenderer<PROPERTY, VALUE> {
 		this.listOffset = 0;
 		this.list = null;
 		this.onClick = null;
+		this.currentProperty = null;
 	}
 
 	private int getLongestWord() {

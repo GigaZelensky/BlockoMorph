@@ -1,5 +1,9 @@
 package net.blockomorph.screens.morphConfig.widget;
 
+import net.blockomorph.screens.morphConfig.widget.renderers.BooleanPropertyRenderer;
+import net.blockomorph.screens.morphConfig.widget.renderers.EnumPropertyRenderer;
+import net.blockomorph.screens.morphConfig.widget.renderers.IntegerPropertyRenderer;
+import net.blockomorph.screens.morphConfig.widget.renderers.UnknownPropertyRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ScrollerManager;
 import net.minecraft.client.renderer.Rect2i;
@@ -24,11 +28,13 @@ public class BlockStatePropsRenderer {
 	private final List<RenderableProperty<?, ?>> renderableProperties;
 	private final ScrollerManager<RenderableProperty<?, ?>> scrollerManager;
 	private final Supplier<BlockState> stateSource;
+	private final int maxPlatesCount;
 	private BlockState currentState;
 
 	public BlockStatePropsRenderer(int x, int y, int maxPlatesCount, Supplier<BlockState> stateSource, Consumer<BlockState> newStateHandler) {
 		this.x = x;
 		this.y = y;
+		this.maxPlatesCount = maxPlatesCount;
 		this.stateSource = stateSource;
 		this.newStateHandler = newStateHandler;
 		this.renderableProperties = new ArrayList<>(maxPlatesCount);
@@ -46,6 +52,11 @@ public class BlockStatePropsRenderer {
 		}
 		this.renderProperties(gui, false);
 		this.renderProperties(gui, true);
+		for (RenderableProperty<?, ?> renderableProperty : this.renderableProperties) {
+			if (renderableProperty.renderTooltip(gui)) {
+				break;
+			}
+		}
 	}
 
 	public boolean mouseClicked(double mouseX, double mouseY, int type) {
@@ -68,7 +79,10 @@ public class BlockStatePropsRenderer {
 				return true;
 			}
 		}
-		return this.scrollerManager.mouseScrolled(yScrolled);
+		if (GuiUtils.isMouseOver(this.x, this.y, this.x + PLATE_LENGTH, this.y + PLATE_HEIGHT * maxPlatesCount, x, y)) {
+			return this.scrollerManager.mouseScrolled(yScrolled);
+		}
+		return false;
 	}
 
 	private void renderProperties(GuiUtils gui, boolean mainPhase) {
@@ -119,8 +133,12 @@ public class BlockStatePropsRenderer {
 				this.renderer.render(gui, this.property, this.value, this.box);
 			} else {
 				this.renderer.renderBackground(gui, this.property, this.value, this.box);
-				//this.renderer.renderOptionName(gui, this.instance, this.box);
+				this.renderer.renderPropertyName(gui, this.property, this.box);
 			}
+		}
+
+		public boolean renderTooltip(GuiUtils gui) {
+			return this.renderer.renderTooltip(gui, this.property, this.value, this.box);
 		}
 
 		public boolean mouseClicked(double mouseX, double mouseY) {
