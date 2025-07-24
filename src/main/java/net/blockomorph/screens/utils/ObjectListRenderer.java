@@ -31,7 +31,7 @@ public class ObjectListRenderer<PROPERTY, VALUE> {
 	}
 
 	public boolean isCurrentProperty(PROPERTY prop) {
-		return prop == currentProperty;
+		return prop == this.currentProperty;
 	}
 
 	public boolean isListFocused(double mouseX, double mouseY) {

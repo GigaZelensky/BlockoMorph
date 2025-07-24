@@ -57,7 +57,7 @@ public class MorphConfigScreen extends Screen {
 		this.gui.setGuiGraphics(guiGraphics, this.font, mouseX, mouseY, tick);
 		super.render(guiGraphics, mouseX, mouseY, tick);
 		this.gui.renderBlockInGui(this.getState(), this.getBE(), this.leftPos + 45.5f, this.topPos + 76.5f, 36f);
-		this.gui.renderAdditionalOnBlock(this.getState(), this.leftPos + 32, this.topPos + 34, 72f);
+		this.gui.renderAdditionalOnBlock(this.getState(), this.leftPos + 37.5f, this.topPos + 40.5f, 55f);
 		this.propertiesRenderer.render(this.gui);
 		if (GuiUtils.isMouseOver(this.leftPos + 15, this.topPos + 18, this.leftPos + 75, this.topPos + 79, mouseX, mouseY)) {
 			this.gui.renderTooltip(this.getState().getBlock().getName(), mouseX, mouseY);
