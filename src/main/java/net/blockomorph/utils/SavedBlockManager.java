@@ -19,7 +19,7 @@ public class SavedBlockManager {
 	}
 
 	public void load() {
-		if (!init)
+		if (!this.init) {
 			try {
 				CompoundTag tag = NbtIo.read(this.gameDir);
 				if (tag != null) {
@@ -27,10 +27,11 @@ public class SavedBlockManager {
 						this.blocks.put(name, SavedBlock.fromTag(tag.getCompound(name).orElseThrow(), name));
 					}
 				}
-				init = true;
+				this.init = true;
 			} catch (Exception e) {
 				MorphUtils.LOGGER.error("An error occurred while loading saved blocks", e);
 			}
+		}
 	}
 
 	public HashMap<String, SavedBlock> get() {

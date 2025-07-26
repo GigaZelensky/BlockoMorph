@@ -67,6 +67,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.multiplayer.SessionSearchTrees;
 
+@Deprecated
 @Environment(EnvType.CLIENT)
 public class MorphScreenOld extends Screen {
 	private final HashMap<String, List<Block>> content;
@@ -723,7 +724,7 @@ public class MorphScreenOld extends Screen {
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
 		this.refreshList();
-		searchBox = new ListenerEditBox(this.font, this.leftPos + 99, this.topPos + -10, 70, 12, null, this::searchBlock);
+		searchBox = new ListenerEditBox(this.font, this.leftPos + 99, this.topPos + -10, 70, 12, null, this::searchBlock, null);
 		searchBox.setMaxLength(32767);
 		searchBox.setBordered(false);
 		searchBox.setTextColor(16777215);

@@ -7,9 +7,16 @@ import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.renderer.RenderType;
 
+import java.math.BigDecimal;
+
+@Deprecated
 public class SoftSpritedImageButton extends ImageButton {
     public SoftSpritedImageButton(int i, int j, int k, int l, WidgetSprites widgetSprites, Button.OnPress onPress) {
     	super(i, j, k, l, widgetSprites, onPress);
+        Integer number = 0;
+        System.out.println(number + 5);
+        BigDecimal numb = new BigDecimal(0);
+        System.out.println(numb.byteValue() + 4);
     }
     
     @Override

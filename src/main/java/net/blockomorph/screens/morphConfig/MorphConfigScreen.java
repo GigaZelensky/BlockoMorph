@@ -1,14 +1,19 @@
 package net.blockomorph.screens.morphConfig;
 
 import net.blockomorph.network.ServerBoundBlockMorphPacket;
+import net.blockomorph.screens.morph.AbstractMorphScreen;
 import net.blockomorph.screens.morph.MorphScreen;
 import net.blockomorph.screens.morphConfig.widget.BlockStatePropsRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
+import net.blockomorph.screens.utils.ListenerEditBox;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
+import net.blockomorph.utils.SavedBlock;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -17,6 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class MorphConfigScreen extends Screen {
 	private static final ResourceLocation EXIT_TABS_SPRITE = GuiUtils.res("textures/screens/exit_tabs.png");
+	private static final ResourceLocation EDITBOX_BORDER_SPRITE = GuiUtils.res("textures/screens/editbox.png");
 	private BlockStatePropsRenderer propertiesRenderer;
 	private final GuiUtils gui = new GuiUtils();
 	private static final ResourceLocation MENU_LOCATION = GuiUtils.res("textures/screens/morph_config_gui.png");
@@ -25,12 +31,14 @@ public class MorphConfigScreen extends Screen {
 	protected PlayerAccessor player;
 	protected int leftPos;
 	protected int topPos;
+	private EditBox saveBox;
 	private final boolean needUpperTabs;
 
 	public MorphConfigScreen(boolean needUpperTabs) {
 		super(Component.literal("morph_config_screen"));
 		this.player = PlayerAccessor.of(GuiUtils.MC.player);
 		this.needUpperTabs = needUpperTabs;
+		AbstractMorphScreen.SAVED_BLOCK_MANAGER.load();
 	}
 
 	@Override
@@ -71,8 +79,8 @@ public class MorphConfigScreen extends Screen {
 		}
 		this.gui.drawString(Component.literal(blockName), this.leftPos + 6, this.topPos + 6, 4210752, false);
 		this.gui.drawString(Component.literal("BlockState"), this.leftPos + 100, this.topPos + 15, 4210752, false);
-		this.gui.drawString(Component.literal("NBT"), this.leftPos + 9, this.topPos + 130, 4210752, false);
-		this.gui.drawString(Component.translatable("gui.blockomorph.save"), this.leftPos + 13, this.topPos + 87, 4210752, false);
+		this.gui.drawString(Component.translatable("blockomorph.gui.morphConfigScreen.save"), this.leftPos + 9, this.topPos + 127, 4210752, false);
+		//this.gui.drawString(Component.translatable("gui.blockomorph.save"), this.leftPos + 13, this.topPos + 87, 4210752, false);
 	}
 
 	@Override
@@ -110,5 +118,32 @@ public class MorphConfigScreen extends Screen {
 		this.propertiesRenderer = new BlockStatePropsRenderer(this.leftPos + 93, this.topPos + 24, 5, this::getState, newState -> {
 			MorphUtils.sendServer(ServerBoundBlockMorphPacket.create(newState, null));
 		});
+		EditBox old = this.saveBox;
+		this.saveBox = new ListenerEditBox(this.font, this.leftPos + 7, this.topPos + 137, 129, 19, Component.translatable("blockomorph.gui.morphConfigScreen.save"), this::onSaveBoxUpdate, EDITBOX_BORDER_SPRITE);
+		this.addRenderableWidget(this.saveBox);
+		this.suggestSavedBlock(old);
+	}
+
+	private void suggestSavedBlock(EditBox old) {
+		if (old == null) {
+			BlockState state = this.getState();
+			CompoundTag tag = new CompoundTag();
+			if (this.getBE() != null) tag = this.getBE().saveCustomOnly(this.player.player().registryAccess());
+			for (SavedBlock block : AbstractMorphScreen.SAVED_BLOCK_MANAGER.get().values()) {
+				if (block.getState().equals(state)) {
+					if (block.getTag().equals(tag)) {
+						this.saveBox.setValue(block.getName());
+						break;
+					}
+				}
+			}
+		} else {
+			this.saveBox.setValue(old.getValue());
+		}
+		this.onSaveBoxUpdate(this.saveBox.getValue());
+	}
+
+	private void onSaveBoxUpdate(String name) {
+
 	}
 }

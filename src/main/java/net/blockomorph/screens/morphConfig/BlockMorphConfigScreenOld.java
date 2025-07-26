@@ -58,6 +58,7 @@ import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
 
+@Deprecated
 public class BlockMorphConfigScreenOld extends Screen {
    private static final ResourceLocation texture = ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/morph_config_gui.png");
    private static final WidgetSprites SAVE_BUT = new WidgetSprites(
@@ -469,8 +470,8 @@ public class BlockMorphConfigScreenOld extends Screen {
 		super.init();
         this.leftPos = (this.width - this.imageWidth) / 2;
         this.topPos = (this.height - this.imageHeight) / 2;
-        tagsBox = new ListenerEditBox(this.font, this.leftPos + 10, this.topPos + 145, 158, 17, null, this::updateNbt);
-        savebox = new ListenerEditBox(this.font, this.leftPos + 15, this.topPos + 102, 31, 17, null, this::validSave);
+        tagsBox = new ListenerEditBox(this.font, this.leftPos + 10, this.topPos + 145, 158, 17, null, this::updateNbt, null);
+        savebox = new ListenerEditBox(this.font, this.leftPos + 15, this.topPos + 102, 31, 17, null, this::validSave, null);
         savebox.setBordered(false);
         savebox.setTextColor(-1);
         savebox.setTextColorUneditable(-1);

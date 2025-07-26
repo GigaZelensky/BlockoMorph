@@ -20,6 +20,7 @@ import java.util.List;
 
 import net.minecraft.client.renderer.RenderType;
 
+@Deprecated
 public class ConfigScreenOld extends Screen {
    private static final ResourceLocation texture = ResourceLocation.tryParse("blockomorph:textures/screens/config_screen.png");
    private static final ResourceLocation CONF = ResourceLocation.tryParse("blockomorph:textures/screens/configs.png");

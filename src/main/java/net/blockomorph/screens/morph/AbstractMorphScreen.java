@@ -1,6 +1,5 @@
 package net.blockomorph.screens.morph;
 
-import net.blockomorph.screens.morphConfig.BlockMorphConfigScreenOld;
 import net.blockomorph.screens.morphConfig.MorphConfigScreen;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ScrollerManager;
@@ -9,7 +8,6 @@ import net.blockomorph.utils.PlayerAccessor;
 import net.blockomorph.utils.SavedBlock;
 import net.blockomorph.utils.SavedBlockManager;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;

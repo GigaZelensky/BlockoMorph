@@ -88,7 +88,7 @@ public class TabManager {
 			action.accept(Button.builder(Component.literal("<"), b -> this.setPage(false)).pos(leftPos - 22,  topPos - 22).size(20, 20).build());
 			action.accept(Button.builder(Component.literal(">"), b -> this.setPage(true)).pos(leftPos + parentScreen.imageLength, topPos - 22).size(20, 20).build());
 		}
-		this.searchBox = new ListenerEditBox(this.parentScreen.getFont(), this.parentScreen.getLeftPos() + 99, this.parentScreen.getTopPos() - 10, 70, 12, Component.translatable("itemGroup.search"), parentScreen.BLOCKS_MANAGER::searchBlocks);
+		this.searchBox = new ListenerEditBox(this.parentScreen.getFont(), this.parentScreen.getLeftPos() + 99, this.parentScreen.getTopPos() - 10, 70, 12, Component.translatable("itemGroup.search"), parentScreen.BLOCKS_MANAGER::searchBlocks, null);
 		this.searchBox.setMaxLength(32767);
 		this.searchBox.setBordered(false);
 		this.searchBox.setTextColor(16777215);
