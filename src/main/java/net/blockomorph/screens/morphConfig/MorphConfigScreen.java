@@ -6,6 +6,7 @@ import net.blockomorph.screens.morph.MorphScreen;
 import net.blockomorph.screens.morphConfig.widget.BlockStatePropsRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ListenerEditBox;
+import net.blockomorph.screens.utils.SpriteImageButton;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
 import net.blockomorph.utils.SavedBlock;
@@ -16,6 +17,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
@@ -23,6 +25,9 @@ import org.jetbrains.annotations.Nullable;
 public class MorphConfigScreen extends Screen {
 	private static final ResourceLocation EXIT_TABS_SPRITE = GuiUtils.res("textures/screens/exit_tabs.png");
 	private static final ResourceLocation EDITBOX_BORDER_SPRITE = GuiUtils.res("textures/screens/editbox.png");
+	private static final ResourceLocation SAVE_BUTTON_SPRITE = GuiUtils.res("textures/screens/save_but.png");
+	private static final ResourceLocation DELETE_BUTTON_SPRITE = GuiUtils.res("textures/screens/edit_bucket.png");
+	private static final ResourceLocation NBT_BUTTON_SPRITE = GuiUtils.res("textures/screens/nbt_but.png");
 	private BlockStatePropsRenderer propertiesRenderer;
 	private final GuiUtils gui = new GuiUtils();
 	private static final ResourceLocation MENU_LOCATION = GuiUtils.res("textures/screens/morph_config_gui.png");
@@ -32,6 +37,8 @@ public class MorphConfigScreen extends Screen {
 	protected int leftPos;
 	protected int topPos;
 	private EditBox saveBox;
+	private SpriteImageButton saveButton;
+	private SpriteImageButton deleteButton;
 	private final boolean needUpperTabs;
 
 	public MorphConfigScreen(boolean needUpperTabs) {
@@ -53,6 +60,12 @@ public class MorphConfigScreen extends Screen {
 	@Nullable
 	private BlockEntity getBE() {
 		return this.player.getBlockEntity(InPlayerBlockPos.ZERO);
+	}
+
+	private CompoundTag getTag() {
+		CompoundTag tag = new CompoundTag();
+		if (this.getBE() != null) tag = this.getBE().saveCustomOnly(this.player.player().registryAccess());
+		return tag;
 	}
 
 	@Override
@@ -119,16 +132,29 @@ public class MorphConfigScreen extends Screen {
 			MorphUtils.sendServer(ServerBoundBlockMorphPacket.create(newState, null));
 		});
 		EditBox old = this.saveBox;
-		this.saveBox = new ListenerEditBox(this.font, this.leftPos + 7, this.topPos + 137, 129, 19, Component.translatable("blockomorph.gui.morphConfigScreen.save"), this::onSaveBoxUpdate, EDITBOX_BORDER_SPRITE);
+		this.saveBox = new ListenerEditBox(this.font, this.leftPos + 7, this.topPos + 137, 129, 19, Component.translatable("blockomorph.gui.morphConfigScreen.save"), value -> this.checkSaveButtons() , EDITBOX_BORDER_SPRITE);
 		this.addRenderableWidget(this.saveBox);
+		this.saveButton = new SpriteImageButton(this.leftPos + 142, this.topPos + 133, 26, 26, SAVE_BUTTON_SPRITE, button -> {
+			AbstractMorphScreen.SAVED_BLOCK_MANAGER.add(new SavedBlock(this.getState(), this.getTag(), this.saveBox.getValue()));
+			this.checkSaveButtons();
+		}, null, true);
+		this.addRenderableWidget(this.saveButton);
+		this.deleteButton = new SpriteImageButton(this.leftPos + 142, this.topPos + 133, 26, 26, DELETE_BUTTON_SPRITE, button -> {
+			AbstractMorphScreen.SAVED_BLOCK_MANAGER.delete(this.saveBox.getValue());
+			this.checkSaveButtons();
+		}, null, false);
+		SpriteImageButton nbtButton= new SpriteImageButton(this.leftPos + 31, this.topPos + 95, 26, 26, NBT_BUTTON_SPRITE, but -> {
+
+		}, () -> this.getState().getBlock() instanceof EntityBlock, true);
+		this.addRenderableWidget(nbtButton);
+		this.addRenderableWidget(this.deleteButton);
 		this.suggestSavedBlock(old);
 	}
 
 	private void suggestSavedBlock(EditBox old) {
 		if (old == null) {
 			BlockState state = this.getState();
-			CompoundTag tag = new CompoundTag();
-			if (this.getBE() != null) tag = this.getBE().saveCustomOnly(this.player.player().registryAccess());
+			CompoundTag tag = this.getTag();
 			for (SavedBlock block : AbstractMorphScreen.SAVED_BLOCK_MANAGER.get().values()) {
 				if (block.getState().equals(state)) {
 					if (block.getTag().equals(tag)) {
@@ -140,10 +166,34 @@ public class MorphConfigScreen extends Screen {
 		} else {
 			this.saveBox.setValue(old.getValue());
 		}
-		this.onSaveBoxUpdate(this.saveBox.getValue());
+		this.checkSaveButtons();
 	}
 
-	private void onSaveBoxUpdate(String name) {
+	private void checkSaveButtons() {
+		String saveBoxContent = this.saveBox.getValue();
+		if (saveBoxContent.isEmpty()) {
+			this.diactiveSave();
+			return;
+		}
+		SavedBlock savedBlock = AbstractMorphScreen.SAVED_BLOCK_MANAGER.get().get(saveBoxContent);
+		if (savedBlock == null) {
+			this.saveButton.visible = true;
+			this.deleteButton.visible = false;
+		} else {
+			if (savedBlock.getState().equals(this.getState()) && savedBlock.getTag().equals(this.getTag())) {
+				this.saveButton.visible = false;
+				this.deleteButton.visible = true;
+			} else {
+				this.diactiveSave();
+				return;
+			}
+		}
+		this.saveButton.active = true;
+	}
 
+	private void diactiveSave() {
+		this.saveButton.active = false;
+		this.saveButton.visible = true;
+		this.deleteButton.visible = false;
 	}
 }

@@ -17,6 +17,9 @@ public class SoftSpritedImageButton extends ImageButton {
         System.out.println(number + 5);
         BigDecimal numb = new BigDecimal(0);
         System.out.println(numb.byteValue() + 4);
+        Number num = 0;
+		num.intValue();
+		int opa = 0;
     }
     
     @Override
