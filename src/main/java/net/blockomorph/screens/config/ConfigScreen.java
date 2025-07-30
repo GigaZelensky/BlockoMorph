@@ -1,5 +1,6 @@
 package net.blockomorph.screens.config;
 
+import net.blockomorph.screens.AbstractScreen;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.Minecraft;
@@ -11,17 +12,12 @@ import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
 
-public class ConfigScreen extends Screen {
-	private static final ResourceLocation MENU_LOCATION = GuiUtils.res("textures/screens/config_screen.png");
+public class ConfigScreen extends AbstractScreen {
 	protected final GuiUtils gui = new GuiUtils();
 	private ConfigRenderableList configList;
-	public final int imageLength = 176;
-	public final int imageHeight = 166;
-	protected int leftPos;
-	protected int topPos;
 
 	public ConfigScreen() {
-		super(Component.literal("config_screen"));
+		super("config_screen", null);
 	}
 
 	@Override
@@ -33,14 +29,12 @@ public class ConfigScreen extends Screen {
 	@Override
 	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
 		super.renderBackground(guiGraphics, mouseX, mouseY, tick);
-		this.gui.blitMonoImage(MENU_LOCATION, this.leftPos, this.topPos, this.imageLength, this.imageHeight);
 		this.gui.drawString(Component.translatable("menu.options"), this.leftPos + 8, this.topPos + 6, 4210752, false);
 	}
 
 	@Override
 	protected void init() {
-		this.leftPos = (this.width - this.imageLength) / 2;
-		this.topPos = (this.height - this.imageHeight) / 2;
+		super.init();
 		float scrollOff = 0f;
 		if (this.configList != null) {
 			scrollOff = this.configList.scrollerManager.getScrollerOffset();

@@ -1,9 +1,9 @@
-package net.blockomorph.screens.morphConfig.widget;
+package net.blockomorph.screens.morphConfig.propertiesWidget;
 
-import net.blockomorph.screens.morphConfig.widget.renderers.BooleanPropertyRenderer;
-import net.blockomorph.screens.morphConfig.widget.renderers.EnumPropertyRenderer;
-import net.blockomorph.screens.morphConfig.widget.renderers.IntegerPropertyRenderer;
-import net.blockomorph.screens.morphConfig.widget.renderers.UnknownPropertyRenderer;
+import net.blockomorph.screens.morphConfig.propertiesWidget.renderers.BooleanPropertyRenderer;
+import net.blockomorph.screens.morphConfig.propertiesWidget.renderers.EnumPropertyRenderer;
+import net.blockomorph.screens.morphConfig.propertiesWidget.renderers.IntegerPropertyRenderer;
+import net.blockomorph.screens.morphConfig.propertiesWidget.renderers.UnknownPropertyRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ScrollerManager;
 import net.minecraft.client.renderer.Rect2i;
@@ -38,7 +38,7 @@ public class BlockStatePropsRenderer {
 		this.stateSource = stateSource;
 		this.newStateHandler = newStateHandler;
 		this.renderableProperties = new ArrayList<>(maxPlatesCount);
-		this.scrollerManager = new ScrollerManager<>(null, null, 0, 1, maxPlatesCount, this.renderableProperties);
+		this.scrollerManager = new ScrollerManager<>(null, null, 0, 1, maxPlatesCount, this.renderableProperties, null);
 		RENDERERS.put(BooleanProperty.class, new BooleanPropertyRenderer());
 		RENDERERS.put(IntegerProperty.class, new IntegerPropertyRenderer());
 		RENDERERS.put(EnumProperty.class, new EnumPropertyRenderer<>());

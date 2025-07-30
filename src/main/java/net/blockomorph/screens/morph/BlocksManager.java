@@ -49,7 +49,7 @@ public class BlocksManager {
 
 	public BlocksManager(AbstractMorphScreen screen) {
 		this.parentScreen = screen;
-		this.scrollerManager = new ScrollerManager<>(() -> screen.getLeftPos() + 158, () -> screen.getTopPos() + 16, 142, 4, 4, this.renderableBlocks);
+		this.scrollerManager = new ScrollerManager<>(() -> screen.getLeftPos() + 158, () -> screen.getTopPos() + 16, 142, 4, 4, this.renderableBlocks, null);
 	}
 
 	public void render(GuiUtils gui, AbstractMorphScreen.OnRenderingFrame onRendering) {
@@ -101,7 +101,7 @@ public class BlocksManager {
 		LocalPlayer player = (LocalPlayer)parentScreen.getPlayer();
 		FeatureFlagSet set = player.connection.enabledFeatures();
 		HolderLookup.Provider holder = player.level().registryAccess();
-		if (!set.equals(FEATURE_FLAGS) || HOLDER != holder || true) {
+		if (!set.equals(FEATURE_FLAGS) || HOLDER != holder) {
 			ALL_TAB_CONTENTS.clear();
 			ALL_BLOCKS = BuiltInRegistries.BLOCK.stream().filter((block -> block.isEnabled(set))).toList();
 

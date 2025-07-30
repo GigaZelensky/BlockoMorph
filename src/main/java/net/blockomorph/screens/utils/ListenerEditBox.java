@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.jetbrains.annotations.Nullable;
 
 public class ListenerEditBox extends EditBox {
+	public static final ResourceLocation EDITBOX_BORDER_SPRITE = GuiUtils.res("textures/screens/editbox.png");
 	private final ResourceLocation borderTexture;
 	private final GuiUtils gui = new GuiUtils();
 	private final Font font;
@@ -19,7 +20,6 @@ public class ListenerEditBox extends EditBox {
 		super(font, x, y, length, height, name);
 		this.action = action;
 		this.font = font;
-		this.setBordered(false);
 		this.borderTexture = border;
 	}
 
@@ -50,9 +50,17 @@ public class ListenerEditBox extends EditBox {
 	}
 
 	@Override
-	public void setBordered(boolean ignored) {
-		super.setBordered(false);
+	public boolean isBordered() {
+		return false;
 	}
+
+	@Override
+	public int getInnerWidth() {
+		return this.getWidth() - 8;
+	}
+
+	@Override
+	public void setBordered(boolean ignored) {}
 
 	@Override
 	public void renderWidget(GuiGraphics g, int mouseX, int mouseY, float ticks) {

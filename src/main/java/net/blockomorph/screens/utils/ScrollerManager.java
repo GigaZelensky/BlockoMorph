@@ -10,6 +10,7 @@ import java.util.function.IntSupplier;
 public class ScrollerManager<T> {
 	private static final ResourceLocation SCROLLER_SPRITE = GuiUtils.vanillaRes("container/creative_inventory/scroller");
 	private static final ResourceLocation SCROLLER_DISABLED_SPRITE = GuiUtils.vanillaRes("container/creative_inventory/scroller_disabled");
+	private static final CustomBarData VANILLA_SCROLLBAR = new CustomBarData(null, 12, 15);
 	@Nullable private List<T> list;
 	private final IntSupplier barX;
 	private final IntSupplier barY;
@@ -19,14 +20,16 @@ public class ScrollerManager<T> {
 	private final List<T> renderable;
 	protected float scrollOffset = 0; // 0 - 100 %
 	private boolean scrollWork;
+	private final CustomBarData data;
 
-	public ScrollerManager(IntSupplier barX, IntSupplier barY, int height, int row, int column, List<T> renderable) {
+	public ScrollerManager(IntSupplier barX, IntSupplier barY, int height, int row, int column, List<T> renderable, @Nullable CustomBarData data) {
 		this.renderable = renderable;
 		this.barHeight = height;
 		this.barX = barX;
 		this.barY = barY;
 		this.row = row;
 		this.column = column;
+		this.data = data == null ? VANILLA_SCROLLBAR : data;
 	}
 
 	public boolean canScroll() {
@@ -35,7 +38,20 @@ public class ScrollerManager<T> {
 	}
 
 	public void renderScroller(GuiUtils gui) {
-		gui.renderSprite(this.canScroll() ? SCROLLER_SPRITE : SCROLLER_DISABLED_SPRITE, this.barX.getAsInt(), this.barY.getAsInt() + (int)((float)(this.barHeight - 15) * this.scrollOffset), 12, 15);
+		if (data == VANILLA_SCROLLBAR) {
+			gui.renderSprite(this.canScroll() ? SCROLLER_SPRITE : SCROLLER_DISABLED_SPRITE, this.barX.getAsInt(), this.barY.getAsInt() + (int) ((float) (this.barHeight - 15) * this.scrollOffset), 12, 15);
+		} else {
+			gui.blit(
+					this.data.barSprite(),
+					this.barX.getAsInt(),
+					this.barY.getAsInt() + (int) ((float) (this.barHeight - this.data.barHeight) * this.scrollOffset),
+					0, this.canScroll() ? this.data.barHeight : 0,
+					this.data.barLength,
+					this.data.barHeight,
+					this.data.barLength,
+					this.data.barHeight * 2
+			);
+		}
 	}
 
 	public void setMainList(@Nullable List<T> main) {
@@ -59,7 +75,7 @@ public class ScrollerManager<T> {
 	}
 
 	public boolean mouseClicked(double x, double y) {
-		if (x > this.barX.getAsInt() && x < this.barX.getAsInt() + 13 && y > this.barY.getAsInt() && y < this.barY.getAsInt() + this.barHeight) {
+		if (x > this.barX.getAsInt() && x < this.barX.getAsInt() + this.data.barLength + 1 && y > this.barY.getAsInt() && y < this.barY.getAsInt() + this.barHeight) {
 			this.scrollWork = this.canScroll();
 			return true;
 		}
@@ -68,7 +84,8 @@ public class ScrollerManager<T> {
 
 	public boolean mouseDragged(double mouseY) {
 		if (this.scrollWork) {
-			float scroll = ((float)mouseY - (float)this.barY.getAsInt() - 7.5F) / ((float) this.barHeight - 15.0F);
+			float barHeight = this.data.barHeight;
+			float scroll = ((float)mouseY - (float)this.barY.getAsInt() - (barHeight / 2f)) / ((float) this.barHeight - barHeight);
 			this.scrollOffset = Mth.clamp(scroll, 0.0F, 1.0F);
 			this.refreshList();
 			return true;
@@ -104,4 +121,6 @@ public class ScrollerManager<T> {
 			}
 		}
 	}
+
+	public record CustomBarData(ResourceLocation barSprite, int barLength, int barHeight) {}
 }

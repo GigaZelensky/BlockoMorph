@@ -1,4 +1,4 @@
-package net.blockomorph.screens.morphConfig.widget;
+package net.blockomorph.screens.morphConfig.propertiesWidget;
 
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.client.renderer.Rect2i;
@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.state.properties.Property;
 
 import java.util.function.Consumer;
 
-import static net.blockomorph.screens.morphConfig.widget.BlockStatePropsRenderer.PLATE_HEIGHT;
+import static net.blockomorph.screens.morphConfig.propertiesWidget.BlockStatePropsRenderer.PLATE_HEIGHT;
 
 public interface PropertyRenderer<VALUE extends Comparable<VALUE>, T extends Property<VALUE>> {
 	ResourceLocation PROPERTIES_SPRITE = GuiUtils.res("textures/screens/properties.png");

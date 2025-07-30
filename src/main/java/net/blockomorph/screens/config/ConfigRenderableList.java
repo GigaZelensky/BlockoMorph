@@ -35,7 +35,7 @@ public class ConfigRenderableList extends AbstractWidget {
 			}
 		}
 		this.types.forEach(ConfigRenderer::init);
-		this.scrollerManager = new ScrollerManager<>(() -> barX, () -> barY, barHeight, 1, 7, this.renderables);
+		this.scrollerManager = new ScrollerManager<>(() -> barX, () -> barY, barHeight, 1, 7, this.renderables, null);
 		this.scrollerManager.setMainList(builder.build());
 		this.plateHeight = plateHeight;
 		this.plateLength = plateLength;

@@ -1,9 +1,10 @@
 package net.blockomorph.screens.morphConfig;
 
 import net.blockomorph.network.ServerBoundBlockMorphPacket;
+import net.blockomorph.screens.AbstractScreen;
 import net.blockomorph.screens.morph.AbstractMorphScreen;
 import net.blockomorph.screens.morph.MorphScreen;
-import net.blockomorph.screens.morphConfig.widget.BlockStatePropsRenderer;
+import net.blockomorph.screens.morphConfig.propertiesWidget.BlockStatePropsRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ListenerEditBox;
 import net.blockomorph.screens.utils.SpriteImageButton;
@@ -22,27 +23,21 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
-public class MorphConfigScreen extends Screen {
+public class MorphConfigScreen extends AbstractScreen {
 	private static final ResourceLocation EXIT_TABS_SPRITE = GuiUtils.res("textures/screens/exit_tabs.png");
-	private static final ResourceLocation EDITBOX_BORDER_SPRITE = GuiUtils.res("textures/screens/editbox.png");
 	private static final ResourceLocation SAVE_BUTTON_SPRITE = GuiUtils.res("textures/screens/save_but.png");
 	private static final ResourceLocation DELETE_BUTTON_SPRITE = GuiUtils.res("textures/screens/edit_bucket.png");
 	private static final ResourceLocation NBT_BUTTON_SPRITE = GuiUtils.res("textures/screens/nbt_but.png");
 	private BlockStatePropsRenderer propertiesRenderer;
 	private final GuiUtils gui = new GuiUtils();
-	private static final ResourceLocation MENU_LOCATION = GuiUtils.res("textures/screens/morph_config_gui.png");
-	public final int imageLength = 176;
-	public final int imageHeight = 166;
 	protected PlayerAccessor player;
-	protected int leftPos;
-	protected int topPos;
 	private EditBox saveBox;
 	private SpriteImageButton saveButton;
 	private SpriteImageButton deleteButton;
 	private final boolean needUpperTabs;
 
 	public MorphConfigScreen(boolean needUpperTabs) {
-		super(Component.literal("morph_config_screen"));
+		super("morph_config_screen", null);
 		this.player = PlayerAccessor.of(GuiUtils.MC.player);
 		this.needUpperTabs = needUpperTabs;
 		AbstractMorphScreen.SAVED_BLOCK_MANAGER.load();
@@ -99,7 +94,6 @@ public class MorphConfigScreen extends Screen {
 	@Override
 	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
 		super.renderBackground(guiGraphics, mouseX, mouseY, tick);
-		this.gui.blitMonoImage(MENU_LOCATION, this.leftPos, this.topPos, this.imageLength, this.imageHeight);
 		if (this.needUpperTabs)
 			this.gui.blit(EXIT_TABS_SPRITE, this.leftPos + 4, this.topPos - 19, 0, 23, 80, 22, 80, 46);
 		this.renderStrings();
@@ -126,13 +120,12 @@ public class MorphConfigScreen extends Screen {
 
 	@Override
 	protected void init() {
-		this.leftPos = (this.width - this.imageLength) / 2;
-		this.topPos = (this.height - this.imageHeight) / 2;
+		super.init();
 		this.propertiesRenderer = new BlockStatePropsRenderer(this.leftPos + 93, this.topPos + 24, 5, this::getState, newState -> {
 			MorphUtils.sendServer(ServerBoundBlockMorphPacket.create(newState, null));
 		});
 		EditBox old = this.saveBox;
-		this.saveBox = new ListenerEditBox(this.font, this.leftPos + 7, this.topPos + 137, 129, 19, Component.translatable("blockomorph.gui.morphConfigScreen.save"), value -> this.checkSaveButtons() , EDITBOX_BORDER_SPRITE);
+		this.saveBox = new ListenerEditBox(this.font, this.leftPos + 7, this.topPos + 137, 129, 19, Component.translatable("blockomorph.gui.morphConfigScreen.save"), value -> this.checkSaveButtons(), ListenerEditBox.EDITBOX_BORDER_SPRITE);
 		this.addRenderableWidget(this.saveBox);
 		this.saveButton = new SpriteImageButton(this.leftPos + 142, this.topPos + 133, 26, 26, SAVE_BUTTON_SPRITE, button -> {
 			AbstractMorphScreen.SAVED_BLOCK_MANAGER.add(new SavedBlock(this.getState(), this.getTag(), this.saveBox.getValue()));

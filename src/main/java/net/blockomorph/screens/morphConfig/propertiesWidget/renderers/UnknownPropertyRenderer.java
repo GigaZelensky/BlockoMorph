@@ -1,6 +1,6 @@
-package net.blockomorph.screens.morphConfig.widget.renderers;
+package net.blockomorph.screens.morphConfig.propertiesWidget.renderers;
 
-import net.blockomorph.screens.morphConfig.widget.PropertyRenderer;
+import net.blockomorph.screens.morphConfig.propertiesWidget.PropertyRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ObjectListRenderer;
 import net.minecraft.client.renderer.Rect2i;

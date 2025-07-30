@@ -1,5 +1,6 @@
 package net.blockomorph.screens.morph;
 
+import net.blockomorph.screens.AbstractScreen;
 import net.blockomorph.screens.morphConfig.MorphConfigScreen;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ScrollerManager;
@@ -18,25 +19,19 @@ import net.minecraft.world.item.CreativeModeTab;
 
 import java.util.function.Consumer;
 
-public abstract class AbstractMorphScreen extends Screen {
-	private static final ResourceLocation MENU_LOCATION = GuiUtils.res("textures/screens/morph_gui.png");
+public abstract class AbstractMorphScreen extends AbstractScreen {
 	private static final ResourceLocation SEARCH_BAR = GuiUtils.res("textures/screens/searchbar.png");
 	private static final ResourceLocation MODE_TABS = GuiUtils.res("textures/screens/exit_tabs.png");
-	protected final GuiUtils gui = new GuiUtils();
 	public static final SavedBlockManager SAVED_BLOCK_MANAGER = new SavedBlockManager(MorphUtils.getGameDir());
 	public final TabManager TAB_MANAGER;
 	public final BlocksManager BLOCKS_MANAGER;
 	protected PlayerAccessor player;
-	public final int imageLength = 176;
-	public final int imageHeight = 166;
 	private final MorphScreenOptions options;
-	protected int leftPos;
-	protected int topPos;
 	protected boolean ignoreSearchBoxInput;
 
 
 	protected AbstractMorphScreen(MorphScreenOptions options) {
-		super(Component.literal("morph_screen"));
+		super("morph_screen", null);
 		this.options = options;
 		this.player = PlayerAccessor.of(GuiUtils.MC.player);
 		this.BLOCKS_MANAGER = new BlocksManager(this);
@@ -81,7 +76,6 @@ public abstract class AbstractMorphScreen extends Screen {
 
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
-		this.gui.setGuiGraphics(guiGraphics, this.font, mouseX, mouseY, tick);
 		super.render(guiGraphics, mouseX, mouseY, tick);
 		this.renderContent();
 		this.renderTooltip();
@@ -95,7 +89,6 @@ public abstract class AbstractMorphScreen extends Screen {
 	@Override
 	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
 		super.renderBackground(guiGraphics, mouseX, mouseY, tick);
-		this.gui.blitMonoImage(MENU_LOCATION, this.leftPos, this.topPos, this.imageLength, this.imageHeight);
 		if (this.options.useUpperTabs()) {
 			this.gui.blit(MODE_TABS, this.leftPos + 4, this.topPos - 19, 0, 0, 80, 22, 80, 46);
 		}
@@ -177,8 +170,7 @@ public abstract class AbstractMorphScreen extends Screen {
 
 	@Override
 	protected void init() {
-		this.leftPos = (this.width - this.imageLength) / 2;
-		this.topPos = (this.height - this.imageHeight) / 2;
+		super.init();
 		this.initAdditional(this::addRenderableWidget);
 		TAB_MANAGER.init(this::addRenderableWidget);
 		TAB_MANAGER.selectTab(TabManager.getSelectedTab());

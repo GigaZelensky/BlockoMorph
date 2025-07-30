@@ -1,6 +1,5 @@
 package net.blockomorph.core;
 
-import net.blockomorph.screens.TestScreen;
 import net.blockomorph.screens.config.ConfigScreen;
 import net.blockomorph.screens.config.ConfigScreenOld;
 import net.blockomorph.screens.morph.AbstractMorphScreen;
@@ -8,12 +7,14 @@ import net.blockomorph.screens.morph.MorphScreen;
 import net.blockomorph.screens.morph.MorphScreenOld;
 import net.blockomorph.screens.morphConfig.BlockMorphConfigScreenOld;
 import net.blockomorph.screens.morphConfig.MorphConfigScreen;
+import net.blockomorph.screens.morphConfig.nbtEditor.NbtEditorScreen;
 import net.blockomorph.utils.SavedBlock;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.resources.sounds.SoundInstance;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.CreativeModeTab;
 import org.lwjgl.glfw.GLFW;
 
@@ -26,42 +27,29 @@ public class KeyMappings {
 	private static final ArrayList<KeyMapping> KEYS = new ArrayList<>();
 
 	public static final KeyMapping MORPH = new HandlerKeymapping("key.blockomorph.morph_menu", GLFW.GLFW_KEY_Y, () ->
-			mc.setScreen(new MorphScreenOld(Config.Mode.NONE, false))
+			mc.setScreen(new MorphScreen().ignoreInitInput())
 	);
 
 	public static final KeyMapping MORPH_CONFIG = new HandlerKeymapping("key.blockomorph.morph_config_menu", GLFW.GLFW_KEY_U, () ->
-			mc.setScreen(new BlockMorphConfigScreenOld(false))
+			mc.setScreen(new MorphConfigScreen(true))
 	);
 
 	public static final KeyMapping CONFIG = new HandlerKeymapping("key.blockomorph.config_menu", GLFW.GLFW_KEY_N, () -> {
 		if (canOpenConfig()) {
-			mc.setScreen(new ConfigScreenOld());
+			mc.setScreen(new ConfigScreen());
 		}
 	});
 
 	public static final KeyMapping DEBUG = new HandlerKeymapping("key.blockomorph.debug", GLFW.GLFW_KEY_J, () -> {
-		mc.setScreen(new MorphScreen().ignoreInitInput());
+		mc.setScreen(new NbtEditorScreen(new CompoundTag(), () -> {}));
 	});
 
 	public static final KeyMapping DEBUG2 = new HandlerKeymapping("key.blockomorph.debug2", GLFW.GLFW_KEY_K, () -> {
-		mc.setScreen(new ConfigScreen());
+
 	});
 
 	public static final KeyMapping DEBUG3 = new HandlerKeymapping("key.blockomorph.debug3", GLFW.GLFW_KEY_L, () -> {
-		//mc.setScreen(new MorphConfigScreen(false));
-		mc.setScreen(new AbstractMorphScreen(new AbstractMorphScreen.MorphScreenOptions(false, true, false)) {
-			@Override
-			protected void initAdditional(Consumer<AbstractWidget> action) {}
 
-			@Override
-			protected void renderFrame(SavedBlock block, int x, int y) {}
-
-			@Override
-			protected SoundInstance onClickOnBlock(SavedBlock block, int number, CreativeModeTab selectedTab, int page) {
-				mc.setScreen(new TestScreen(block.getState()));
-				return null;
-			}
-		});
 	});
 
 	static void registerKeyMappings(Consumer<KeyMapping> register) {
