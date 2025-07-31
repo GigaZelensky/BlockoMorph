@@ -44,7 +44,7 @@ public class NbtEditorScreen extends AbstractScreen {
 		this.editingTag = Objects.requireNonNull(editingTag);
 		this.onEdited = Objects.requireNonNull(onEdited);
 		this.renderables = new ArrayList<>(7);
-		this.scrollerManager = new ScrollerManager<>(() -> this.leftPos + 180, () -> this.topPos + 40, 140, 1, 7, this.renderables, SCOLLER);
+		this.scrollerManager = new ScrollerManager<>(() -> this.leftPos + 181, () -> this.topPos + 41, 138, 1, 7, this.renderables, SCOLLER);
 	}
 
 	static {
@@ -71,10 +71,19 @@ public class NbtEditorScreen extends AbstractScreen {
 	public boolean mouseClicked(double mouseX, double mouseY, int type) {
 		if (type == 0) {
 			if (this.forEachTag(renderer -> renderer.mouseClicked(mouseX, mouseY))) {
+				this.tagBox.setFocused(false);
 				return true;
 			}
 		}
-		return super.mouseClicked(mouseX, mouseY, type);
+		this.tagBox.setFocused(this.tagBox.isMouseOver(mouseX, mouseY));
+		if (super.mouseClicked(mouseX, mouseY, type)) {
+			return true;
+		} else return this.scrollerManager.mouseClicked(mouseX, mouseY);
+	}
+
+	@Override
+	public boolean mouseDragged(double mouseX, double mouseY, int type, double mouseXOffset, double mouseYOffset) {
+		return this.scrollerManager.mouseDragged(mouseY);
 	}
 
 	@Override
@@ -82,7 +91,7 @@ public class NbtEditorScreen extends AbstractScreen {
 		if (this.forEachTag(renderer -> renderer.mouseScrolled(mouseX, mouseY, yWheelOffset))) {
 			return true;
 		}
-		return super.mouseScrolled(mouseX, mouseY, xWheelOffset, yWheelOffset);
+		return this.scrollerManager.mouseScrolled(yWheelOffset);
 	}
 
 	@Override
@@ -113,6 +122,7 @@ public class NbtEditorScreen extends AbstractScreen {
 	@Override
 	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
 		super.renderBackground(guiGraphics, mouseX, mouseY, tick);
+		this.scrollerManager.renderScroller(this.gui);
 		this.gui.fill(this.internalBoxX, this.internalBoxY, this.internalBoxX + this.internalBoxLength, this.internalBoxY + this.internalBoxHeigth, this.frameColor);
 		this.gui.blitMonoImage(CORNERS_TEXTURE, this.internalBoxX, this.internalBoxY, this.internalBoxLength, this.internalBoxHeigth);
 	}

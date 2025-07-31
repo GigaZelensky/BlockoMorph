@@ -45,7 +45,7 @@ public class ScrollerManager<T> {
 					this.data.barSprite(),
 					this.barX.getAsInt(),
 					this.barY.getAsInt() + (int) ((float) (this.barHeight - this.data.barHeight) * this.scrollOffset),
-					0, this.canScroll() ? this.data.barHeight : 0,
+					0, this.canScroll() ? 0 : this.data.barHeight,
 					this.data.barLength,
 					this.data.barHeight,
 					this.data.barLength,

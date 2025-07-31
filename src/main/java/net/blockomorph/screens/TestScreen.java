@@ -11,6 +11,9 @@ public class TestScreen extends NbtEditorScreen {
 	public TestScreen() {
 		super(tag, () -> System.out.println(tag));
 		tag.putString("opa", "ttsetys");
+		for (int i = 0; i < 14; i++) {
+			tag.putString(i + "", "value" + i);
+		}
 	}
 
 	@Override

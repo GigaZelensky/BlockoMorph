@@ -6,11 +6,17 @@ import net.blockomorph.screens.utils.ListenerEditBox;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.StringTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.FormattedCharSequence;
 
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 public class StringTagRenderer extends TagRenderer<StringTag> {
+	private static final BiFunction<String, Integer, FormattedCharSequence> SHADOW_DISABLE = (value, cursorPos) -> {
+		return FormattedCharSequence.forward(value, Style.EMPTY.withShadowColor(0));
+	};
 	private final ListenerEditBox valueBox;
 	public StringTagRenderer(String tagName, StringTag tag, Consumer<StringTag> onTagUpdate, Consumer<String> onEntering, Runnable onMainTagEdited) {
 		super(tagName, tag, onTagUpdate, onEntering, onMainTagEdited);
@@ -20,14 +26,14 @@ public class StringTagRenderer extends TagRenderer<StringTag> {
 		this.valueBox.setValue(this.getTag().value());
 		this.valueBox.setMaxLength(8166);
 		this.valueBox.setTextColor(ARGB.color(43, 55, 224));
+		this.valueBox.setFormatter(SHADOW_DISABLE);
 	}
 
 	@Override
 	public void render(GuiUtils gui) {
 		this.renderPlate(gui, 0);
 		this.valueBox.setPosition(this.box.getX() + this.box.getWidth() - 81, this.box.getY() + 6);
-		GuiGraphics gui2 = new GuiGraphics(GuiUtils.MC, GuiUtils.bufferSource);
-		this.valueBox.render(gui2, gui.getMouseX(), gui.getMouseY(), gui.getTick());
+		this.valueBox.render(gui.getGuiGraphics(), gui.getMouseX(), gui.getMouseY(), gui.getTick());
 	}
 
 	@Override
