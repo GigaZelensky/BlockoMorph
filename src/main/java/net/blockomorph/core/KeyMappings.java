@@ -1,5 +1,6 @@
 package net.blockomorph.core;
 
+import net.blockomorph.screens.TestScreen;
 import net.blockomorph.screens.config.ConfigScreen;
 import net.blockomorph.screens.config.ConfigScreenOld;
 import net.blockomorph.screens.morph.AbstractMorphScreen;
@@ -41,7 +42,7 @@ public class KeyMappings {
 	});
 
 	public static final KeyMapping DEBUG = new HandlerKeymapping("key.blockomorph.debug", GLFW.GLFW_KEY_J, () -> {
-		mc.setScreen(new NbtEditorScreen(new CompoundTag(), () -> {}));
+		mc.setScreen(new TestScreen());
 	});
 
 	public static final KeyMapping DEBUG2 = new HandlerKeymapping("key.blockomorph.debug2", GLFW.GLFW_KEY_K, () -> {

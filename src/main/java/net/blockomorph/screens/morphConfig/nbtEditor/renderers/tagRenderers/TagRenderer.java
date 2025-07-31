@@ -3,26 +3,35 @@ package net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.nbt.Tag;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.List;
 import java.util.function.Consumer;
 
 public abstract class TagRenderer<T extends Tag> {
+	public static final int PLATE_SPRITE_LENGTH = 194;
+	public static final int PLATE_SPRITE_HEIGTH = 200;
+	public static final int PLATE_LENGTH = 144;
+	public static final int PLATE_HEIGTH = 20;
+	protected static final ResourceLocation TAGS_SPRITE = GuiUtils.res("textures/screens/tags.png");
 	protected final Consumer<T> onTagUpdate;
 	protected final Consumer<String> onEntering;
 	protected final Runnable onMainTagEdited;
-	private final Rect2i box = new Rect2i(0, 0, 144, 20);
+	protected final Rect2i box = new Rect2i(0, 0, PLATE_LENGTH, PLATE_HEIGTH);
 	private final T tag;
-	@Nullable
 	private final String name;
+	private boolean nameVisibility = true;
 
-	public TagRenderer(@Nullable String tagName, T tag, Consumer<T> onTagUpdate, Consumer<String> onEntering, Runnable onMainTagEdited) {
+	public TagRenderer(String tagName, T tag, Consumer<T> onTagUpdate, Consumer<String> onEntering, Runnable onMainTagEdited) {
 		this.name = tagName;
 		this.tag = tag;
 		this.onTagUpdate = onTagUpdate;
 		this.onEntering = onEntering;
 		this.onMainTagEdited = onMainTagEdited;
+	}
+
+	public void setNameVisibility(boolean yes) {
+		this.nameVisibility = yes;
 	}
 
 	protected void enterInTag() {
@@ -34,11 +43,15 @@ public abstract class TagRenderer<T extends Tag> {
 		this.onTagUpdate.accept(newSelf);
 	}
 
+	protected void renderPlate(GuiUtils gui, int number) {
+		gui.blit(TAGS_SPRITE, this.box.getX(), this.box.getY(), 0, number * 20, PLATE_LENGTH, PLATE_HEIGTH, PLATE_SPRITE_LENGTH, PLATE_SPRITE_HEIGTH);
+	}
+
 	public T getTag() {
 		return this.tag;
 	}
 
-	public @Nullable String getName() {
+	public String getName() {
 		return this.name;
 	}
 
@@ -48,7 +61,9 @@ public abstract class TagRenderer<T extends Tag> {
 
 	public abstract void render(GuiUtils gui);
 
-	public abstract boolean mouseClicked(double mouseX, double mouseY);
+	public boolean mouseClicked(double mouseX, double mouseY) {
+		return false;
+	}
 
 	public boolean mouseScrolled(double mouseX, double mouseY, double yOffsetWheel) {
 		return false;
@@ -74,7 +89,7 @@ public abstract class TagRenderer<T extends Tag> {
 		return List.of();
 	}
 
-	public Tag tryWalk(Tag tag) {
+	public Tag tryWalk(String nameElementInThisTag) {
 		return null;
 	}
 }

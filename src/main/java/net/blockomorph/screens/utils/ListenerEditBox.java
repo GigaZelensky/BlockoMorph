@@ -15,17 +15,20 @@ public class ListenerEditBox extends EditBox {
 	private final Font font;
 	private final Consumer<String> action;
 	protected boolean editable = true;
+	private final boolean borderLock;
 
 	public ListenerEditBox(Font font, int x, int y, int length, int height, Component name, Consumer<String> action, @Nullable ResourceLocation border) {
 		super(font, x, y, length, height, name);
 		this.action = action;
 		this.font = font;
 		this.borderTexture = border;
+		this.setBordered(border != null);
+		this.borderLock = true;
 	}
 
 	@Override
 	public boolean keyPressed(int key, int scancode, int mods) {
-		if (this.active && this.visible && this.editable) {
+		if (this.active && this.visible && this.editable && this.isFocused()) {
 			boolean flag = super.keyPressed(key, scancode, mods);
 			this.action.accept(this.getValue());
 			return flag;
@@ -35,7 +38,7 @@ public class ListenerEditBox extends EditBox {
 
 	@Override
 	public boolean charTyped(char character, int mods) {
-		if (this.active && this.visible && this.editable) {
+		if (this.active && this.visible && this.editable && this.isFocused()) {
 			boolean flag = super.charTyped(character, mods);
 			this.action.accept(this.getValue());
 			return flag;
@@ -60,7 +63,11 @@ public class ListenerEditBox extends EditBox {
 	}
 
 	@Override
-	public void setBordered(boolean ignored) {}
+	public void setBordered(boolean value) {
+		if (!this.borderLock) {
+			super.setBordered(value);
+		}
+	}
 
 	@Override
 	public void renderWidget(GuiGraphics g, int mouseX, int mouseY, float ticks) {
