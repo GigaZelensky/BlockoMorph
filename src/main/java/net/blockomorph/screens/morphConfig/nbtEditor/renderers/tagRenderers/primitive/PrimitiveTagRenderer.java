@@ -1,37 +1,31 @@
-package net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers;
+package net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers.primitive;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import net.blockomorph.screens.morphConfig.nbtEditor.renderers.TagRendererContext;
+import net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers.TagRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ListenerEditBox;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.PrimitiveTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.util.ARGB;
 import net.minecraft.util.FormattedCharSequence;
 
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 
-public class StringTagRenderer extends TagRenderer<StringTag> {
+public abstract class PrimitiveTagRenderer<T extends PrimitiveTag> extends TagRenderer<T> {
 	private static final BiFunction<String, Integer, FormattedCharSequence> SHADOW_DISABLE = (value, cursorPos) -> {
 		return FormattedCharSequence.forward(value, Style.EMPTY.withShadowColor(0));
 	};
-	private final ListenerEditBox valueBox;
-	public StringTagRenderer(String tagName, StringTag tag, Consumer<StringTag> onTagUpdate, Consumer<String> onEntering, Runnable onMainTagEdited) {
-		super(tagName, tag, onTagUpdate, onEntering, onMainTagEdited);
-		this.valueBox = new ListenerEditBox(GuiUtils.MC.font, 0, 0, 79, 11, Component.literal("String tag value"), value -> {
-			this.updateThis(StringTag.valueOf(value));
-		}, null);
-		this.valueBox.setValue(this.getTag().value());
+	protected final ListenerEditBox valueBox;
+
+	public PrimitiveTagRenderer(String tagName, T tag, TagRendererContext<T> ctx) {
+		super(tagName, tag, ctx);
+		this.valueBox = new ListenerEditBox(GuiUtils.MC.font, 0, 0, 79, 11, Component.literal(tag.getType().getName() + " tag value"), this::onValueEntered, null);
 		this.valueBox.setMaxLength(8166);
-		this.valueBox.setTextColor(ARGB.color(43, 55, 224));
 		this.valueBox.setFormatter(SHADOW_DISABLE);
 	}
 
 	@Override
 	public void render(GuiUtils gui) {
-		this.renderPlate(gui, 0);
 		this.valueBox.setPosition(this.box.getX() + this.box.getWidth() - 81, this.box.getY() + 6);
 		this.valueBox.render(gui.getGuiGraphics(), gui.getMouseX(), gui.getMouseY(), gui.getTick());
 	}
@@ -52,4 +46,9 @@ public class StringTagRenderer extends TagRenderer<StringTag> {
 	public boolean keyPressed(int key, int scancode, int mods) {
 		return this.valueBox.keyPressed(key, scancode, mods);
 	}
+
+	@Override
+	protected abstract Integer getPlateNumber();
+
+	protected abstract void onValueEntered(String value);
 }

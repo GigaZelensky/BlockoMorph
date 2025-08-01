@@ -37,6 +37,10 @@ public class AbstractScreen extends Screen {
 	@Override
 	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
 		super.renderBackground(guiGraphics, mouseX, mouseY, tick);
+		this.renderMenu();
+	}
+
+	protected void renderMenu() {
 		this.gui.blitMonoImage(MENU, this.leftPos, this.topPos, this.imageLength, this.imageHeight);
 	}
 

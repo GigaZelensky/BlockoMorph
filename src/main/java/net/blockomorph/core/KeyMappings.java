@@ -9,13 +9,16 @@ import net.blockomorph.screens.morph.MorphScreenOld;
 import net.blockomorph.screens.morphConfig.BlockMorphConfigScreenOld;
 import net.blockomorph.screens.morphConfig.MorphConfigScreen;
 import net.blockomorph.screens.morphConfig.nbtEditor.NbtEditorScreen;
+import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.SavedBlock;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import org.lwjgl.glfw.GLFW;
 
@@ -42,7 +45,40 @@ public class KeyMappings {
 	});
 
 	public static final KeyMapping DEBUG = new HandlerKeymapping("key.blockomorph.debug", GLFW.GLFW_KEY_J, () -> {
-		mc.setScreen(new TestScreen());
+		GuiUtils.MC.setScreen(new TestScreen());
+		if (false) {
+			AbstractMorphScreen sc = new AbstractMorphScreen(AbstractMorphScreen.MorphScreenOptions.CONFIG) {
+				@Override
+				protected void initAdditional(Consumer<AbstractWidget> action) {
+
+				}
+
+				@Override
+				protected void renderFrame(SavedBlock block, int x, int y) {
+
+				}
+
+				@Override
+				protected SoundInstance onClickOnBlock(SavedBlock block, int number, CreativeModeTab selectedTab, int page) {
+					GuiUtils.MC.setScreen(new TestScreen(block.getState()) {
+						@Override
+						protected void init() {
+							super.init();
+							Button button = Button.builder(Component.literal("<--"), b -> {
+								open();
+							}).pos(this.leftPos - 25, this.topPos).size(20, 20).build();
+							this.addRenderableWidget(button);
+						}
+					});
+					return null;
+				}
+
+				public void open() {
+					GuiUtils.MC.setScreen(this);
+				}
+			};
+			GuiUtils.MC.setScreen(sc);
+		}
 	});
 
 	public static final KeyMapping DEBUG2 = new HandlerKeymapping("key.blockomorph.debug2", GLFW.GLFW_KEY_K, () -> {

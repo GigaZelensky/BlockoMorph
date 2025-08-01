@@ -87,8 +87,8 @@ public abstract class AbstractMorphScreen extends AbstractScreen {
 	}
 
 	@Override
-	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
-		super.renderBackground(guiGraphics, mouseX, mouseY, tick);
+	public void renderMenu() {
+		super.renderMenu();
 		if (this.options.useUpperTabs()) {
 			this.gui.blit(MODE_TABS, this.leftPos + 4, this.topPos - 19, 0, 0, 80, 22, 80, 46);
 		}

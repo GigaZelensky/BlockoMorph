@@ -38,7 +38,7 @@ public interface ConfigRenderer<T extends ConfigInstance<?>> {
 	}
 
 	default void renderTooltip(GuiUtils gui, T configInstance, Rect2i box) {
-		if (GuiUtils.isMouseOver(box.getX(), box.getY(), box.getX() + 90, box.getY() + box.getHeight(), gui.getMouseX(), gui.getMouseY())) {
+		if (GuiUtils.isMouseOver(box.getX(), box.getY(), box.getX() + MAX_NAME_WIDTH + 5, box.getY() + box.getHeight(), gui.getMouseX(), gui.getMouseY())) {
 			List<Component> tooltips = new ArrayList<>();
 			Component tooltip = this.getTooltip(gui, configInstance);
 			if (tooltip != null) {

@@ -27,8 +27,8 @@ public class ConfigScreen extends AbstractScreen {
 	}
 
 	@Override
-	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
-		super.renderBackground(guiGraphics, mouseX, mouseY, tick);
+	public void renderMenu() {
+		super.renderMenu();
 		this.gui.drawString(Component.translatable("menu.options"), this.leftPos + 8, this.topPos + 6, 4210752, false);
 	}
 

@@ -1,50 +1,84 @@
 package net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers;
 
+import net.blockomorph.screens.morphConfig.nbtEditor.renderers.TagRendererContext;
+import net.blockomorph.screens.morphConfig.nbtEditor.renderers.interpritationTagRenderers.AbstractInterpritationTagRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Objects;
 
 public abstract class TagRenderer<T extends Tag> {
+	protected static final int MAX_NAME_WIDTH = 53;
 	public static final int PLATE_SPRITE_LENGTH = 194;
 	public static final int PLATE_SPRITE_HEIGTH = 200;
 	public static final int PLATE_LENGTH = 144;
 	public static final int PLATE_HEIGTH = 20;
 	protected static final ResourceLocation TAGS_SPRITE = GuiUtils.res("textures/screens/tags.png");
-	protected final Consumer<T> onTagUpdate;
-	protected final Consumer<String> onEntering;
-	protected final Runnable onMainTagEdited;
+	protected final TagRendererContext<T> tagRendererContext;
 	protected final Rect2i box = new Rect2i(0, 0, PLATE_LENGTH, PLATE_HEIGTH);
-	private final T tag;
+	private T tag;
 	private final String name;
 	private boolean nameVisibility = true;
 
-	public TagRenderer(String tagName, T tag, Consumer<T> onTagUpdate, Consumer<String> onEntering, Runnable onMainTagEdited) {
+	public TagRenderer(String tagName, T tag, TagRendererContext<T> ctx) {
 		this.name = tagName;
 		this.tag = tag;
-		this.onTagUpdate = onTagUpdate;
-		this.onEntering = onEntering;
-		this.onMainTagEdited = onMainTagEdited;
+		this.tagRendererContext = ctx;
 	}
 
 	public void setNameVisibility(boolean yes) {
 		this.nameVisibility = yes;
 	}
 
-	protected void enterInTag() {
-		if (this.canEnterInTag())
-			this.onEntering.accept(this.name);
+	protected boolean hasName() {
+		return this.nameVisibility;
 	}
 
-	protected void updateThis(T newSelf) {
-		this.onTagUpdate.accept(newSelf);
+	protected void enterInTag() {
+		if (this.canEnterInTag())
+			this.tagRendererContext.onEntering().accept(this.name);
+	}
+
+	protected void changeThis(T newSelf) {
+		Objects.requireNonNullElse(this.tagRendererContext.onTagUpdate(), v -> {}).accept(newSelf);
+		this.tag = newSelf;
+		this.tagRendererContext.onMainTagEdited().run();
 	}
 
 	protected void renderPlate(GuiUtils gui, int number) {
-		gui.blit(TAGS_SPRITE, this.box.getX(), this.box.getY(), 0, number * 20, PLATE_LENGTH, PLATE_HEIGTH, PLATE_SPRITE_LENGTH, PLATE_SPRITE_HEIGTH);
+		gui.blit(TAGS_SPRITE, this.box.getX(), this.box.getY(), 0, PLATE_HEIGTH * number, PLATE_LENGTH, PLATE_HEIGTH, PLATE_SPRITE_LENGTH, PLATE_SPRITE_HEIGTH);
+		this.renderLine(gui, number);
+	}
+
+	protected void renderLine(GuiUtils gui, int number) {
+		if (!this.nameVisibility)
+			gui.blit(TAGS_SPRITE, this.box.getX() + 57, this.box.getY(), 55, PLATE_HEIGTH * number, 2, PLATE_HEIGTH, PLATE_SPRITE_LENGTH, PLATE_SPRITE_HEIGTH);
+	}
+
+	protected void renderDynamicColorLine(GuiUtils gui) {
+		gui.blit(TAGS_SPRITE, this.box.getX() + 57, this.box.getY(), PLATE_LENGTH + 32 + (this.nameVisibility ? 0 : 2), 0, 2, PLATE_HEIGTH, PLATE_SPRITE_LENGTH, PLATE_SPRITE_HEIGTH);
+	}
+
+	protected void drawTextPart(GuiUtils gui) {
+		if (this.nameVisibility) {
+			String name = gui.getFont().plainSubstrByWidth(this.name, MAX_NAME_WIDTH) + ((gui.getFont().width(this.name) > MAX_NAME_WIDTH + 5) ? ".." : "");
+			gui.drawString(Component.literal(name), this.box.getX() + 4, this.box.getY() + 5, -1, false);
+		}
+	}
+
+	@Nullable
+	public Component getTooltip(GuiUtils gui) {
+		if (GuiUtils.isMouseOver(this.box.getX(), this.box.getY(), this.box.getX() + MAX_NAME_WIDTH + 5, this.box.getY() + this.box.getHeight(), gui.getMouseX(), gui.getMouseY())) {
+			if (gui.getFont().width(this.name) > MAX_NAME_WIDTH + 5) {
+				return Component.literal(this.name);
+			}
+		}
+		return null;
 	}
 
 	public T getTag() {
@@ -57,6 +91,15 @@ public abstract class TagRenderer<T extends Tag> {
 
 	public Rect2i getBox() {
 		return this.box;
+	}
+
+	public final void renderTag(GuiUtils gui) {
+		Integer number = this.getPlateNumber();
+		if (number != null) {
+			this.renderPlate(gui, number);
+		}
+		this.drawTextPart(gui);
+		this.render(gui);
 	}
 
 	public abstract void render(GuiUtils gui);
@@ -85,11 +128,21 @@ public abstract class TagRenderer<T extends Tag> {
 		return -1;
 	}
 
+	@Nullable
+	protected Integer getPlateNumber() {
+		return null;
+	}
+
 	public List<TagRenderer<?>> getEnteringTags() {
 		return List.of();
 	}
 
 	public Tag tryWalk(String nameElementInThisTag) {
+		return null;
+	}
+
+	@Nullable
+	public AbstractInterpritationTagRenderer<T> getInterpretationRenderer(Runnable onInterpretationBrake) {
 		return null;
 	}
 }
