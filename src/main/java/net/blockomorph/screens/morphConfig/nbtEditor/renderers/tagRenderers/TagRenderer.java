@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public abstract class TagRenderer<T extends Tag> {
 	protected static final int MAX_NAME_WIDTH = 53;
@@ -48,6 +49,10 @@ public abstract class TagRenderer<T extends Tag> {
 		Objects.requireNonNullElse(this.tagRendererContext.onTagUpdate(), v -> {}).accept(newSelf);
 		this.tag = newSelf;
 		this.tagRendererContext.onMainTagEdited().run();
+	}
+
+	public void forceTagChange(T newSelf) {
+		this.tag = newSelf;
 	}
 
 	protected void renderPlate(GuiUtils gui, int number) {

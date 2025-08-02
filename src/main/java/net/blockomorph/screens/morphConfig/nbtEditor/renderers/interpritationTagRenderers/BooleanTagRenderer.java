@@ -1,12 +1,13 @@
 package net.blockomorph.screens.morphConfig.nbtEditor.renderers.interpritationTagRenderers;
 
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.TagRendererContext;
+import net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers.primitive.NumericTagRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.nbt.ByteTag;
 
 public class BooleanTagRenderer extends AbstractInterpritationTagRenderer<ByteTag> {
-	public BooleanTagRenderer(String tagName, ByteTag tag, TagRendererContext<ByteTag> ctx) {
-		super(tagName, tag, ctx);
+	public BooleanTagRenderer(NumericTagRenderer.ByteTagRenderer parent, TagRendererContext<ByteTag> ctx) {
+		super(parent, ctx);
 	}
 
 	@Override

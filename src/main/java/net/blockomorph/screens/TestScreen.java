@@ -11,8 +11,8 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class TestScreen extends NbtEditorScreen {
 	private static CompoundTag tag = new CompoundTag();
-	public TestScreen(BlockState state) {
-		super(get(state), (tg) -> {
+	public TestScreen(BlockState state, boolean blockEntity) {
+		super(get(state, blockEntity), (tg) -> {
 			tag = tg;
 		});
 
@@ -24,7 +24,12 @@ public class TestScreen extends NbtEditorScreen {
 		});
 	}
 
-	private static CompoundTag get(BlockState state) {
+	private static CompoundTag get(BlockState state, boolean BE) {
+		if (!BE) {
+			CompoundTag main = new CompoundTag();
+			main.put("maska", NbtUtils.writeBlockState(state));
+			return main;
+		}
 		return state.getBlock() instanceof EntityBlock ent ? ent.newBlockEntity(BlockPos.ZERO, state).saveCustomOnly(GuiUtils.MC.level.registryAccess()) : new CompoundTag();
 	}
 

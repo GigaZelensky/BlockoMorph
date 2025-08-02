@@ -1,14 +1,20 @@
 package net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers;
 
+import com.mojang.serialization.DataResult;
 import net.blockomorph.screens.morphConfig.nbtEditor.NbtEditorScreen;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.TagRendererContext;
+import net.blockomorph.screens.morphConfig.nbtEditor.renderers.interpritationTagRenderers.AbstractInterpritationTagRenderer;
+import net.blockomorph.screens.morphConfig.nbtEditor.renderers.interpritationTagRenderers.BlockStateTagRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class CompoundTagRenderer extends TagRenderer<CompoundTag> {
 	private static final int BUTTON_SIZE = 16;
@@ -67,5 +73,27 @@ public class CompoundTagRenderer extends TagRenderer<CompoundTag> {
 	@Override
 	protected Integer getPlateNumber() {
 		return 2;
+	}
+
+	@Override
+	public AbstractInterpritationTagRenderer<CompoundTag> getInterpretationRenderer(Runnable onInterpretationBrake) {
+		CompoundTag self = this.getTag();
+		if (self.contains("Name")) {
+			if (self.contains("Properties") && self.size() == 2) {
+				return this.getBlockStateRenderer(onInterpretationBrake);
+			} else {
+				DataResult<ResourceLocation> result = ResourceLocation.read(self.getStringOr("Name", ""));
+				if (result.result().isPresent()) {
+					if (BuiltInRegistries.BLOCK.containsKey(result.result().get()) && self.size() == 1) {
+						return this.getBlockStateRenderer(onInterpretationBrake);
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	private BlockStateTagRenderer getBlockStateRenderer(Runnable onInterpretationBrake) {
+		return new BlockStateTagRenderer(this, this.tagRendererContext.forInterpretation(onInterpretationBrake));
 	}
 }

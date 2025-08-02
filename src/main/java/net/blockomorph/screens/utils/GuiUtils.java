@@ -24,6 +24,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -133,6 +134,10 @@ public class GuiUtils { //Cross-platform wrapper
 		GUI.fill(x, y, endX, endY, color);
 	}
 
+	public void blurScreen(int width, int height, int alpha) {
+		this.fill(0, 0, width, height, ARGB.color(alpha, 77, 77, 77));
+	}
+
 	//HINT:   XY - upper left corner of item
 	public void renderItem(ItemStack item, float x, float y, float scale, float zDepth) {
 		if (scale == 1) scale = 16f;
@@ -163,12 +168,12 @@ public class GuiUtils { //Cross-platform wrapper
 	}
 
 	//HINT:   XY - down corner of block
-	public void renderBlockInGui(BlockState blockState, @Nullable BlockEntity blockEntity, float x, float y, float scale) {
+	public void renderBlockInGui(BlockState blockState, @Nullable BlockEntity blockEntity, float x, float y, float scale, float depth) {
 		PoseStack stack = GUI.pose();
 
 		stack.pushPose();
 
-		stack.translate(x, y, 100F);
+		stack.translate(x, y, depth);
 		stack.scale(scale, -scale, scale);
 		stack.mulPose(Axis.XP.rotationDegrees(30.0F));
 		stack.mulPose(Axis.YP.rotationDegrees(-225.0F));
@@ -177,6 +182,10 @@ public class GuiUtils { //Cross-platform wrapper
 		this.renderBlockEntity(stack, blockEntity);
 
 		stack.popPose();
+	}
+
+	public void renderBlockInGui(BlockState blockState, @Nullable BlockEntity blockEntity, float x, float y, float scale) {
+		this.renderBlockInGui(blockState, blockEntity, x, y, scale, 100F);
 	}
 
 	private void renderBlock(PoseStack stack, BlockState blockState) {

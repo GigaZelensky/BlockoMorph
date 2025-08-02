@@ -8,12 +8,14 @@ import org.jetbrains.annotations.Nullable;
 
 public abstract class AbstractInterpritationTagRenderer<T extends Tag> extends TagRenderer<T> {
 	protected static final int BUTTON_SIZE = 7;
+	protected final TagRenderer<T> parent;
 	protected boolean hovered;
 	protected final Runnable onInterpretationBrake;
 
-	public AbstractInterpritationTagRenderer(String tagName, T tag, TagRendererContext<T> ctx) {
-		super(tagName, tag, ctx);
+	public AbstractInterpritationTagRenderer(TagRenderer<T> parent, TagRendererContext<T> ctx) {
+		super(parent.getName(), parent.getTag(), ctx);
 		this.onInterpretationBrake = ctx.onInterpretationBrake();
+		this.parent = parent;
 	}
 
 	@Override
@@ -37,7 +39,9 @@ public abstract class AbstractInterpritationTagRenderer<T extends Tag> extends T
 		return this.mouseClick(mouseX, mouseY);
 	}
 
-	public abstract boolean mouseClick(double mouseX, double mouseY);
+	public boolean mouseClick(double mouseX, double mouseY) {
+		return false;
+	}
 
 	@Override @Nullable
 	public final AbstractInterpritationTagRenderer<T> getInterpretationRenderer(Runnable onInterpretationBrake) {

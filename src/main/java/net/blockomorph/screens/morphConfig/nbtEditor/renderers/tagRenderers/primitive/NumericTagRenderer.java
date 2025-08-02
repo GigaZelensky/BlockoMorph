@@ -152,7 +152,7 @@ public abstract class NumericTagRenderer<NUMBER_TAG extends NumericTag> extends 
 					}
 				}
 				if (yes || name.endsWith("ed")) {
-					return new BooleanTagRenderer(this.getName(), this.getTag(), this.tagRendererContext.withInterpretationStopListener(onInterpretationBrake));
+					return new BooleanTagRenderer(this, this.tagRendererContext.forInterpretation(onInterpretationBrake));
 				}
 			}
 			return null;

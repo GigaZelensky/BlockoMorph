@@ -16,6 +16,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.navigation.ScreenPosition;
+import net.minecraft.core.HolderGetter;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.ARGB;
@@ -54,14 +56,14 @@ public class NbtEditorScreen extends AbstractScreen {
 		this.renderables = new ArrayList<>(7);
 		this.scrollerManager = new ScrollerManager<>(() -> this.leftPos + 181, () -> this.topPos + 41, 138, 1, 7, this.renderables, SCOLLER);
 		this.onTagEdited = () -> this.onEdited.accept(this.editingTag);
-		this.onTagReceived = tagEditor -> {
-			this.removeWidget(this.overlay);
-			if (tagEditor != null) {
-				this.overlay = tagEditor;
-				tagEditor.init();
-				this.addWidget(this.overlay);
-			}
-		};
+		this.onTagReceived = this::setOverlay;
+	}
+
+	private void setOverlay(TagEditingOverlay tagEditor) {
+		this.overlay = tagEditor;
+		if (tagEditor != null) {
+			tagEditor.init(this.width, this.height, this::setOverlay);
+		}
 	}
 
 	static {
@@ -99,7 +101,8 @@ public class NbtEditorScreen extends AbstractScreen {
 			}
 		}
 		if (this.overlay != null) {
-			this.gui.fill(0, 0, this.width, this.height, ARGB.color(196, 84, 84, 84));
+			this.gui.blurScreen(this.width, this.height, 190);
+			this.overlay.renderInGui(this.gui);
 		} else if (tooltip != null) {
 			this.gui.renderTooltip(tooltip, mouseX, mouseY);
 		}
@@ -108,7 +111,7 @@ public class NbtEditorScreen extends AbstractScreen {
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int type) {
 		if (this.overlay != null) {
-			return super.mouseClicked(mouseX, mouseY, type);
+			return this.overlay.mouseClicked(mouseX, mouseY, type);
 		} else if (type == 0) {
 			if (this.forEachTag(renderer -> renderer.mouseClicked(mouseX, mouseY))) {
 				this.tagBox.setFocused(false);
@@ -124,7 +127,7 @@ public class NbtEditorScreen extends AbstractScreen {
 	@Override
 	public boolean mouseDragged(double mouseX, double mouseY, int type, double mouseXOffset, double mouseYOffset) {
 		if (this.overlay != null) {
-			return super.mouseDragged(mouseX, mouseY, type, mouseXOffset, mouseYOffset);
+			return this.overlay.mouseDragged(mouseX, mouseY, type, mouseXOffset, mouseYOffset);
 		} else if (this.scrollerManager.mouseDragged(mouseY)) {
 			return true;
 		}
@@ -134,7 +137,7 @@ public class NbtEditorScreen extends AbstractScreen {
 	@Override
 	public boolean mouseScrolled(double mouseX, double mouseY, double xWheelOffset, double yWheelOffset) {
 		if (this.overlay != null) {
-			return super.mouseScrolled(mouseX, mouseY, xWheelOffset, yWheelOffset);
+			return this.overlay.mouseScrolled(mouseX, mouseY, xWheelOffset, yWheelOffset);
 		} else if (this.forEachTag(renderer -> renderer.mouseScrolled(mouseX, mouseY, yWheelOffset))) {
 			return true;
 		}
@@ -150,7 +153,7 @@ public class NbtEditorScreen extends AbstractScreen {
 	@Override
 	public boolean charTyped(char character, int mods) {
 		if (this.overlay != null) {
-			return super.charTyped(character, mods);
+			return this.overlay.charTyped(character, mods);
 		} else if (this.forEachTag(renderer -> renderer.charTyped(character, mods))) {
 			return true;
 		}
@@ -160,7 +163,11 @@ public class NbtEditorScreen extends AbstractScreen {
 	@Override
 	public boolean keyPressed(int key, int scancode, int mods) {
 		if (this.overlay != null) {
-			return super.keyPressed(key, scancode, mods);
+			if (key == 256) {
+				this.onTagReceived.accept(null);
+				return true;
+			}
+			return this.overlay.keyPressed(key, scancode, mods);
 		} else if (this.forEachTag(renderer -> renderer.keyPressed(key, scancode, mods))) {
 			return true;
 		}
@@ -212,7 +219,7 @@ public class NbtEditorScreen extends AbstractScreen {
 		String previousName = "root";
 		for (Iterator<String> it = Arrays.stream(this.path.split("/")).filter(v -> !v.isEmpty()).iterator(); it.hasNext();) {
 			String tagName = it.next();
-			TagRenderer<?> renderer = getRendererForTag(previousName, root, new TagRendererContext<>(this.onEntering, this.onTagEdited, this.onTagReceived));
+			TagRenderer<?> renderer = getRendererForTag(previousName, root, new TagRendererContext<>(this.provider(), this.onEntering, this.onTagEdited, this.onTagReceived));
 			if (renderer != null) {
 				Tag child = renderer.tryWalk(tagName);
 				if (child != null) {
@@ -223,7 +230,7 @@ public class NbtEditorScreen extends AbstractScreen {
 			}
 			throw new IllegalArgumentException("Illegal path: " + this.path + " for tag: " + this.editingTag);
 		}
-		TagRenderer<?> rootRenderer = getRendererForTag("root", root, new TagRendererContext<>(this.onEntering, this.onTagEdited, this.onTagReceived));
+		TagRenderer<?> rootRenderer = getRendererForTag("root", root, new TagRendererContext<>(this.provider(), this.onEntering, this.onTagEdited, this.onTagReceived));
 		if (rootRenderer != null && rootRenderer.canEnterInTag()) {
 			this.frameColor = root == this.editingTag ? ARGB.color(255, 84, 84, 84) : rootRenderer.getFrameColor();
 			List<RenderableTag<?>> renderableTags = new ArrayList<>();
@@ -239,12 +246,16 @@ public class NbtEditorScreen extends AbstractScreen {
 		throw new IllegalArgumentException("Tag: " + root.getType().getName() + " no enterable!");
 	}
 
+	private HolderGetter.Provider provider() {
+		return GuiUtils.MC.level != null ? GuiUtils.MC.level.registryAccess() : RegistryAccess.EMPTY;
+	}
+
 	@Nullable @SuppressWarnings("unchecked")
-	public static <T extends Tag> TagRenderer<T> getRendererForTag(String name, T tag, TagRendererContext<?> ctx) {
+	public static <T extends Tag> TagRenderer<T> getRendererForTag(String name, T tag, TagRendererContext<T> ctx) {
 		try {
 			TagRendererFactory<T> renderSource = (TagRendererFactory<T>) RENDERERS.get(tag.getType());
 			if (renderSource != null) {
-				return renderSource.create(name, tag, (TagRendererContext<T>) ctx);
+				return renderSource.create(name, tag, ctx);
 			}
 		} catch (ClassCastException e) {
 			MorphUtils.LOGGER.error("Invalid tag registration for NBT Editor: ", e);
@@ -260,6 +271,7 @@ public class NbtEditorScreen extends AbstractScreen {
 			this.mainRenderer = renderer;
 			if (this.mainRenderer != null) {
 				TagRenderer<T> additionalRenderer = renderer.getInterpretationRenderer(() -> {
+					renderer.forceTagChange(this.mainRenderer.getTag());
 					this.mainRenderer = renderer;
 				});
 				if (additionalRenderer != null) {
