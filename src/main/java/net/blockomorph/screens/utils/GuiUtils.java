@@ -169,7 +169,7 @@ public class GuiUtils { //Cross-platform wrapper
 
 	//HINT:   XY - down corner of block
 	public void renderBlockInGui(BlockState blockState, @Nullable BlockEntity blockEntity, float x, float y, float scale, float depth) {
-		PoseStack stack = GUI.pose();
+		PoseStack stack = new PoseStack();//GUI.pose();
 
 		stack.pushPose();
 

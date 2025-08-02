@@ -27,7 +27,7 @@ public class BlockStateTagRenderer extends AbstractInterpritationTagRenderer<Com
 		this.hovered = GuiUtils.isMouseOver(x, y, x + BUTTON_SIZE, y + BUTTON_SIZE, gui.getMouseX(), gui.getMouseY());
 		if (this.hovered)
 			gui.blit(TAGS_SPRITE, x, y, PLATE_LENGTH, 46, BUTTON_SIZE, BUTTON_SIZE, PLATE_SPRITE_LENGTH, PLATE_SPRITE_HEIGTH);
-		gui.renderBlockInGui(this.state, null, x + BUTTON_SIZE/2f, y + BUTTON_SIZE - 1.5f, 8f);
+		gui.renderBlockInGui(this.state, null, x + BUTTON_SIZE/2f, y + BUTTON_SIZE - 1.5f, 8f, 0);
 	}
 
 	@Override
