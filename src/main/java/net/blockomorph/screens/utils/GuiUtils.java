@@ -1,6 +1,7 @@
 package net.blockomorph.screens.utils;
 
 import com.mojang.blaze3d.platform.Lighting;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.blockomorph.BlockomorphServer;
@@ -38,6 +39,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
@@ -169,14 +171,19 @@ public class GuiUtils { //Cross-platform wrapper
 
 	//HINT:   XY - down corner of block
 	public void renderBlockInGui(BlockState blockState, @Nullable BlockEntity blockEntity, float x, float y, float scale, float depth) {
-		PoseStack stack = new PoseStack();//GUI.pose();
+		PoseStack stack = GUI.pose();
 
 		stack.pushPose();
 
 		stack.translate(x, y, depth);
-		stack.scale(scale, -scale, scale);
+		//stack.scale(scale, -scale, scale);
+		//stack.mulPose(Axis.XP.rotationDegrees(30.0F));
+		//stack.mulPose(Axis.YP.rotationDegrees(-225.0F));
+		//stack.mulPose((new Matrix4f()).scaling(1.0F, 1.0F, -1.0F));
+		stack.scale(scale, -scale, 1);
 		stack.mulPose(Axis.XP.rotationDegrees(30.0F));
-		stack.mulPose(Axis.YP.rotationDegrees(-225.0F));
+		stack.mulPose(Axis.YP.rotationDegrees(-137.5F));
+		//stack.mulPose(Axis.ZP.rotationDegrees(180.0F));
 
 		this.renderBlock(stack, blockState);
 		this.renderBlockEntity(stack, blockEntity);
