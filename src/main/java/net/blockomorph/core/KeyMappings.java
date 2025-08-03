@@ -3,6 +3,7 @@ package net.blockomorph.core;
 import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.screens.ConfigScreen;
 import net.blockomorph.screens.MorphScreen;
+import net.blockomorph.screens.TestScreen;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
