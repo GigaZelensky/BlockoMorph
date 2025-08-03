@@ -101,8 +101,10 @@ public class NbtEditorScreen extends AbstractScreen {
 			}
 		}
 		if (this.overlay != null) {
-			this.gui.blurScreen(this.width, this.height, 190);
-			this.overlay.renderInGui(this.gui);
+			this.gui.renderInDepthIfNeededAfterBlockRendering(() -> {
+				this.gui.blurScreen(this.width, this.height, 190);
+				this.overlay.renderInGui(this.gui);
+			});
 		} else if (tooltip != null) {
 			this.gui.renderTooltip(tooltip, mouseX, mouseY);
 		}

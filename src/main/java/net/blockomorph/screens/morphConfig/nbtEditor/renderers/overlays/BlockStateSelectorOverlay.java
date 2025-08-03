@@ -6,6 +6,8 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.function.Consumer;
@@ -15,6 +17,7 @@ public class BlockStateSelectorOverlay extends TagEditingOverlay {
 	private static final int imageHeight = 131;
 	private final Consumer<BlockState> handler;
 	private BlockState state;
+	private BlockEntity tempBE;
 	private int leftPos;
 	private int topPos;
 	private static final ResourceLocation MENU = GuiUtils.res("textures/screens/state_selector.png");
@@ -26,13 +29,18 @@ public class BlockStateSelectorOverlay extends TagEditingOverlay {
 		super("BlockState editing overlay");
 		this.handler = handler;
 		this.state = state;
+		this.setTempBE();
+	}
+
+	private void setTempBE() {
+		this.tempBE = this.state.getBlock() instanceof EntityBlock ent ? ent.newBlockEntity(GuiUtils.AIR, this.state) : null;
 	}
 
 	@Override
 	public void renderInGui(GuiUtils gui) {
 		gui.blitMonoImage(MENU, this.leftPos, this.topPos, imageLength, imageHeight);
 		this.renderString(gui);
-		gui.renderBlockInGui(this.state, null, this.leftPos + 38.5f, this.topPos + 76.5f, 36f);
+		gui.renderBlockInGui(this.state, this.tempBE, this.leftPos + 63.85f, this.topPos + 64f, 36f);
 		gui.renderAdditionalOnBlock(this.state, this.leftPos + 16.5f, this.topPos + 40.5f, 55f);
 		this.propsRenderer.render(gui);
 		this.exit.render(gui.getGuiGraphics(), gui.getMouseX(), gui.getMouseY(), gui.getTick());
@@ -73,6 +81,7 @@ public class BlockStateSelectorOverlay extends TagEditingOverlay {
 		this.topPos = (this.height - imageHeight) / 2;
 		this.propsRenderer = new BlockStatePropsRenderer(this.leftPos + 79, this.topPos + 20, 5, () -> this.state, newState -> {
 			this.state = newState;
+			this.setTempBE();
 			this.handler.accept(newState);
 		});
 		this.exit = Button.builder(CommonComponents.GUI_DONE, b -> {

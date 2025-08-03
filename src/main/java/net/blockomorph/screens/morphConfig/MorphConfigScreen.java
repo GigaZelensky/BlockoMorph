@@ -14,7 +14,6 @@ import net.blockomorph.utils.SavedBlock;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -72,7 +71,7 @@ public class MorphConfigScreen extends AbstractScreen {
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
 		this.gui.setGuiGraphics(guiGraphics, this.font, mouseX, mouseY, tick);
 		super.render(guiGraphics, mouseX, mouseY, tick);
-		this.gui.renderBlockInGui(this.getState(), this.getBE(), this.leftPos + 45.5f, this.topPos + 76.5f, 36f);
+		this.gui.renderBlockInGui(this.getState(), this.getBE(), this.leftPos + 71, this.topPos + 64, 36f);
 		this.gui.renderAdditionalOnBlock(this.getState(), this.leftPos + 37.5f, this.topPos + 40.5f, 55f);
 		this.propertiesRenderer.render(this.gui);
 		if (GuiUtils.isMouseOver(this.leftPos + 15, this.topPos + 18, this.leftPos + 75, this.topPos + 79, mouseX, mouseY)) {
@@ -88,7 +87,6 @@ public class MorphConfigScreen extends AbstractScreen {
 		this.gui.drawString(Component.literal(blockName), this.leftPos + 6, this.topPos + 6, 4210752, false);
 		this.gui.drawString(Component.literal("BlockState"), this.leftPos + 100, this.topPos + 15, 4210752, false);
 		this.gui.drawString(Component.translatable("blockomorph.gui.morphConfigScreen.save"), this.leftPos + 9, this.topPos + 127, 4210752, false);
-		//this.gui.drawString(Component.translatable("gui.blockomorph.save"), this.leftPos + 13, this.topPos + 87, 4210752, false);
 	}
 
 	@Override

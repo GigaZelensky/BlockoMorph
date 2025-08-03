@@ -51,6 +51,8 @@ import java.util.Map;
 public class GuiUtils { //Cross-platform wrapper
 	public static final BlockPos AIR = new BlockPos(0, 500, 0);
 	public static final Minecraft MC = Minecraft.getInstance();
+	private static final Vector3f DIFFUSE_LIGHT_START;
+	private static final Vector3f DIFFUSE_LIGHT_END;
 	public static final MultiBufferSource.BufferSource bufferSource = MC.renderBuffers().bufferSource();
 	private static final BlockRenderDispatcher blockRenderer = MC.getBlockRenderer();
 	private static final BlockEntityRenderDispatcher blockEntityRenderer = MC.getBlockEntityRenderDispatcher();
@@ -60,6 +62,12 @@ public class GuiUtils { //Cross-platform wrapper
 	private int mouseY;
 	private float tick;
 	private Font font;
+
+	static {
+		Matrix4f matrix4f = (new Matrix4f()).scaling(1.0F, -1.0F, 1.0F).rotateYXZ(1.0821041F, 3.2375858F, 0.0F).rotateYXZ((-(float)Math.PI / 1.3F), 2.3561945F, 0.0F);
+		DIFFUSE_LIGHT_START = matrix4f.transformDirection((new Vector3f(0.2F, 1.0F, -0.7F)).normalize(), new Vector3f());
+		DIFFUSE_LIGHT_END = matrix4f.transformDirection((new Vector3f(-0.2F, 1.0F, 0.7F)).normalize(), new Vector3f());
+	}
 
 	public static ResourceLocation res(String path) {
 		return MorphUtils.res(path);
@@ -155,6 +163,14 @@ public class GuiUtils { //Cross-platform wrapper
 		pose.popPose();
 	}
 
+	public void renderInDepthIfNeededAfterBlockRendering(Runnable rendering) {
+		PoseStack stack = GUI.pose();
+		stack.pushPose();
+		stack.translate(0, 0, 300);
+		rendering.run();
+		stack.popPose();
+	}
+
 	private void doMainRenderingItem(PoseStack stack) {
 		boolean bl = !this.scratchItemStackRenderState.usesBlockLight();
 		if (bl) {
@@ -170,40 +186,22 @@ public class GuiUtils { //Cross-platform wrapper
 	}
 
 	//HINT:   XY - down corner of block
-	public void renderBlockInGui(BlockState blockState, @Nullable BlockEntity blockEntity, float x, float y, float scale, float depth) {
+	public void renderBlockInGui(BlockState blockState, @Nullable BlockEntity blockEntity, float x, float y, float scale) {
 		PoseStack stack = GUI.pose();
 
 		stack.pushPose();
 
-		stack.translate(x, y, depth);
-		//stack.scale(scale, -scale, scale);
-		//stack.mulPose(Axis.XP.rotationDegrees(30.0F));
-		//stack.mulPose(Axis.YP.rotationDegrees(-225.0F));
-		//stack.mulPose((new Matrix4f()).scaling(1.0F, 1.0F, -1.0F));
-		Quaternionf quaternionf = new Quaternionf();
-		quaternionf.mul(Axis.XP.rotationDegrees(30.0F));
-		quaternionf.mul(Axis.YP.rotationDegrees(-137.5F));
-		quaternionf.mul(Axis.ZP.rotationDegrees(-180f));
+		stack.translate(x, y, 100F);
 
-		//RenderSystem.setupGui3DDiffuseLighting(quaternionf.transform(DIFFUSE_LIGHT_0, new Vector3f()), quaternionf.transform(DIFFUSE_LIGHT_1, new Vector3f()));
-		stack.scale(scale, -scale, 1);
+		stack.scale(scale, -scale, scale);
 		stack.mulPose(Axis.XP.rotationDegrees(30.0F));
-		stack.mulPose(Axis.YP.rotationDegrees(-137.5F));
-		//stack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+		stack.mulPose(Axis.YP.rotationDegrees(-135F));
 
 		this.renderBlock(stack, blockState);
-		RenderSystem.setupGui3DDiffuseLighting(quaternionf.transform(DIFFUSE_LIGHT_0, new Vector3f()), quaternionf.transform(DIFFUSE_LIGHT_1, new Vector3f()));
+		RenderSystem.setShaderLights(DIFFUSE_LIGHT_START, DIFFUSE_LIGHT_END);
 		this.renderBlockEntity(stack, blockEntity);
 
-		//Lighting.setupFor3DItems();
 		stack.popPose();
-	}
-
-	private static final Vector3f DIFFUSE_LIGHT_0 = (new Vector3f(0.2F, 1.0F, -0.7F)).normalize();
-	private static final Vector3f DIFFUSE_LIGHT_1 = (new Vector3f(-0.2F, 1.0F, 0.7F)).normalize();
-
-	public void renderBlockInGui(BlockState blockState, @Nullable BlockEntity blockEntity, float x, float y, float scale) {
-		this.renderBlockInGui(blockState, blockEntity, x, y, scale, 100F);
 	}
 
 	private void renderBlock(PoseStack stack, BlockState blockState) {
@@ -248,9 +246,7 @@ public class GuiUtils { //Cross-platform wrapper
 					acc.setSpecialRenderingMode(true);
 					renderer.render(blockEntity, this.tick, stack, bufferSource, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY, cam.getPosition());
 					acc.setSpecialRenderingMode(false);
-				} catch (Exception e) {
-					//TODO
-				}
+				} catch (Exception ignored) {}
 			}
 		}
 	}

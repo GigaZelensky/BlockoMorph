@@ -1,7 +1,6 @@
 package net.blockomorph.screens.morph;
 
 import com.google.common.collect.ImmutableList;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ScrollerManager;
 import net.blockomorph.utils.MorphUtils;
@@ -64,14 +63,14 @@ public class BlocksManager {
 							blockEntity.loadWithComponents(block.getTag(), parentScreen.getPlayer().player().registryAccess());
 						}
 					}
-					gui.renderBlockInGui(block.getState(), blockEntity, parentScreen.getLeftPos() + 28 + x * 36, parentScreen.getTopPos() + 48.5f + y * 36, 20);
+					gui.renderBlockInGui(block.getState(), blockEntity, parentScreen.getLeftPos() + 42 + x * 36, parentScreen.getTopPos() + 42 + y * 36, 20);
 					gui.renderAdditionalOnBlock(block.getState(), parentScreen.getLeftPos() + 20 + x * 36, parentScreen.getTopPos() + 25 + y * 36, 30);
 
-					PoseStack stack = gui.getGuiGraphics().pose();
-					stack.pushPose();
-					stack.translate(0, 0, 200);
-					onRendering.render(block, parentScreen.getLeftPos() + 10 + x * 36, parentScreen.getTopPos() + 15 + y * 36);
-					stack.popPose();
+					final int blockX = x;
+					final int blockY = y;
+					gui.renderInDepthIfNeededAfterBlockRendering(() -> {
+						onRendering.render(block, parentScreen.getLeftPos() + 10 + blockX * 36, parentScreen.getTopPos() + 15 + blockY * 36);
+					});
 				}
 			}
 		}
