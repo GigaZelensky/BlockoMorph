@@ -180,16 +180,27 @@ public class GuiUtils { //Cross-platform wrapper
 		//stack.mulPose(Axis.XP.rotationDegrees(30.0F));
 		//stack.mulPose(Axis.YP.rotationDegrees(-225.0F));
 		//stack.mulPose((new Matrix4f()).scaling(1.0F, 1.0F, -1.0F));
+		Quaternionf quaternionf = new Quaternionf();
+		quaternionf.mul(Axis.XP.rotationDegrees(30.0F));
+		quaternionf.mul(Axis.YP.rotationDegrees(-137.5F));
+		quaternionf.mul(Axis.ZP.rotationDegrees(-180f));
+
+		//RenderSystem.setupGui3DDiffuseLighting(quaternionf.transform(DIFFUSE_LIGHT_0, new Vector3f()), quaternionf.transform(DIFFUSE_LIGHT_1, new Vector3f()));
 		stack.scale(scale, -scale, 1);
 		stack.mulPose(Axis.XP.rotationDegrees(30.0F));
 		stack.mulPose(Axis.YP.rotationDegrees(-137.5F));
 		//stack.mulPose(Axis.ZP.rotationDegrees(180.0F));
 
 		this.renderBlock(stack, blockState);
+		RenderSystem.setupGui3DDiffuseLighting(quaternionf.transform(DIFFUSE_LIGHT_0, new Vector3f()), quaternionf.transform(DIFFUSE_LIGHT_1, new Vector3f()));
 		this.renderBlockEntity(stack, blockEntity);
 
+		//Lighting.setupFor3DItems();
 		stack.popPose();
 	}
+
+	private static final Vector3f DIFFUSE_LIGHT_0 = (new Vector3f(0.2F, 1.0F, -0.7F)).normalize();
+	private static final Vector3f DIFFUSE_LIGHT_1 = (new Vector3f(-0.2F, 1.0F, 0.7F)).normalize();
 
 	public void renderBlockInGui(BlockState blockState, @Nullable BlockEntity blockEntity, float x, float y, float scale) {
 		this.renderBlockInGui(blockState, blockEntity, x, y, scale, 100F);
