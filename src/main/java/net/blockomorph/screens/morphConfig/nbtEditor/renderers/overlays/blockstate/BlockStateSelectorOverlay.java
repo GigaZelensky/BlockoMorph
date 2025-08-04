@@ -1,5 +1,6 @@
-package net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays;
+package net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays.blockstate;
 
+import net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays.TagEditingOverlay;
 import net.blockomorph.screens.morphConfig.propertiesWidget.BlockStatePropsRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.client.gui.components.Button;
@@ -34,6 +35,9 @@ public class BlockStateSelectorOverlay extends TagEditingOverlay {
 
 	private void setTempBE() {
 		this.tempBE = this.state.getBlock() instanceof EntityBlock ent ? ent.newBlockEntity(GuiUtils.AIR, this.state) : null;
+		if (this.tempBE != null) {
+			this.tempBE.setLevel(GuiUtils.MC.level);
+		}
 	}
 
 	@Override
@@ -41,9 +45,14 @@ public class BlockStateSelectorOverlay extends TagEditingOverlay {
 		gui.blitMonoImage(MENU, this.leftPos, this.topPos, imageLength, imageHeight);
 		this.renderString(gui);
 		gui.renderBlockInGui(this.state, this.tempBE, this.leftPos + 63.85f, this.topPos + 64f, 36f);
-		gui.renderAdditionalOnBlock(this.state, this.leftPos + 16.5f, this.topPos + 40.5f, 55f);
+		gui.renderAdditionalOnBlock(this.state, this.leftPos + 30.5f, this.topPos + 40.5f, 55f);
 		this.propsRenderer.render(gui);
 		this.exit.render(gui.getGuiGraphics(), gui.getMouseX(), gui.getMouseY(), gui.getTick());
+		this.typeEdit.render(gui.getGuiGraphics(), gui.getMouseX(), gui.getMouseY(), gui.getTick());
+		String text = Component.translatable("blockomorph.gui.stateSelectorOverlay.selectBlock").getString();
+		int x = this.leftPos + 8 + (this.typeEdit.getWidth()/2);
+		gui.drawCenteredString(Component.literal(text.split(" ")[0]), x, this.topPos + 84, -1, true);
+		gui.drawCenteredString(Component.literal(text.split(" ")[1]), x, this.topPos + 93, -1, true);
 		if (GuiUtils.isMouseOver(this.leftPos + 8, this.topPos + 18, this.leftPos + 69, this.topPos + 79, gui.getMouseX(), gui.getMouseY())) {
 			gui.renderTooltip(this.state.getBlock().getName(), gui.getMouseX(), gui.getMouseY());
 		}
@@ -53,6 +62,8 @@ public class BlockStateSelectorOverlay extends TagEditingOverlay {
 	public boolean mouseClicked(double mouseX, double mouseY, int type) {
 		if (type == 0) {
 			if (this.exit.mouseClicked(mouseX, mouseY, type)) {
+				return true;
+			} else if (this.typeEdit.mouseClicked(mouseX, mouseY, type)) {
 				return true;
 			}
 			return this.propsRenderer.mouseClicked(mouseX, mouseY, type);
@@ -74,18 +85,26 @@ public class BlockStateSelectorOverlay extends TagEditingOverlay {
 		gui.drawString(Component.literal("BlockState"), this.leftPos + 83, this.topPos + 11, 4210752, false);
 	}
 
+	private void changeBlockState(BlockState newState) {
+		this.state = newState;
+		this.setTempBE();
+		this.handler.accept(newState);
+	}
+
 	@Override
 	public void init(int width, int height, Consumer<TagEditingOverlay> onChange) {
 		super.init(width, height, onChange);
 		this.leftPos = (this.width - imageLength) / 2;
 		this.topPos = (this.height - imageHeight) / 2;
-		this.propsRenderer = new BlockStatePropsRenderer(this.leftPos + 79, this.topPos + 20, 5, () -> this.state, newState -> {
-			this.state = newState;
-			this.setTempBE();
-			this.handler.accept(newState);
-		});
+		this.propsRenderer = new BlockStatePropsRenderer(this.leftPos + 79, this.topPos + 20, 5, () -> this.state, this::changeBlockState);
 		this.exit = Button.builder(CommonComponents.GUI_DONE, b -> {
 			onChange.accept(null);
 		}).bounds(this.leftPos + 8, this.topPos + 105, 61, 20).build();
+		this.typeEdit = Button.builder(CommonComponents.EMPTY, b -> {
+			onChange.accept(new BlockTypeSelectorOverlay(block -> {
+				onChange.accept(this);
+				this.changeBlockState(block);
+			}));
+		}).bounds(this.leftPos + 8, this.topPos + 82, 61, 20).build();
 	}
 }

@@ -1,7 +1,7 @@
 package net.blockomorph.screens.morphConfig.nbtEditor.renderers.interpritationTagRenderers;
 
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.TagRendererContext;
-import net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays.BlockStateSelectorOverlay;
+import net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays.blockstate.BlockStateSelectorOverlay;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers.CompoundTagRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.core.registries.Registries;
@@ -26,6 +26,9 @@ public class BlockStateTagRenderer extends AbstractInterpritationTagRenderer<Com
 
 	private void setTempBE() {
 		this.tempBE = this.state.getBlock() instanceof EntityBlock ent ? ent.newBlockEntity(GuiUtils.AIR, this.state) : null;
+		if (this.tempBE != null) {
+			this.tempBE.setLevel(GuiUtils.MC.level);
+		}
 	}
 
 	@Override
@@ -36,6 +39,7 @@ public class BlockStateTagRenderer extends AbstractInterpritationTagRenderer<Com
 		if (this.hovered)
 			gui.blit(TAGS_SPRITE, x, y, PLATE_LENGTH, 46, BUTTON_SIZE, BUTTON_SIZE, PLATE_SPRITE_LENGTH, PLATE_SPRITE_HEIGTH);
 		gui.renderBlockInGui(this.state, this.tempBE, x + 13.75f, y + BUTTON_SIZE - 4.5f, 8f);
+		gui.renderAdditionalOnBlock(this.state, x, y, 14f);
 	}
 
 	@Override

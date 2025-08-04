@@ -2,6 +2,7 @@
   "blockomorph.gui.morphScreen.allowed_tab": "Allowed blocks",
   "blockomorph.gui.morphConfigScreen.save": "Save",
   "blockomorph.gui.stateSelectorOverlay.selectBlock": "Select block",
+  "blockomorph.gui.stateSelectorOverlay.selectBlockType": "Select block for NBT tag:",
 
 
   "blockomorph.commands.option_change.default": "Value of option \"%s\" changed to %s.",

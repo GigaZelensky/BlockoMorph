@@ -60,7 +60,7 @@ public class MorphScreen extends AbstractMorphScreen {
 	protected SoundInstance onClickOnBlock(SavedBlock block, int number, CreativeModeTab selectedTab, int page) {
 		if (MorphUtils.isBannedBlock(block.getState(), this.player.player()) == null) {
 			MorphUtils.sendServer(ServerBoundBlockMorphPacket.create(block.getState(), block.getTag()));
-			return SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1.0F);
+			return GuiUtils.getClickSound();
 		}
 		return null;
 	}
@@ -70,7 +70,7 @@ public class MorphScreen extends AbstractMorphScreen {
 		BlockState state = block.getState();
 		MorphUtils.BannedBlock ban = MorphUtils.isBannedBlock(state, this.player.player());
 		if (ban != null) {
-			gui.blitMonoImage(LOCK_FRAME, x, y, 36, 36);
+			gui.blitMonoImage(LOCK_FRAME, x, y, BLOCK_FRAME_SIZE, BLOCK_FRAME_SIZE);
 			return;
 		}
 
@@ -79,7 +79,7 @@ public class MorphScreen extends AbstractMorphScreen {
 
 		if (state.equals(playerState)) {
 			if (block.getTag() == null || tg.equals(block.getTag())) {
-				gui.blitMonoImage(SELECTED_FRAME, x, y, 36, 36);
+				gui.blitMonoImage(SELECTED_FRAME, x, y, BLOCK_FRAME_SIZE, BLOCK_FRAME_SIZE);
 			}
 		}
 	}

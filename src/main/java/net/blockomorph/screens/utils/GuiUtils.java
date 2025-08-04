@@ -20,6 +20,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
@@ -140,6 +141,11 @@ public class GuiUtils { //Cross-platform wrapper
 		GUI.drawString(this.font, text, x, y, color, useShadow);
 	}
 
+	public void drawCenteredString(Component text, int xCenter, int y, int color, boolean useShadow) {
+		int x = xCenter - this.font.width(text.getString())/2;
+		this.drawString(text, x, y, color, useShadow);
+	}
+
 	public void fill(int x, int y, int endX, int endY, int color) {
 		GUI.fill(x, y, endX, endY, color);
 	}
@@ -240,13 +246,16 @@ public class GuiUtils { //Cross-platform wrapper
 		if (blockEntity != null) {
 			BlockEntityRenderer<T> renderer = blockEntityRenderer.getRenderer(blockEntity);
 			if (renderer != null) {
+				ClientLevelAccessor acc = ClientLevelAccessor.of(MC.level);
 				try {
 					Camera cam = Minecraft.getInstance().getBlockEntityRenderDispatcher().camera; //TODO
-					ClientLevelAccessor acc = ClientLevelAccessor.of(MC.level);
 					acc.setSpecialRenderingMode(true);
 					renderer.render(blockEntity, this.tick, stack, bufferSource, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY, cam.getPosition());
+				} catch (Exception ignored) {
+					boolean opa = true;
+				} finally {
 					acc.setSpecialRenderingMode(false);
-				} catch (Exception ignored) {}
+				}
 			}
 		}
 	}
@@ -260,6 +269,10 @@ public class GuiUtils { //Cross-platform wrapper
 	}
 
 	public static void playClickSound() {
-		MC.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1f));
+		MC.getSoundManager().play(getClickSound());
+	}
+
+	public static SoundInstance getClickSound() {
+		return SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1f);
 	}
 }

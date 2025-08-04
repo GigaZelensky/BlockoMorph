@@ -149,6 +149,9 @@ public class NbtEditorScreen extends AbstractScreen {
 	@Override
 	public boolean mouseReleased(double mouseX, double mouseY, int type) {
 		this.scrollerManager.disableScrollWork();
+		if (this.overlay != null) {
+			this.overlay.mouseReleased(mouseX, mouseY, type);
+		}
 		return super.mouseReleased(mouseX, mouseY, type);
 	}
 
@@ -209,6 +212,9 @@ public class NbtEditorScreen extends AbstractScreen {
 		}).bounds(this.internalBoxX + 146, this.internalBoxY + 4, 22, 9).build();
 		this.addRenderableWidget(this.pathExit);
 		this.initList();
+		if (this.overlay != null) {
+			this.overlay.init(this.width, this.height, this::setOverlay);
+		}
 	}
 
 	public void enterInTag(String path) {

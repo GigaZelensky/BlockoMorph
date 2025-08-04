@@ -23,6 +23,7 @@ public abstract class AbstractMorphScreen extends AbstractScreen {
 	private static final ResourceLocation SEARCH_BAR = GuiUtils.res("textures/screens/searchbar.png");
 	private static final ResourceLocation MODE_TABS = GuiUtils.res("textures/screens/exit_tabs.png");
 	public static final SavedBlockManager SAVED_BLOCK_MANAGER = new SavedBlockManager(MorphUtils.getGameDir());
+	protected static final int BLOCK_FRAME_SIZE = 36;
 	public final TabManager TAB_MANAGER;
 	public final BlocksManager BLOCKS_MANAGER;
 	protected PlayerAccessor player;
@@ -201,5 +202,6 @@ public abstract class AbstractMorphScreen extends AbstractScreen {
 	public record MorphScreenOptions(boolean useAllowedTab, boolean useSavedBlocksTab, boolean useUpperTabs) {
 		public static MorphScreenOptions ALL = new MorphScreenOptions(true, true, true);
 		public static MorphScreenOptions CONFIG = new MorphScreenOptions(false, true, false);
+		public static MorphScreenOptions OFF = new MorphScreenOptions(false, false, false);
 	}
 }

@@ -28,6 +28,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static net.blockomorph.screens.morph.AbstractMorphScreen.BLOCK_FRAME_SIZE;
+
 public class BlocksManager {
 	protected static final ResourceKey<CreativeModeTab> ALLOWED_TAB_KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB, GuiUtils.res("allowed_blocks"));
 	protected final static HashMap<ResourceKey<CreativeModeTab>, List<SavedBlock>> ALL_TAB_CONTENTS = new HashMap<>();
@@ -52,6 +54,7 @@ public class BlocksManager {
 	}
 
 	public void render(GuiUtils gui, AbstractMorphScreen.OnRenderingFrame onRendering) {
+		int size = BLOCK_FRAME_SIZE;
 		for (int x = 0; x < 4; x++) {
 			for (int y = 0; y < 4; y++) {
 				SavedBlock block = this.renderableBlocks.get(y * 4 + x);
@@ -63,13 +66,13 @@ public class BlocksManager {
 							blockEntity.loadWithComponents(block.getTag(), parentScreen.getPlayer().player().registryAccess());
 						}
 					}
-					gui.renderBlockInGui(block.getState(), blockEntity, parentScreen.getLeftPos() + 42 + x * 36, parentScreen.getTopPos() + 42 + y * 36, 20);
-					gui.renderAdditionalOnBlock(block.getState(), parentScreen.getLeftPos() + 20 + x * 36, parentScreen.getTopPos() + 25 + y * 36, 30);
+					gui.renderBlockInGui(block.getState(), blockEntity, parentScreen.getLeftPos() + 42 + x * size, parentScreen.getTopPos() + 42 + y * size, 20);
+					gui.renderAdditionalOnBlock(block.getState(), parentScreen.getLeftPos() + 20 + x * size, parentScreen.getTopPos() + 25 + y * size, 30);
 
 					final int blockX = x;
 					final int blockY = y;
 					gui.renderInDepthIfNeededAfterBlockRendering(() -> {
-						onRendering.render(block, parentScreen.getLeftPos() + 10 + blockX * 36, parentScreen.getTopPos() + 15 + blockY * 36);
+						onRendering.render(block, parentScreen.getLeftPos() + 10 + blockX * size, parentScreen.getTopPos() + 15 + blockY * size);
 					});
 				}
 			}
@@ -82,18 +85,18 @@ public class BlocksManager {
 		return this.renderableBlocks.get(this.findBlockIndex(x, y));
 	}
 
-	public int findBlockIndex(double x, double y) {
-		int leftPos = parentScreen.getLeftPos() + 11;
-		int topPos = parentScreen.getTopPos() + 16;
-
-		if (x < leftPos || x >= leftPos + 4 * 35.5 || y < topPos || y >= topPos + 4 * 35.5) {
-			return -1;
+	public int findBlockIndex(double mouseX, double mouseY) {
+		int size = BLOCK_FRAME_SIZE;
+		for (int x = 0; x < 4; x++) {
+			for (int y = 0; y < 4; y++) {
+				int blockX = parentScreen.getLeftPos() + 10 + x * size;
+				int blockY = parentScreen.getTopPos() + 15 + y * size;
+				if (GuiUtils.isMouseOver(blockX, blockY, blockX + size - 1, blockY + size, mouseX, mouseY)) {
+					return y * 4 + x;
+				}
+			}
 		}
-
-		int col = (int) ((x - leftPos) / 35.5);
-		int row = (int) ((y - topPos) / 35.5);
-
-		return row * 4 + col;
+		return -1;
 	}
 
 	public List<CreativeModeTab> sortTabsIfItemsIsBlocks() {

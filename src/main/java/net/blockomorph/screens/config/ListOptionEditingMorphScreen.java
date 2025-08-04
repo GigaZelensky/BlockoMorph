@@ -41,7 +41,7 @@ public class ListOptionEditingMorphScreen extends AbstractMorphScreen {
 		String name = BuiltInRegistries.BLOCK.getKey(block.getState().getBlock()).toString();
 		boolean contains = this.blockListConfig.getValue().contains(name);
 		if (contains)
-			gui.blitMonoImage(this.blockListConfig.getFrameTexture(), x, y, 36, 36);
+			gui.blitMonoImage(this.blockListConfig.getFrameTexture(), x, y, BLOCK_FRAME_SIZE, BLOCK_FRAME_SIZE);
 	}
 
 	@Override
@@ -49,6 +49,6 @@ public class ListOptionEditingMorphScreen extends AbstractMorphScreen {
 		String name = BuiltInRegistries.BLOCK.getKey(block.getState().getBlock()).toString();
 		boolean contains = this.blockListConfig.getValue().contains(name);
 		MorphUtils.sendServer(new ServerBoundConfigUpdatePacket(this.blockListConfig.getName(), (contains ? "- " : "+ ") + name));
-		return SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1f);
+		return GuiUtils.getClickSound();
 	}
 }
