@@ -154,6 +154,14 @@ public class GuiUtils { //Cross-platform wrapper
 		this.fill(0, 0, width, height, ARGB.color(alpha, 77, 77, 77));
 	}
 
+	public void enableScrissors(int x, int y, int endX, int endY) {
+		GUI.enableScissor(x, y, endX, endY);
+	}
+
+	public void disableScrissors() {
+		GUI.disableScissor();
+	}
+
 	//HINT:   XY - upper left corner of item
 	public void renderItem(ItemStack item, float x, float y, float scale, float zDepth) {
 		if (scale == 1) scale = 16f;

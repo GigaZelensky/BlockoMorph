@@ -27,7 +27,6 @@ public class BlockStateSelectorOverlay extends TagEditingOverlay {
 	private Button typeEdit;
 
 	public BlockStateSelectorOverlay(BlockState state, Consumer<BlockState> handler) {
-		super("BlockState editing overlay");
 		this.handler = handler;
 		this.state = state;
 		this.setTempBE();
@@ -42,28 +41,29 @@ public class BlockStateSelectorOverlay extends TagEditingOverlay {
 
 	@Override
 	public void renderInGui(GuiUtils gui) {
-		gui.blitMonoImage(MENU, this.leftPos, this.topPos, imageLength, imageHeight);
-		this.renderString(gui);
 		gui.renderBlockInGui(this.state, this.tempBE, this.leftPos + 63.85f, this.topPos + 64f, 36f);
 		gui.renderAdditionalOnBlock(this.state, this.leftPos + 30.5f, this.topPos + 40.5f, 55f);
 		this.propsRenderer.render(gui);
-		this.exit.render(gui.getGuiGraphics(), gui.getMouseX(), gui.getMouseY(), gui.getTick());
-		this.typeEdit.render(gui.getGuiGraphics(), gui.getMouseX(), gui.getMouseY(), gui.getTick());
 		String text = Component.translatable("blockomorph.gui.stateSelectorOverlay.selectBlock").getString();
 		int x = this.leftPos + 8 + (this.typeEdit.getWidth()/2);
 		gui.drawCenteredString(Component.literal(text.split(" ")[0]), x, this.topPos + 84, -1, true);
 		gui.drawCenteredString(Component.literal(text.split(" ")[1]), x, this.topPos + 93, -1, true);
+
 		if (GuiUtils.isMouseOver(this.leftPos + 8, this.topPos + 18, this.leftPos + 69, this.topPos + 79, gui.getMouseX(), gui.getMouseY())) {
 			gui.renderTooltip(this.state.getBlock().getName(), gui.getMouseX(), gui.getMouseY());
 		}
 	}
 
 	@Override
+	protected void renderBackground(GuiUtils gui) {
+		gui.blitMonoImage(MENU, this.leftPos, this.topPos, imageLength, imageHeight);
+		this.renderString(gui);
+	}
+
+	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int type) {
 		if (type == 0) {
-			if (this.exit.mouseClicked(mouseX, mouseY, type)) {
-				return true;
-			} else if (this.typeEdit.mouseClicked(mouseX, mouseY, type)) {
+			if (super.mouseClicked(mouseX, mouseY, type)) {
 				return true;
 			}
 			return this.propsRenderer.mouseClicked(mouseX, mouseY, type);
@@ -100,11 +100,13 @@ public class BlockStateSelectorOverlay extends TagEditingOverlay {
 		this.exit = Button.builder(CommonComponents.GUI_DONE, b -> {
 			onChange.accept(null);
 		}).bounds(this.leftPos + 8, this.topPos + 105, 61, 20).build();
+		this.addRenderableWidget(this.exit);
 		this.typeEdit = Button.builder(CommonComponents.EMPTY, b -> {
 			onChange.accept(new BlockTypeSelectorOverlay(block -> {
 				onChange.accept(this);
 				this.changeBlockState(block);
 			}));
 		}).bounds(this.leftPos + 8, this.topPos + 82, 61, 20).build();
+		this.addRenderableWidget(this.typeEdit);
 	}
 }

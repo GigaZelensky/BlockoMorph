@@ -35,6 +35,11 @@ public class AbstractScreen extends Screen {
 	}
 
 	@Override
+	public boolean isPauseScreen() {
+		return false;
+	}
+
+	@Override
 	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
 		super.renderBackground(guiGraphics, mouseX, mouseY, tick);
 		this.renderMenu();

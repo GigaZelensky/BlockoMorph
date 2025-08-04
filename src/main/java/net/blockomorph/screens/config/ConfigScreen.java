@@ -54,9 +54,4 @@ public class ConfigScreen extends AbstractScreen {
 	public GuiEventListener getFocused() {
 		return this.configList;
 	}
-
-	@Override
-	public boolean isPauseScreen() {
-		return false;
-	}
 }

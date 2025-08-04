@@ -63,11 +63,6 @@ public class MorphConfigScreen extends AbstractScreen {
 	}
 
 	@Override
-	public boolean isPauseScreen() {
-		return false;
-	}
-
-	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
 		this.gui.setGuiGraphics(guiGraphics, this.font, mouseX, mouseY, tick);
 		super.render(guiGraphics, mouseX, mouseY, tick);

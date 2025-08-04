@@ -3,14 +3,12 @@ package net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.client.gui.screens.Screen;
 
-import java.util.Objects;
 import java.util.function.Consumer;
 
 public class ScreenAdapterOverlay<SC extends Screen> extends TagEditingOverlay {
 	protected final SC screen;
 
 	public ScreenAdapterOverlay(SC screen) {
-		super(Objects.requireNonNull(screen).getClass().getName() + " overlay");
 		this.screen = screen;
 	}
 
@@ -23,6 +21,9 @@ public class ScreenAdapterOverlay<SC extends Screen> extends TagEditingOverlay {
 	public void renderInGui(GuiUtils gui) {
 		this.screen.renderWithTooltip(gui.getGuiGraphics(), gui.getMouseX(), gui.getMouseY(), gui.getTick());
 	}
+
+	@Override
+	protected void renderBackground(GuiUtils gui) {}
 
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int type) {

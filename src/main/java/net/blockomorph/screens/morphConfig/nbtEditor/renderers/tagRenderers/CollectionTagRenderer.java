@@ -1,6 +1,7 @@
 package net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers;
 
 import net.blockomorph.screens.morphConfig.nbtEditor.NbtEditorScreen;
+import net.blockomorph.screens.morphConfig.nbtEditor.TagTypes;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.TagRendererContext;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers.primitive.NumericTagRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
@@ -21,7 +22,7 @@ public class CollectionTagRenderer<LIST extends CollectionTag> extends TagRender
 	}
 
 	@Override
-	protected void renderPlate(GuiUtils gui, int number) {
+	public void renderPlate(GuiUtils gui, int number) {
 		gui.fill(this.box.getX(), this.box.getY(), this.box.getX() + this.box.getWidth(), this.box.getY() + this.box.getHeight(), this.color);
 		super.renderPlate(gui, number);
 	}
@@ -71,7 +72,7 @@ public class CollectionTagRenderer<LIST extends CollectionTag> extends TagRender
 		for (Tag tag : this.getTag()) {
 			if (tag == null) continue;
 			final int index = i;
-			TagRenderer<?> renderer = NbtEditorScreen.getRendererForTag(index + "", tag, this.tagRendererContext.withTagUpdateListener(newTag -> {
+			TagRenderer<?> renderer = TagTypes.getRendererForTag(index + "", tag, this.tagRendererContext.withTagUpdateListener(newTag -> {
 				this.getTag().setTag(index - 1, newTag);
 			}));
 			if (renderer != null) renderer.setNameVisibility(false);

@@ -5,18 +5,19 @@ import net.minecraft.core.HolderGetter;
 import net.minecraft.nbt.Tag;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public record TagRendererContext<T extends Tag>(
 		HolderGetter.Provider provider,
 		@Nullable Consumer<T> onTagUpdate,
-		Consumer<String> onEntering,
+		BiConsumer<String, Boolean> onEntering,
 		Runnable onMainTagEdited,
 		Consumer<TagEditingOverlay> onTagEditingRequested,
 		@Nullable Runnable onInterpretationBrake
 ) {
 
-	public TagRendererContext(HolderGetter.Provider provider, Consumer<String> onEntering, Runnable onMainTagEdited, Consumer<TagEditingOverlay> onTagEditingRequested) {
+	public TagRendererContext(HolderGetter.Provider provider, BiConsumer<String, Boolean> onEntering, Runnable onMainTagEdited, Consumer<TagEditingOverlay> onTagEditingRequested) {
 		this(provider, null, onEntering, onMainTagEdited, onTagEditingRequested, null);
 	}
 

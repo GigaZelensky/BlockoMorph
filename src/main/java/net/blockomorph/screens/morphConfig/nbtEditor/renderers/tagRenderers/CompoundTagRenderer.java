@@ -2,6 +2,7 @@ package net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers;
 
 import com.mojang.serialization.DataResult;
 import net.blockomorph.screens.morphConfig.nbtEditor.NbtEditorScreen;
+import net.blockomorph.screens.morphConfig.nbtEditor.TagTypes;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.TagRendererContext;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.interpritationTagRenderers.AbstractInterpritationTagRenderer;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.interpritationTagRenderers.BlockStateTagRenderer;
@@ -58,7 +59,7 @@ public class CompoundTagRenderer extends TagRenderer<CompoundTag> {
 		for (String key : this.getTag().keySet()) {
 			Tag tag = this.getTag().get(key);
 			if (tag == null) throw new NullPointerException();
-			renderers.add(NbtEditorScreen.getRendererForTag(key, tag, this.tagRendererContext.withTagUpdateListener(newTag -> {
+			renderers.add(TagTypes.getRendererForTag(key, tag, this.tagRendererContext.withTagUpdateListener(newTag -> {
 				this.getTag().put(key, newTag);
 			})));
 		}

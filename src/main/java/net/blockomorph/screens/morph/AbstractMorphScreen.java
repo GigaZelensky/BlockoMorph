@@ -54,11 +54,6 @@ public abstract class AbstractMorphScreen extends AbstractScreen {
 	}
 
 	@Override
-	public boolean isPauseScreen() {
-		return false;
-	}
-
-	@Override
 	public void tick() {
 		this.player = PlayerAccessor.of(GuiUtils.MC.player);
 	}

@@ -6,6 +6,8 @@ import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.nbt.Tag;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public abstract class AbstractInterpritationTagRenderer<T extends Tag> extends TagRenderer<T> {
 	protected static final int BUTTON_SIZE = 7;
 	protected final TagRenderer<T> parent;
@@ -29,6 +31,11 @@ public abstract class AbstractInterpritationTagRenderer<T extends Tag> extends T
 
 	public abstract void renderMain(GuiUtils gui);
 
+	protected void enterInTag() {
+		if (this.canEnterInTag())
+			this.tagRendererContext.onEntering().accept(this.getName(), true);
+	}
+
 	@Override
 	public final boolean mouseClicked(double mouseX, double mouseY) {
 		if (this.hovered) {
@@ -41,6 +48,11 @@ public abstract class AbstractInterpritationTagRenderer<T extends Tag> extends T
 
 	public boolean mouseClick(double mouseX, double mouseY) {
 		return false;
+	}
+
+	@Override @Nullable
+	public final T tryWalk(String nameElementInThisTag) {
+		return null;
 	}
 
 	@Override @Nullable

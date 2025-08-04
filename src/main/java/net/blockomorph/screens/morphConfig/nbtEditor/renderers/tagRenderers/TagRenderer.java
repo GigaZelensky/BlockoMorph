@@ -2,6 +2,7 @@ package net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers;
 
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.TagRendererContext;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.interpritationTagRenderers.AbstractInterpritationTagRenderer;
+import net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays.TagEditingOverlay;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.nbt.Tag;
@@ -11,7 +12,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 public abstract class TagRenderer<T extends Tag> {
 	protected static final int MAX_NAME_WIDTH = 53;
@@ -42,7 +42,7 @@ public abstract class TagRenderer<T extends Tag> {
 
 	protected void enterInTag() {
 		if (this.canEnterInTag())
-			this.tagRendererContext.onEntering().accept(this.name);
+			this.tagRendererContext.onEntering().accept(this.name, false);
 	}
 
 	protected void changeThis(T newSelf) {
@@ -55,7 +55,7 @@ public abstract class TagRenderer<T extends Tag> {
 		this.tag = newSelf;
 	}
 
-	protected void renderPlate(GuiUtils gui, int number) {
+	public void renderPlate(GuiUtils gui, int number) {
 		gui.blit(TAGS_SPRITE, this.box.getX(), this.box.getY(), 0, PLATE_HEIGTH * number, PLATE_LENGTH, PLATE_HEIGTH, PLATE_SPRITE_LENGTH, PLATE_SPRITE_HEIGTH);
 		this.renderLine(gui, number);
 	}
@@ -145,6 +145,13 @@ public abstract class TagRenderer<T extends Tag> {
 	public Tag tryWalk(String nameElementInThisTag) {
 		return null;
 	}
+
+	@Nullable
+	public TagEditingOverlay getTagAddOverlay() {
+		return null;
+	}
+
+	public void deleteTag(String name) {}
 
 	@Nullable
 	public AbstractInterpritationTagRenderer<T> getInterpretationRenderer(Runnable onInterpretationBrake) {

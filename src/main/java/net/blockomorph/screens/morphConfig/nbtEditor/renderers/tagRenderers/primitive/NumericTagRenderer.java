@@ -31,7 +31,7 @@ public abstract class NumericTagRenderer<NUMBER_TAG extends NumericTag> extends 
 	}
 
 	@Override
-	protected void renderPlate(GuiUtils gui, int number) {
+	public void renderPlate(GuiUtils gui, int number) {
 		gui.fill(this.box.getX(), this.box.getY(), this.box.getX() + this.box.getWidth(), this.box.getY() + this.box.getHeight(), this.color);
 		super.renderPlate(gui, number);
 	}
