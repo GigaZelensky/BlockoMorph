@@ -55,7 +55,11 @@ public abstract class TagRenderer<T extends Tag> {
 		this.tag = newSelf;
 	}
 
-	public void renderPlate(GuiUtils gui, int number) {
+	public void renderPlateWithoutCtx(GuiUtils gui) {
+		if (this.getPlateNumber() != null) this.renderPlate(gui, this.getPlateNumber());
+	}
+
+	protected void renderPlate(GuiUtils gui, int number) {
 		gui.blit(TAGS_SPRITE, this.box.getX(), this.box.getY(), 0, PLATE_HEIGTH * number, PLATE_LENGTH, PLATE_HEIGTH, PLATE_SPRITE_LENGTH, PLATE_SPRITE_HEIGTH);
 		this.renderLine(gui, number);
 	}

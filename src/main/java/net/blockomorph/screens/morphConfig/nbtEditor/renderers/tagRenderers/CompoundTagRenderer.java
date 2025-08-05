@@ -6,15 +6,20 @@ import net.blockomorph.screens.morphConfig.nbtEditor.TagTypes;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.TagRendererContext;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.interpritationTagRenderers.AbstractInterpritationTagRenderer;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.interpritationTagRenderers.BlockStateTagRenderer;
+import net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays.TagAddingOverlay;
+import net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays.TagEditingOverlay;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Consumer;
 
 public class CompoundTagRenderer extends TagRenderer<CompoundTag> {
@@ -74,6 +79,29 @@ public class CompoundTagRenderer extends TagRenderer<CompoundTag> {
 	@Override
 	protected Integer getPlateNumber() {
 		return 2;
+	}
+
+	@Override
+	public TagEditingOverlay getTagAddOverlay() {
+		return new TagAddingOverlay<>(Objects::nonNull, (name, tag) -> {
+			this.getTag().put(name, tag);
+			this.signalChange();
+		}, TagTypes.getRegisteredTags());
+	}
+
+	@Override
+	public void deleteTag(String name) {
+		this.getTag().remove(name);
+		this.signalChange();
+	}
+
+	private void signalChange() {
+		HashMap<String, String> map = new HashMap<>();
+		for (String tagName : this.getTag().keySet()) {
+			map.put(tagName, tagName);
+		}
+		this.tagRendererContext.onSoftRebuildRequested().accept(map);
+		this.tagRendererContext.onMainTagEdited().run();
 	}
 
 	@Override

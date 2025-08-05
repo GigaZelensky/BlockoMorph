@@ -28,6 +28,16 @@ public class TagTypes {
 		TAGS.put(type, creator);
 	}
 
+	public static TagType<?>[] getRegisteredTags() {
+		TagType<?>[] array = new TagType<?>[TAGS.size()];
+		int i = 0;
+		for (TagType<?> tagType : TAGS.keySet()) {
+			array[i] = tagType;
+			i++;
+		}
+		return array;
+	}
+
 	@Nullable
 	@SuppressWarnings("unchecked")
 	public static <T extends Tag> TagRenderer<T> getRendererForTag(String name, T tag, TagRendererContext<T> ctx) {
@@ -45,17 +55,13 @@ public class TagTypes {
 
 	@Nullable
 	@SuppressWarnings("unchecked")
-	public static <T extends Tag> T getRendererForTag(TagType<T> type, String value) {
+	public static <T extends Tag> TagCreator<T> createTag(TagType<T> type) {
 		try {
-			TagCreator<T> creator = (TagCreator<T>) RENDERERS.get(type);
-			if (creator != null) {
-				return creator.create(value);
-			}
+			return (TagCreator<T>) TAGS.get(type);
 		} catch (ClassCastException e) {
 			MorphUtils.LOGGER.error("Invalid tag registration for NBT Editor: ", e);
 			return null;
 		}
-		return null;
 	}
 
 	@FunctionalInterface
@@ -69,6 +75,8 @@ public class TagTypes {
 		default boolean noHasValue() {
 			return false;
 		}
+
+		T defaultValue();
 	}
 
 	static {
@@ -93,6 +101,11 @@ public class TagTypes {
 		public StringTag create(String value) {
 			return StringTag.valueOf(value);
 		}
+
+		@Override
+		public StringTag defaultValue() {
+			return StringTag.valueOf("");
+		}
 	}
 
 	private static class CompoundTagCreator implements TagCreator<CompoundTag> {
@@ -105,16 +118,22 @@ public class TagTypes {
 		public boolean noHasValue() {
 			return true;
 		}
+
+		@Override
+		public CompoundTag defaultValue() {
+			return new CompoundTag();
+		}
 	}
 
-	private record NumberArrayTagCreator(Function<Integer, CollectionTag> creator) implements TagCreator<CollectionTag> {
+	private record NumberArrayTagCreator<T extends CollectionTag>(Supplier<T> creator) implements TagCreator<T> {
 		@Override
-		public CollectionTag create(String value) {
-			try {
-				return this.creator.apply(Integer.parseInt(value));
-			} catch (Exception ignored) {
-				return null;
-			}
+		public T create(String value) {
+			return this.creator.get();
+		}
+
+		@Override
+		public T defaultValue() {
+			return this.creator.get();
 		}
 
 		@Override
@@ -133,21 +152,26 @@ public class TagTypes {
 		public boolean noHasValue() {
 			return true;
 		}
-	}
-
-	private static class NumericTagCreator implements TagCreator<NumericTag> {
-		private final Function<String, NumericTag> creator;
-		public NumericTagCreator(Function<String, NumericTag> creator) {
-			this.creator = creator;
-		}
 
 		@Override
-		public NumericTag create(String value) {
+		public ListTag defaultValue() {
+			return new ListTag();
+		}
+	}
+
+	private record NumericTagCreator<T extends NumericTag>(Function<String, T> creator, T defaultValue) implements TagCreator<T> {
+		@Override
+		public T create(String value) {
 			try {
 				return this.creator.apply(value);
 			} catch (Exception ignored) {
 				return null;
 			}
+		}
+
+		@Override
+		public T defaultValue() {
+			return this.defaultValue;
 		}
 	}
 
@@ -156,15 +180,15 @@ public class TagTypes {
 		registerTagCreator(CompoundTag.TYPE, new CompoundTagCreator());
 
 		registerTagCreator(ListTag.TYPE, new ListTagCreator());
-		registerTagCreator(IntArrayTag.TYPE, new NumberArrayTagCreator(i -> new IntArrayTag(new int[i])));
-		registerTagCreator(IntArrayTag.TYPE, new NumberArrayTagCreator(i -> new LongArrayTag(new long[i])));
-		registerTagCreator(IntArrayTag.TYPE, new NumberArrayTagCreator(i -> new ByteArrayTag(new byte[i])));
+		registerTagCreator(IntArrayTag.TYPE, new NumberArrayTagCreator<>(() -> new IntArrayTag(new int[0])));
+		registerTagCreator(LongArrayTag.TYPE, new NumberArrayTagCreator<>(() -> new LongArrayTag(new long[0])));
+		registerTagCreator(ByteArrayTag.TYPE, new NumberArrayTagCreator<>(() -> new ByteArrayTag(new byte[0])));
 
-		registerTagCreator(IntTag.TYPE, new NumericTagCreator(value -> IntTag.valueOf(Integer.parseInt(value))));
-		registerTagCreator(LongTag.TYPE, new NumericTagCreator(value -> LongTag.valueOf(Long.parseLong(value))));
-		registerTagCreator(DoubleTag.TYPE, new NumericTagCreator(value -> DoubleTag.valueOf(Double.parseDouble(value))));
-		registerTagCreator(FloatTag.TYPE, new NumericTagCreator(value -> FloatTag.valueOf(Float.parseFloat(value))));
-		registerTagCreator(ShortTag.TYPE, new NumericTagCreator(value -> ShortTag.valueOf(Short.parseShort(value))));
-		registerTagCreator(ByteTag.TYPE, new NumericTagCreator(value -> ByteTag.valueOf(Byte.parseByte(value))));
+		registerTagCreator(IntTag.TYPE, new NumericTagCreator<>(value -> IntTag.valueOf(Integer.parseInt(value)), IntTag.valueOf(0)));
+		registerTagCreator(LongTag.TYPE, new NumericTagCreator<>(value -> LongTag.valueOf(Long.parseLong(value)), LongTag.valueOf(0)));
+		registerTagCreator(DoubleTag.TYPE, new NumericTagCreator<>(value -> DoubleTag.valueOf(Double.parseDouble(value)), DoubleTag.valueOf(0)));
+		registerTagCreator(FloatTag.TYPE, new NumericTagCreator<>(value -> FloatTag.valueOf(Float.parseFloat(value)), FloatTag.valueOf(0)));
+		registerTagCreator(ShortTag.TYPE, new NumericTagCreator<>(value -> ShortTag.valueOf(Short.parseShort(value)), ShortTag.valueOf((short)0)));
+		registerTagCreator(ByteTag.TYPE, new NumericTagCreator<>(value -> ByteTag.valueOf(Byte.parseByte(value)), ByteTag.valueOf((byte)0)));
 	}
 }

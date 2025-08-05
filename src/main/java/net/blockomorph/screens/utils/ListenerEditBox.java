@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 public class ListenerEditBox extends EditBox {
 	public static final ResourceLocation EDITBOX_BORDER_SPRITE = GuiUtils.res("textures/screens/editbox.png");
+	public static final ResourceLocation VANILLA = GuiUtils.vanillaRes("");
 	private final ResourceLocation borderTexture;
 	private final GuiUtils gui = new GuiUtils();
 	private final Font font;
@@ -54,7 +55,7 @@ public class ListenerEditBox extends EditBox {
 
 	@Override
 	public boolean isBordered() {
-		return false;
+		return this.borderTexture == VANILLA;
 	}
 
 	@Override
@@ -71,7 +72,7 @@ public class ListenerEditBox extends EditBox {
 
 	@Override
 	public void renderWidget(GuiGraphics g, int mouseX, int mouseY, float ticks) {
-		if (this.borderTexture != null) {
+		if (this.borderTexture != null && this.borderTexture != VANILLA) {
 			this.gui.setGuiGraphics(g, this.font, mouseX, mouseY, ticks);
 			this.gui.blit(this.borderTexture, this.getX(), this.getY(), 0, this.editable ? 0 : this.getHeight(), this.getWidth(), this.getHeight(), this.getWidth(), this.getHeight() * 2);
 		}

@@ -1,24 +1,28 @@
 package net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers;
 
-import net.blockomorph.screens.morphConfig.nbtEditor.NbtEditorScreen;
 import net.blockomorph.screens.morphConfig.nbtEditor.TagTypes;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.TagRendererContext;
+import net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays.TagAddingOverlay;
+import net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays.TagEditingOverlay;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers.primitive.NumericTagRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.nbt.*;
 import net.minecraft.util.ARGB;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class CollectionTagRenderer<LIST extends CollectionTag> extends TagRenderer<LIST> {
 	private static final int BUTTON_SIZE = 16;
+	private final TagType<?>[] allowedTypes;
 	private boolean hovered;
 	private final int color;
 	
-	protected CollectionTagRenderer(String tagName, LIST tag, TagRendererContext<LIST> ctx, int color) {
+	protected CollectionTagRenderer(String tagName, LIST tag, TagRendererContext<LIST> ctx, int color, TagType<?>... allowedTypes) {
 		super(tagName, tag, ctx);
 		this.color = color;
+		this.allowedTypes = allowedTypes;
 	}
 
 	@Override
@@ -92,27 +96,86 @@ public class CollectionTagRenderer<LIST extends CollectionTag> extends TagRender
 		}
 	}
 
+	@Override
+	public TagEditingOverlay getTagAddOverlay() {
+		return new TagAddingOverlay<>(name -> {
+			if (name.isEmpty()) return true;
+			try {
+				int index = Integer.parseInt(name) - 1;
+				if (index >= 0 && index < this.getTag().size()) {
+					return true;
+				}
+			} catch (NumberFormatException e) {
+				return false;
+			}
+			return false;
+		}, (name, tag) -> {
+			int index = name.isEmpty() ? this.getTag().size() : Integer.parseInt(name) - 1;
+			this.signalChange(() -> {
+				this.getTag().addTag(index, tag);
+			}, false, index + 1);
+		}, this.allowedTypes);
+	}
+
+	@Override
+	public void deleteTag(String name) {
+		try {
+			int index = Integer.parseInt(name);
+			if (index - 1 < this.getTag().size() && index - 1 >= 0) {
+				this.signalChange(() -> {
+					this.getTag().remove(index - 1);
+				}, true, index);
+			}
+		} catch (Exception ignored) {}
+	}
+
+	private void signalChange(Runnable action, boolean delete, int userFormatIndex) {
+		List<Integer> numbersOld = this.getNumberList();
+		action.run();
+		HashMap<String, String> map = new HashMap<>();
+		for (int number : numbersOld) {
+			if (number != userFormatIndex) {
+				map.put(number + "", (number > userFormatIndex ? number + (delete ? -1 : 1) : number) + "");
+			}
+		}
+		this.tagRendererContext.onSoftRebuildRequested().accept(map);
+		this.tagRendererContext.onMainTagEdited().run();
+	}
+
+	private List<Integer> getNumberList() {
+		List<Integer> numbers = new ArrayList<>();
+		for (int i = 0; i < this.getTag().size(); i++) {
+			numbers.add(i + 1);
+		}
+		return numbers;
+	}
+
+
+
+
+
+
 	public static final class ListTagRenderer extends CollectionTagRenderer<ListTag> {
 		public ListTagRenderer(String tagName, ListTag tag, TagRendererContext<ListTag> ctx) {
-			super(tagName, tag, ctx, ARGB.color(255, 245, 172, 47));
+			super(tagName, tag, ctx, ARGB.color(255, 245, 172, 47), TagTypes.getRegisteredTags());
 		}
 	}
 
 	public static final class IntArrayTagRenderer extends CollectionTagRenderer<IntArrayTag> {
 		public IntArrayTagRenderer(String tagName, IntArrayTag tag, TagRendererContext<IntArrayTag> ctx) {
-			super(tagName, tag, ctx, NumericTagRenderer.INT_COLOR);
+			super(tagName, tag, ctx, NumericTagRenderer.INT_COLOR, IntTag.TYPE);
 		}
 	}
 
 	public static final class LongArrayTagRenderer extends CollectionTagRenderer<LongArrayTag> {
 		public LongArrayTagRenderer(String tagName, LongArrayTag tag, TagRendererContext<LongArrayTag> ctx) {
-			super(tagName, tag, ctx, NumericTagRenderer.LONG_COLOR);
+			super(tagName, tag, ctx, NumericTagRenderer.LONG_COLOR, LongTag.TYPE);
 		}
 	}
 
 	public static final class ByteArrayTagRenderer extends CollectionTagRenderer<ByteArrayTag> {
 		public ByteArrayTagRenderer(String tagName, ByteArrayTag tag, TagRendererContext<ByteArrayTag> ctx) {
-			super(tagName, tag, ctx, NumericTagRenderer.BYTE_COLOR);
+			super(tagName, tag, ctx, NumericTagRenderer.BYTE_COLOR, ByteTag.TYPE);
 		}
 	}
 }

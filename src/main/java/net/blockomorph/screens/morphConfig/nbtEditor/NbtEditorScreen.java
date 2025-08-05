@@ -2,11 +2,13 @@ package net.blockomorph.screens.morphConfig.nbtEditor;
 
 import net.blockomorph.screens.AbstractScreen;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.TagRendererContext;
+import net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays.TagAddingOverlay;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays.TagEditingOverlay;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers.TagRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ListenerEditBox;
 import net.blockomorph.screens.utils.ScrollerManager;
+import net.blockomorph.screens.utils.SpriteImageButton;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -15,6 +17,7 @@ import net.minecraft.core.HolderGetter;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,8 +28,12 @@ import java.util.function.Function;
 
 public class NbtEditorScreen extends AbstractScreen {
 	private static final ScrollerManager.CustomBarData SCOLLER = new ScrollerManager.CustomBarData(GuiUtils.res("textures/screens/nbt_scroller.png"), 7, 15);
+	public static final ResourceLocation BUTTONS_SPRITE = GuiUtils.res("textures/screens/nbt_buttons.png");
+	public static final int BUTTON_SPRITE_LENGTH = 46;
+	public static final int BUTTON_SPRITE_HEIGTH = 43;
+	private static final int MAX_PLATES_COUNT = 7;
 	private final BiConsumer<String, Boolean> onEntering = (tagName, intr) -> {
-		this.enterInTag(this.path + "/" + tagName, intr);
+		this.enterInTag(this.path.append(tagName), intr);
 	};
 	private final CompoundTag editingTag;
 	private final Consumer<CompoundTag> onEdited;
@@ -37,19 +44,32 @@ public class NbtEditorScreen extends AbstractScreen {
 	private int internalBoxY;
 	protected final int internalBoxLength = 173;
 	protected final int internalBoxHeigth = 159;
-	private final List<RenderableTag<?>> renderables;
+	private final List<RenderableTag<?>> renderables = new ArrayList<>(MAX_PLATES_COUNT) {
+		@Override
+		public boolean add(RenderableTag<?> renderableTag) {
+			boolean result = super.add(renderableTag);
+			NbtEditorScreen.this.reinitDeleteButtons();
+			return result;
+		}
+
+		@Override
+		public void clear() {
+			super.clear();
+			NbtEditorScreen.this.reinitDeleteButtons();
+		}
+	};
 	private final ScrollerManager<RenderableTag<?>> scrollerManager;
-	private String path = "";
+	private NbtPath path = new NbtPath.RootNbtPath();
 	private TagRenderer<?> currentEnteredTag;
 	private TagEditingOverlay overlay;
 	private final Consumer<TagEditingOverlay> onTagReceived;
+	private final List<SpriteImageButton> deleteButtons = new ArrayList<>(MAX_PLATES_COUNT);
 
 	public NbtEditorScreen(CompoundTag editingTag, Consumer<CompoundTag> onEdited) {
 		super("nbt_editor_screen", new ScreenPosition(229, 191));
 		this.editingTag = Objects.requireNonNull(editingTag).copy();
 		this.onEdited = Objects.requireNonNull(onEdited);
-		this.renderables = new ArrayList<>(7);
-		this.scrollerManager = new ScrollerManager<>(() -> this.leftPos + 181, () -> this.topPos + 41, 138, 1, 7, this.renderables, SCOLLER);
+		this.scrollerManager = new ScrollerManager<>(() -> this.leftPos + 181, () -> this.topPos + 41, 138, 1, MAX_PLATES_COUNT, this.renderables, SCOLLER);
 		this.onTagEdited = () -> this.onEdited.accept(this.editingTag);
 		this.onTagReceived = this::setOverlay;
 	}
@@ -64,6 +84,9 @@ public class NbtEditorScreen extends AbstractScreen {
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
 		super.render(guiGraphics, mouseX, mouseY, tick);
+		for (Button button : this.deleteButtons) {
+			button.render(guiGraphics, mouseX, mouseY, tick);
+		}
 		int i = 0;
 		Component tooltip = null;
 		for (RenderableTag<?> tag : this.renderables) {
@@ -91,6 +114,12 @@ public class NbtEditorScreen extends AbstractScreen {
 			if (this.forEachTag(renderer -> renderer.mouseClicked(mouseX, mouseY))) {
 				this.tagBox.setFocused(false);
 				return true;
+			}
+			for (Button button : this.deleteButtons) {
+				if (button.mouseClicked(mouseX, mouseY, type)) {
+					this.tagBox.setFocused(false);
+					return true;
+				}
 			}
 		}
 		this.tagBox.setFocused(this.tagBox.isMouseOver(mouseX, mouseY));
@@ -167,7 +196,7 @@ public class NbtEditorScreen extends AbstractScreen {
 		this.gui.fill(this.internalBoxX, this.internalBoxY, this.internalBoxX + this.internalBoxLength, this.internalBoxY + this.internalBoxHeigth, color);
 		super.renderMenu();
 		this.scrollerManager.renderScroller(this.gui);
-		this.gui.drawString(Component.literal(this.path), this.internalBoxX + 11, this.internalBoxY + 5, -1, false);
+		this.gui.drawString(Component.literal(this.path.getVisualString()), this.internalBoxX + 11, this.internalBoxY + 5, -1, false);
 	}
 
 	@Override
@@ -176,13 +205,16 @@ public class NbtEditorScreen extends AbstractScreen {
 		this.internalBoxX = this.leftPos + 23;
 		this.internalBoxY = this.topPos + 26;
 		this.tagBox = new ListenerEditBox(this.font, this.leftPos + 23, this.topPos + 5, 129, 19, this.getTitle(), value -> {}, ListenerEditBox.EDITBOX_BORDER_SPRITE);
+		Button addButton = new SpriteImageButton(this.internalBoxX + this.internalBoxLength + 3, this.internalBoxY + 3, 16, 16, BUTTONS_SPRITE, b -> {
+			TagEditingOverlay addOverlay = this.currentEnteredTag.getTagAddOverlay();
+			if (addOverlay != null) {
+				this.setOverlay(addOverlay);
+			}
+		}, null, false, 0, 0, BUTTON_SPRITE_LENGTH, BUTTON_SPRITE_HEIGTH);
+		this.addRenderableWidget(addButton);
 		this.addRenderableWidget(this.tagBox);
 		this.pathExit = Button.builder(Component.literal("<--"), button -> {
-			int slashIndex = this.path.lastIndexOf('/');
-			if (slashIndex != -1) {
-				String newPath = this.path.substring(0, slashIndex);
-				this.enterInTag(newPath, false);
-			}
+			this.enterInTag(this.path.back(), false);
 		}).bounds(this.internalBoxX + 146, this.internalBoxY + 4, 22, 9).build();
 		this.addRenderableWidget(this.pathExit);
 		this.initList(false);
@@ -191,19 +223,17 @@ public class NbtEditorScreen extends AbstractScreen {
 		}
 	}
 
-	public void enterInTag(String path, boolean intr) {
+	public void enterInTag(NbtPath path, boolean intr) {
 		this.path = path;
 		this.initList(intr);
 	}
 
-	private void initList(boolean interpatitationEnd) {
+	private void initList(boolean interpretationEnd) {
 		Tag root = this.editingTag;
 		String previousName = "root";
-		for (Iterator<String> it = Arrays.stream(this.path.split("/")).filter(v -> !v.isEmpty()).iterator(); it.hasNext();) {
-			String tagName = it.next();
-			TagRenderer<?> renderer = TagTypes.getRendererForTag(previousName, root, new TagRendererContext<>(this.provider(), this.onEntering, this.onTagEdited, this.onTagReceived));
+		for (String tagName : this.path.constructPath(new ArrayList<>())) {
+			TagRenderer<?> renderer = TagTypes.getRendererForTag(previousName, root, new TagRendererContext<>(this.provider(), this.onEntering, this.onTagEdited, this.onTagReceived, this::softEnteredTagRebuild));
 			if (renderer != null) {
-				//renderer = Objects.requireNonNullElse(renderer.getInterpretationRenderer(null), renderer);
 				Tag child = renderer.tryWalk(tagName);
 				if (child != null) {
 					root = child;
@@ -213,9 +243,9 @@ public class NbtEditorScreen extends AbstractScreen {
 			}
 			throw new IllegalArgumentException("Illegal path: " + this.path + " for tag: " + this.editingTag);
 		}
-		TagRenderer<?> rootRenderer = TagTypes.getRendererForTag("root", root, new TagRendererContext<>(this.provider(), this.onEntering, this.onTagEdited, this.onTagReceived));
+		TagRenderer<?> rootRenderer = TagTypes.getRendererForTag("root", root, new TagRendererContext<>(this.provider(), this.onEntering, this.onTagEdited, this.onTagReceived, this::softEnteredTagRebuild));
 		if (rootRenderer != null) {
-			if (interpatitationEnd) rootRenderer = Objects.requireNonNullElse(rootRenderer.getInterpretationRenderer(null), rootRenderer);
+			if (interpretationEnd) rootRenderer = Objects.requireNonNullElse(rootRenderer.getInterpretationRenderer(null), rootRenderer);
 			if (rootRenderer.canEnterInTag()) {
 				this.currentEnteredTag = rootRenderer;
 				List<RenderableTag<?>> renderableTags = new ArrayList<>();
@@ -225,11 +255,47 @@ public class NbtEditorScreen extends AbstractScreen {
 				this.scrollerManager.setMainList(renderableTags.stream().filter(RenderableTag::isValid).toList());
 				this.scrollerManager.setScrollOffset(0f);
 				this.scrollerManager.refreshList();
-				this.pathExit.visible = this.path.contains("/");
+				this.pathExit.visible = !this.path.isEmpty();
 				return;
 			}
 		}
 		throw new IllegalArgumentException("Tag: " + root.getType().getName() + " no enterable!");
+	}
+
+	private void softEnteredTagRebuild(HashMap<String, String> mappings) {
+		List<String> nonInterpretation = Objects.requireNonNull(this.scrollerManager.getMainList()).stream().map(renderableTag -> {
+			if (renderableTag.interpretationDisabled) {
+				return mappings.get(renderableTag.mainRenderer.getName());
+			}
+			return null;
+		}).filter(Objects::nonNull).toList();
+
+		List<RenderableTag<?>> renderableTags = new ArrayList<>();
+		for (TagRenderer<?> renderer : this.currentEnteredTag.getEnteringTags()) {
+			RenderableTag<?> tag = new RenderableTag<>(renderer);
+			renderableTags.add(tag);
+			if (nonInterpretation.contains(tag.mainRenderer.getName())) {
+				tag.disableInterpretation.run();
+			}
+		}
+
+		this.scrollerManager.setMainList(renderableTags.stream().filter(RenderableTag::isValid).toList());
+		if (this.scrollerManager.getMainList().size() <= MAX_PLATES_COUNT) {
+			this.scrollerManager.setScrollOffset(0f);
+		}
+		this.scrollerManager.refreshList();
+	}
+
+	private void reinitDeleteButtons() {
+		this.deleteButtons.clear();
+		int i = 0;
+		for (RenderableTag<?> tag : this.renderables) {
+			this.deleteButtons.add(new SpriteImageButton(this.leftPos + 5, this.topPos + 42 + i*20, 16, 16, BUTTONS_SPRITE, b -> {
+				String name = tag.mainRenderer.getName();
+				this.currentEnteredTag.deleteTag(name);
+			}, null, false, 16, 0, BUTTON_SPRITE_LENGTH, BUTTON_SPRITE_HEIGTH));
+			i++;
+		}
 	}
 
 	private HolderGetter.Provider provider() {
@@ -237,15 +303,19 @@ public class NbtEditorScreen extends AbstractScreen {
 	}
 
 	private class RenderableTag<T extends Tag> {
-		private TagRenderer<T> mainRenderer;
+		TagRenderer<T> mainRenderer;
+		boolean interpretationDisabled;
+		Runnable disableInterpretation;
 
 		private RenderableTag(TagRenderer<T> renderer) {
 			this.mainRenderer = renderer;
 			if (this.mainRenderer != null) {
-				TagRenderer<T> additionalRenderer = renderer.getInterpretationRenderer(() -> {
+				this.disableInterpretation = () -> {
 					renderer.forceTagChange(this.mainRenderer.getTag());
 					this.mainRenderer = renderer;
-				});
+					this.interpretationDisabled = true;
+				};
+				TagRenderer<T> additionalRenderer = renderer.getInterpretationRenderer(this.disableInterpretation);
 				if (additionalRenderer != null) {
 					this.mainRenderer = additionalRenderer;
 				}
@@ -282,11 +352,6 @@ public class NbtEditorScreen extends AbstractScreen {
 			return this.mainRenderer.charTyped(character, mods);
 		}
 
-	}
-
-	@FunctionalInterface
-	public interface TagRendererFactory<T extends Tag> {
-		TagRenderer<T> create(String tagName, T tag, TagRendererContext<T> ctx);
 	}
 
 }

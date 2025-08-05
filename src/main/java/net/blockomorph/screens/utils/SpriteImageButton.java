@@ -14,13 +14,27 @@ public class SpriteImageButton extends Button {
 	private final ResourceLocation sprite;
 	private final Supplier<Boolean> activated;
 	private final boolean useInActive;
-	private final int spriteSize;
+	private final int u, v, maxU, maxV;
 	public SpriteImageButton(int x, int y, int lengthButtonOnScreen, int heightButtonOnScreen, ResourceLocation sprite, OnPress onPress, @Nullable Supplier<Boolean> active, boolean useInActive) {
 		super(x, y, lengthButtonOnScreen, heightButtonOnScreen, CommonComponents.EMPTY, onPress, DEFAULT_NARRATION);
 		this.sprite = sprite;
 		this.activated = active;
-		this.spriteSize = useInActive ? 3 : 2;
 		this.useInActive = useInActive;
+		this.u = 0;
+		this.v = 0;
+		this.maxU = this.getWidth();
+		this.maxV = this.getHeight() * (useInActive ? 3 : 2);
+	}
+
+	public SpriteImageButton(int x, int y, int lengthButtonOnScreen, int heightButtonOnScreen, ResourceLocation sprite, OnPress onPress, @Nullable Supplier<Boolean> active, boolean useInActive, int u, int v, int maxU, int maxV) {
+		super(x, y, lengthButtonOnScreen, heightButtonOnScreen, CommonComponents.EMPTY, onPress, DEFAULT_NARRATION);
+		this.sprite = sprite;
+		this.activated = active;
+		this.useInActive = useInActive;
+		this.u = u;
+		this.v = v;
+		this.maxV = maxV;
+		this.maxU = maxU;
 	}
 
 	@Override
@@ -39,6 +53,6 @@ public class SpriteImageButton extends Button {
 				y = this.getHeight();
 			}
 		}
-		utils.blit(sprite, this.getX(), this.getY(), 0, y, this.getWidth(), this.getHeight(), this.getWidth(), this.getHeight() * this.spriteSize);
+		utils.blit(sprite, this.getX(), this.getY(), this.u, this.v + y, this.getWidth(), this.getHeight(), this.maxU, this.maxV);
 	}
 }

@@ -46,7 +46,7 @@ public class KeyMappings {
 	});
 
 	public static final KeyMapping DEBUG = new HandlerKeymapping("key.blockomorph.debug", GLFW.GLFW_KEY_J, () -> {
-		if (true) {
+		if (false) {
 			AbstractMorphScreen sc = new AbstractMorphScreen(AbstractMorphScreen.MorphScreenOptions.CONFIG) {
 				@Override
 				protected void initAdditional(Consumer<AbstractWidget> action) {

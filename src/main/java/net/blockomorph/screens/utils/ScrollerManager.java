@@ -58,6 +58,10 @@ public class ScrollerManager<T> {
 		this.list = main;
 	}
 
+	public List<T> getMainList() {
+		return this.list;
+	}
+
 	public void setScrollOffset(float i) {
 		this.scrollOffset = Math.clamp(i, 0f, 1f);
 	}

@@ -34,7 +34,7 @@ public class TestScreen extends NbtEditorScreen {
 	}
 
 	private static CompoundTag get2() {
-		if (false) {
+		if (true) {
 			CompoundTag tag2 = new CompoundTag();
 			tag2.putString("opa", "ttsetys");
 			for (int i = 0; i < 14; i++) {
@@ -62,6 +62,7 @@ public class TestScreen extends NbtEditorScreen {
 			list.add(array);
 
 			tag.put("listing", list);
+			return tag;
 		}
 
 		tag.putByte("opa", (byte) 127);
