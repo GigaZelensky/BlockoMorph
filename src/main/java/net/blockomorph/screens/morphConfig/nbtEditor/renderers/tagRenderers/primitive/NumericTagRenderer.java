@@ -21,7 +21,7 @@ public abstract class NumericTagRenderer<NUMBER_TAG extends NumericTag> extends 
 	protected NumericTagRenderer(String tagName, NUMBER_TAG tag, TagRendererContext<NUMBER_TAG> ctx, NUMBER_TAG defaultValue, int backgroundColor) {
 		super(tagName, tag, ctx);
 		this.valueBox.setFilter(value -> {
-			if (value.isEmpty()) return true;
+			if (value.isEmpty() || value.equals("-")) return true;
 			NUMBER_TAG output = this.parseInternal(value);
 			return output != null;
 		});
@@ -48,7 +48,7 @@ public abstract class NumericTagRenderer<NUMBER_TAG extends NumericTag> extends 
 
 	@Override
 	protected void onValueEntered(String value) {
-		if (value.isEmpty()) this.changeThis(DEFAULT);
+		if (value.isEmpty() || value.equals("-")) this.changeThis(DEFAULT);
 		NUMBER_TAG tag = this.parseInternal(value);
 		if (tag != null) {
 			this.changeThis(tag);
@@ -128,7 +128,7 @@ public abstract class NumericTagRenderer<NUMBER_TAG extends NumericTag> extends 
 	}
 
 	public static class ByteTagRenderer extends NumericTagRenderer<ByteTag> {
-		private static final List<String> BOOLEAN_WORDS = List.of("is", "can", "has", "enable", "active", "power", "disable", "work", "in");
+		private static final List<String> BOOLEAN_WORDS = List.of("is", "can", "has", "enable", "active", "power", "disable", "work", "in", "show");
 
 		public ByteTagRenderer(String tagName, ByteTag tag, TagRendererContext<ByteTag> ctx) {
 			super(tagName, tag, ctx, ByteTag.valueOf((byte)0), BYTE_COLOR);

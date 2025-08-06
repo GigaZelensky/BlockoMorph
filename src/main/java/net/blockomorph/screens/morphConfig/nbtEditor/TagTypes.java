@@ -16,14 +16,14 @@ import java.util.function.Supplier;
 
 public class TagTypes {
 	private static final HashMap<TagType<?>, TagRendererFactory<?>> RENDERERS = new HashMap<>();
-	private static final HashMap<TagType<?>, TagCreator<?>> TAGS = new HashMap<>();
+	private static final HashMap<TagType<?>, Supplier<?>> TAGS = new HashMap<>();
 
 	public static <T extends Tag> void registerRenderer(TagType<T> type, TagRendererFactory<T> factory) {
 		if (RENDERERS.containsKey(type)) throw new IllegalArgumentException("Type " + type.getName() + " already registered!");
 		RENDERERS.put(type, factory);
 	}
 
-	public static void registerTagCreator(TagType<?> type, TagCreator<?> creator) {
+	public static void registerTagCreator(TagType<?> type, Supplier<?> creator) {
 		if (TAGS.containsKey(type)) throw new IllegalArgumentException("Type " + type.getName() + " already registered!");
 		TAGS.put(type, creator);
 	}
@@ -53,12 +53,11 @@ public class TagTypes {
 		return null;
 	}
 
-	@Nullable
 	@SuppressWarnings("unchecked")
-	public static <T extends Tag> TagCreator<T> createTag(TagType<T> type) {
+	public static <T extends Tag> Supplier<T> createDefaultTag(TagType<T> type) {
 		try {
-			return (TagCreator<T>) TAGS.get(type);
-		} catch (ClassCastException e) {
+			return (Supplier<T>) TAGS.get(type);
+		} catch (Exception e) {
 			MorphUtils.LOGGER.error("Invalid tag registration for NBT Editor: ", e);
 			return null;
 		}
@@ -69,16 +68,7 @@ public class TagTypes {
 		TagRenderer<T> create(String tagName, T tag, TagRendererContext<T> ctx);
 	}
 
-	public interface TagCreator<T extends Tag> {
-		@Nullable T create(String value);
-
-		default boolean noHasValue() {
-			return false;
-		}
-
-		T defaultValue();
-	}
-
+	//RENDERERS
 	static {
 		registerRenderer(CompoundTag.TYPE, CompoundTagRenderer::new);
 		registerRenderer(StringTag.TYPE, StringTagRenderer::new);
@@ -96,99 +86,21 @@ public class TagTypes {
 		registerRenderer(ByteArrayTag.TYPE, CollectionTagRenderer.ByteArrayTagRenderer::new);
 	}
 
-	private static class StringTagCreator implements TagCreator<StringTag> {
-		@Override
-		public StringTag create(String value) {
-			return StringTag.valueOf(value);
-		}
-
-		@Override
-		public StringTag defaultValue() {
-			return StringTag.valueOf("");
-		}
-	}
-
-	private static class CompoundTagCreator implements TagCreator<CompoundTag> {
-		@Override
-		public CompoundTag create(String value) {
-			return new CompoundTag();
-		}
-
-		@Override
-		public boolean noHasValue() {
-			return true;
-		}
-
-		@Override
-		public CompoundTag defaultValue() {
-			return new CompoundTag();
-		}
-	}
-
-	private record NumberArrayTagCreator<T extends CollectionTag>(Supplier<T> creator) implements TagCreator<T> {
-		@Override
-		public T create(String value) {
-			return this.creator.get();
-		}
-
-		@Override
-		public T defaultValue() {
-			return this.creator.get();
-		}
-
-		@Override
-		public boolean noHasValue() {
-			return true;
-		}
-	}
-
-	private static class ListTagCreator implements TagCreator<ListTag> {
-		@Override
-		public ListTag create(String value) {
-			return new ListTag();
-		}
-
-		@Override
-		public boolean noHasValue() {
-			return true;
-		}
-
-		@Override
-		public ListTag defaultValue() {
-			return new ListTag();
-		}
-	}
-
-	private record NumericTagCreator<T extends NumericTag>(Function<String, T> creator, T defaultValue) implements TagCreator<T> {
-		@Override
-		public T create(String value) {
-			try {
-				return this.creator.apply(value);
-			} catch (Exception ignored) {
-				return null;
-			}
-		}
-
-		@Override
-		public T defaultValue() {
-			return this.defaultValue;
-		}
-	}
-
+	//TAG GETTERS
 	static {
-		registerTagCreator(StringTag.TYPE, new StringTagCreator());
-		registerTagCreator(CompoundTag.TYPE, new CompoundTagCreator());
+		registerTagCreator(StringTag.TYPE, () -> StringTag.valueOf(""));
+		registerTagCreator(CompoundTag.TYPE, CompoundTag::new);
 
-		registerTagCreator(ListTag.TYPE, new ListTagCreator());
-		registerTagCreator(IntArrayTag.TYPE, new NumberArrayTagCreator<>(() -> new IntArrayTag(new int[0])));
-		registerTagCreator(LongArrayTag.TYPE, new NumberArrayTagCreator<>(() -> new LongArrayTag(new long[0])));
-		registerTagCreator(ByteArrayTag.TYPE, new NumberArrayTagCreator<>(() -> new ByteArrayTag(new byte[0])));
+		registerTagCreator(ListTag.TYPE, ListTag::new);
+		registerTagCreator(IntArrayTag.TYPE, () -> new IntArrayTag(new int[0]));
+		registerTagCreator(LongArrayTag.TYPE, () -> new LongArrayTag(new long[0]));
+		registerTagCreator(ByteArrayTag.TYPE, () -> new ByteArrayTag(new byte[0]));
 
-		registerTagCreator(IntTag.TYPE, new NumericTagCreator<>(value -> IntTag.valueOf(Integer.parseInt(value)), IntTag.valueOf(0)));
-		registerTagCreator(LongTag.TYPE, new NumericTagCreator<>(value -> LongTag.valueOf(Long.parseLong(value)), LongTag.valueOf(0)));
-		registerTagCreator(DoubleTag.TYPE, new NumericTagCreator<>(value -> DoubleTag.valueOf(Double.parseDouble(value)), DoubleTag.valueOf(0)));
-		registerTagCreator(FloatTag.TYPE, new NumericTagCreator<>(value -> FloatTag.valueOf(Float.parseFloat(value)), FloatTag.valueOf(0)));
-		registerTagCreator(ShortTag.TYPE, new NumericTagCreator<>(value -> ShortTag.valueOf(Short.parseShort(value)), ShortTag.valueOf((short)0)));
-		registerTagCreator(ByteTag.TYPE, new NumericTagCreator<>(value -> ByteTag.valueOf(Byte.parseByte(value)), ByteTag.valueOf((byte)0)));
+		registerTagCreator(IntTag.TYPE, () -> IntTag.valueOf(0));
+		registerTagCreator(LongTag.TYPE, () -> LongTag.valueOf(0));
+		registerTagCreator(DoubleTag.TYPE, () -> DoubleTag.valueOf(0));
+		registerTagCreator(FloatTag.TYPE, () -> FloatTag.valueOf(0));
+		registerTagCreator(ShortTag.TYPE, () -> ShortTag.valueOf((short)0));
+		registerTagCreator(ByteTag.TYPE, () -> ByteTag.valueOf((byte)0));
 	}
 }

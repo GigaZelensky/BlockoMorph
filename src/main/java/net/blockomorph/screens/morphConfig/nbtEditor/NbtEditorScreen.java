@@ -1,5 +1,6 @@
 package net.blockomorph.screens.morphConfig.nbtEditor;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.blockomorph.screens.AbstractScreen;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.TagRendererContext;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays.TagAddingOverlay;
@@ -9,6 +10,7 @@ import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ListenerEditBox;
 import net.blockomorph.screens.utils.ScrollerManager;
 import net.blockomorph.screens.utils.SpriteImageButton;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -29,17 +31,21 @@ import java.util.function.Function;
 public class NbtEditorScreen extends AbstractScreen {
 	private static final ScrollerManager.CustomBarData SCOLLER = new ScrollerManager.CustomBarData(GuiUtils.res("textures/screens/nbt_scroller.png"), 7, 15);
 	public static final ResourceLocation BUTTONS_SPRITE = GuiUtils.res("textures/screens/nbt_buttons.png");
+	public static final ResourceLocation LOCK_IMAGE = GuiUtils.res("textures/screens/nbt_lock.png");
 	public static final int BUTTON_SPRITE_LENGTH = 46;
 	public static final int BUTTON_SPRITE_HEIGTH = 43;
 	private static final int MAX_PLATES_COUNT = 7;
+	private boolean initialized;
 	private final BiConsumer<String, Boolean> onEntering = (tagName, intr) -> {
 		this.enterInTag(this.path.append(tagName), intr);
 	};
-	private final CompoundTag editingTag;
+	private CompoundTag editingTag;
 	private final Consumer<CompoundTag> onEdited;
 	private final Runnable onTagEdited;
 	private EditBox tagBox;
 	private Button pathExit;
+	private Button addButton;
+	private Button restoreButton;
 	private int internalBoxX;
 	private int internalBoxY;
 	protected final int internalBoxLength = 173;
@@ -64,13 +70,18 @@ public class NbtEditorScreen extends AbstractScreen {
 	private TagEditingOverlay overlay;
 	private final Consumer<TagEditingOverlay> onTagReceived;
 	private final List<SpriteImageButton> deleteButtons = new ArrayList<>(MAX_PLATES_COUNT);
+	private String parseError;
+	private boolean editorLocked;
 
 	public NbtEditorScreen(CompoundTag editingTag, Consumer<CompoundTag> onEdited) {
 		super("nbt_editor_screen", new ScreenPosition(229, 191));
 		this.editingTag = Objects.requireNonNull(editingTag).copy();
 		this.onEdited = Objects.requireNonNull(onEdited);
 		this.scrollerManager = new ScrollerManager<>(() -> this.leftPos + 181, () -> this.topPos + 41, 138, 1, MAX_PLATES_COUNT, this.renderables, SCOLLER);
-		this.onTagEdited = () -> this.onEdited.accept(this.editingTag);
+		this.onTagEdited = () -> {
+			this.tagBox.setValue(this.editingTag.toString());
+			this.onEdited.accept(this.editingTag);
+		};
 		this.onTagReceived = this::setOverlay;
 	}
 
@@ -96,6 +107,7 @@ public class NbtEditorScreen extends AbstractScreen {
 				tooltip = tag.getTooltip(this.gui);
 			}
 		}
+		this.renderError();
 		if (this.overlay != null) {
 			this.gui.renderInDepthIfNeededAfterBlockRendering(() -> {
 				this.gui.blurScreen(this.width, this.height, 190);
@@ -104,6 +116,37 @@ public class NbtEditorScreen extends AbstractScreen {
 		} else if (tooltip != null) {
 			this.gui.renderTooltip(tooltip, mouseX, mouseY);
 		}
+	}
+
+	private void renderError() {
+		if (this.parseError != null) {
+			int y = this.topPos + this.imageHeight;
+			if (this.font.width(this.parseError) > this.width) {
+				int textLength = this.font.width(this.parseError);
+				int x = -(textLength - this.width);
+				this.gui.fill(0, y, this.width, y + 11, Integer.MIN_VALUE);
+				this.gui.drawString(Component.literal(this.parseError).withStyle(ChatFormatting.RED), x, y + 2, -1, true);
+			} else {
+				this.gui.drawCenteredStringWithAdditional(Component.literal(this.parseError).withStyle(ChatFormatting.RED), this.width/2, y + 2, -1, false, (x, length) -> {
+					this.gui.fill(x - 1, y, x + length + 1, y + 11, Integer.MIN_VALUE);
+				});
+			}
+		}
+	}
+
+	public void setEditorLocked(boolean yes) {
+		this.editorLocked = yes;
+		if (yes) {
+			this.path = new NbtPath.RootNbtPath();
+			this.pathExit.visible = false;
+			this.scrollerManager.setMainList(new ArrayList<>());
+			this.scrollerManager.setScrollOffset(0f);
+			this.scrollerManager.refreshList();
+		} else {
+			this.enterInTag(new NbtPath.RootNbtPath(), false);
+		}
+		this.addButton.visible = !yes;
+		this.restoreButton.visible = yes;
 	}
 
 	@Override
@@ -197,6 +240,26 @@ public class NbtEditorScreen extends AbstractScreen {
 		super.renderMenu();
 		this.scrollerManager.renderScroller(this.gui);
 		this.gui.drawString(Component.literal(this.path.getVisualString()), this.internalBoxX + 11, this.internalBoxY + 5, -1, false);
+		if (this.editorLocked) {
+			this.gui.blitMonoImage(LOCK_IMAGE, this.internalBoxX, this.internalBoxY, this.internalBoxLength, this.internalBoxHeigth);
+		}
+	}
+
+	private void parseTagboxInput(String value) {
+		if (!value.equals(this.editingTag.toString())) {
+			try {
+				this.editingTag = TagParser.parseCompoundFully(value);
+				this.setEditorLocked(false);
+				this.onEdited.accept(this.editingTag);
+				this.parseError = null;
+			} catch (CommandSyntaxException e) {
+				this.parseError = e.getMessage();
+				this.setEditorLocked(true);
+			}
+		} else {
+			this.parseError = null;
+			if (this.editorLocked) this.setEditorLocked(false);
+		}
 	}
 
 	@Override
@@ -204,23 +267,56 @@ public class NbtEditorScreen extends AbstractScreen {
 		super.init();
 		this.internalBoxX = this.leftPos + 23;
 		this.internalBoxY = this.topPos + 26;
-		this.tagBox = new ListenerEditBox(this.font, this.leftPos + 23, this.topPos + 5, 129, 19, this.getTitle(), value -> {}, ListenerEditBox.EDITBOX_BORDER_SPRITE);
-		Button addButton = new SpriteImageButton(this.internalBoxX + this.internalBoxLength + 3, this.internalBoxY + 3, 16, 16, BUTTONS_SPRITE, b -> {
-			TagEditingOverlay addOverlay = this.currentEnteredTag.getTagAddOverlay();
-			if (addOverlay != null) {
-				this.setOverlay(addOverlay);
-			}
-		}, null, false, 0, 0, BUTTON_SPRITE_LENGTH, BUTTON_SPRITE_HEIGTH);
-		this.addRenderableWidget(addButton);
+
+		if (!this.initialized) {
+			this.tagBox = new ListenerEditBox(this.font, 0, 0, 129, 19, this.getTitle(), this::parseTagboxInput, ListenerEditBox.EDITBOX_BORDER_SPRITE);
+			this.tagBox.setMaxLength(32000);
+			this.tagBox.setValue(this.editingTag.toString());
+		}
+		this.tagBox.setPosition(this.leftPos + 23, this.topPos + 5);
 		this.addRenderableWidget(this.tagBox);
-		this.pathExit = Button.builder(Component.literal("<--"), button -> {
-			this.enterInTag(this.path.back(), false);
-		}).bounds(this.internalBoxX + 146, this.internalBoxY + 4, 22, 9).build();
+
+		if (!this.initialized) {
+			this.addButton = new SpriteImageButton(0, 0, 16, 16, BUTTONS_SPRITE, b -> {
+				TagEditingOverlay addOverlay = this.currentEnteredTag.getTagAddOverlay();
+				if (addOverlay != null) {
+					this.setOverlay(addOverlay);
+				}
+			}, null, false, 0, 0, BUTTON_SPRITE_LENGTH, BUTTON_SPRITE_HEIGTH);
+		}
+		this.addButton.setPosition(this.internalBoxX + this.internalBoxLength + 3, this.internalBoxY + 3);
+		this.addRenderableWidget(this.addButton);
+
+		if (!this.initialized) {
+			Component text = Component.translatable("blockomorph.gui.nbtEditor.restore");
+			int textWidth = this.font.width(text);
+			this.restoreButton = Button.builder(text, b -> {
+				this.tagBox.setValue(this.editingTag.toString());
+				this.setEditorLocked(false);
+				this.parseError = null;
+			}).size(textWidth + 6, 20).build();
+			this.restoreButton.visible = false;
+			this.addRenderableWidget(this.restoreButton);
+		}
+		this.restoreButton.setPosition(this.internalBoxX + this.internalBoxLength/2 - this.restoreButton.getWidth()/2, this.internalBoxY + 112);
+
+		if (!this.initialized) {
+			this.pathExit = Button.builder(Component.literal("<--"), button -> {
+				this.enterInTag(this.path.back(), false);
+			}).size(22, 9).build();
+		}
+		this.pathExit.setPosition(this.internalBoxX + 146, this.internalBoxY + 4);
 		this.addRenderableWidget(this.pathExit);
-		this.initList(false);
+
+		if (!this.initialized) {
+			this.initList(false);
+		} else {
+			this.reinitDeleteButtons();
+		}
 		if (this.overlay != null) {
 			this.overlay.init(this.width, this.height, this::setOverlay);
 		}
+		this.initialized = true;
 	}
 
 	public void enterInTag(NbtPath path, boolean intr) {

@@ -3,6 +3,7 @@
   "blockomorph.gui.morphConfigScreen.save": "Save",
   "blockomorph.gui.stateSelectorOverlay.selectBlock": "Select block",
   "blockomorph.gui.stateSelectorOverlay.selectBlockType": "Select block for NBT tag:",
+  "blockomorph.gui.nbtEditor.restore": "Restore previous state",
 
 
   "blockomorph.commands.option_change.default": "Value of option \"%s\" changed to %s.",

@@ -119,6 +119,7 @@ public class MorphConfigScreen extends AbstractScreen {
 		});
 		EditBox old = this.saveBox;
 		this.saveBox = new ListenerEditBox(this.font, this.leftPos + 7, this.topPos + 137, 129, 19, Component.translatable("blockomorph.gui.morphConfigScreen.save"), value -> this.checkSaveButtons(), ListenerEditBox.EDITBOX_BORDER_SPRITE);
+		this.saveBox.setMaxLength(500);
 		this.addRenderableWidget(this.saveBox);
 		this.saveButton = new SpriteImageButton(this.leftPos + 142, this.topPos + 133, 26, 26, SAVE_BUTTON_SPRITE, button -> {
 			AbstractMorphScreen.SAVED_BLOCK_MANAGER.add(new SavedBlock(this.getState(), this.getTag(), this.saveBox.getValue()));

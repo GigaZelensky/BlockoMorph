@@ -45,6 +45,10 @@ public class ObjectListRenderer<PROPERTY, VALUE> {
 		return false;
 	}
 
+	public boolean isDropped() {
+		return this.dropped;
+	}
+
 	public void renderName(GuiUtils gui, int x, int y, int maxLength, PROPERTY property, VALUE value, int stringColor) {
 		String name = this.toString.apply(property, value);
 		String newName = gui.getFont().plainSubstrByWidth(name, maxLength);

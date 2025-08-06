@@ -48,6 +48,8 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.IntConsumer;
 
 public class GuiUtils { //Cross-platform wrapper
 	public static final BlockPos AIR = new BlockPos(0, 500, 0);
@@ -143,6 +145,13 @@ public class GuiUtils { //Cross-platform wrapper
 
 	public void drawCenteredString(Component text, int xCenter, int y, int color, boolean useShadow) {
 		int x = xCenter - this.font.width(text.getString())/2;
+		this.drawString(text, x, y, color, useShadow);
+	}
+
+	public void drawCenteredStringWithAdditional(Component text, int xCenter, int y, int color, boolean useShadow, BiConsumer<Integer, Integer> additional) {
+		int length = this.font.width(text.getString());
+		int x = xCenter - length/2;
+		additional.accept(x, length);
 		this.drawString(text, x, y, color, useShadow);
 	}
 

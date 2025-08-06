@@ -46,7 +46,7 @@ public class KeyMappings {
 	});
 
 	public static final KeyMapping DEBUG = new HandlerKeymapping("key.blockomorph.debug", GLFW.GLFW_KEY_J, () -> {
-		if (false) {
+		if (true) {
 			AbstractMorphScreen sc = new AbstractMorphScreen(AbstractMorphScreen.MorphScreenOptions.CONFIG) {
 				@Override
 				protected void initAdditional(Consumer<AbstractWidget> action) {
@@ -60,7 +60,7 @@ public class KeyMappings {
 
 				@Override
 				protected SoundInstance onClickOnBlock(SavedBlock block, int number, CreativeModeTab selectedTab, int page) {
-					GuiUtils.MC.setScreen(new TestScreen(block.getState(), false) {
+					GuiUtils.MC.setScreen(new TestScreen(block.getState(), true) {
 						@Override
 						protected void init() {
 							super.init();
