@@ -2,6 +2,7 @@ package net.blockomorph.core;
 
 import net.blockomorph.screens.TestScreen;
 import net.blockomorph.screens.TestScreen2;
+import net.blockomorph.screens.TestScreen3;
 import net.blockomorph.screens.config.ConfigScreen;
 import net.blockomorph.screens.config.ConfigScreenOld;
 import net.blockomorph.screens.morph.AbstractMorphScreen;
@@ -46,7 +47,7 @@ public class KeyMappings {
 	});
 
 	public static final KeyMapping DEBUG = new HandlerKeymapping("key.blockomorph.debug", GLFW.GLFW_KEY_J, () -> {
-		if (true) {
+		if (false) {
 			AbstractMorphScreen sc = new AbstractMorphScreen(AbstractMorphScreen.MorphScreenOptions.CONFIG) {
 				@Override
 				protected void initAdditional(Consumer<AbstractWidget> action) {
@@ -79,7 +80,7 @@ public class KeyMappings {
 			};
 			GuiUtils.MC.setScreen(sc);
 		} else {
-			GuiUtils.MC.setScreen(new TestScreen());
+			GuiUtils.MC.setScreen(new TestScreen(false));
 		}
 	});
 
@@ -88,7 +89,7 @@ public class KeyMappings {
 	});
 
 	public static final KeyMapping DEBUG3 = new HandlerKeymapping("key.blockomorph.debug3", GLFW.GLFW_KEY_L, () -> {
-
+		mc.setScreen(new TestScreen3());
 	});
 
 	static void registerKeyMappings(Consumer<KeyMapping> register) {

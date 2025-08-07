@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -26,8 +27,6 @@ public class BlockInPlayer2 {
 	private BlockState blockState;
 	private BlockEntity blockEntity;
 	private BlockEntityTicker blockEntityTicker;
-	//client only \/
-	private CompoundTag serverTag = new CompoundTag(); //temp
 
 	public BlockInPlayer2(PlayerAccessor pl, InPlayerBlockPos pos, BlockState state, Consumer<BlockInPlayer2> preInit) {
 		this.offset = pos;
@@ -58,13 +57,16 @@ public class BlockInPlayer2 {
 		return offset;
 	}
 
-	public BlockInPlayer2 loadNBT(CompoundTag tg) {
+	@Nullable
+	public Throwable loadNBT(CompoundTag tg) {
 		if (this.blockEntity != null) {
 			try {
 				this.blockEntity.loadWithComponents(tg, this.player.level().registryAccess());
-			} catch (Exception ignored) {}
+			} catch (Throwable e) {
+				return e;
+			}
 		}
-		return this;
+		return null;
 	}
 
 	public BlockInPlayer2 handleClientTag(CompoundTag tg, ClientBoundMorphUpdatePacket pkt) {
@@ -85,7 +87,6 @@ public class BlockInPlayer2 {
 		BlockState old = this.blockState;
 		this.blockState = state;
 		boolean newBlock = !old.is(state.getBlock());
-		boolean bl4 = (flags & 64) != 0;
 		boolean bl5 = (flags & 256) == 0;
 
 		if (newBlock && old.hasBlockEntity()) {
@@ -130,7 +131,6 @@ public class BlockInPlayer2 {
 	public void clearBlockEntity() {
 		this.blockEntity = null;
 		this.blockEntityTicker = null;
-		this.serverTag = new CompoundTag();
 	}
 
 	private void initBlockEntity() {
@@ -146,16 +146,6 @@ public class BlockInPlayer2 {
 		if (this.blockState.getBlock() instanceof EntityBlock ent && blockEntity != null) {
 			this.blockEntityTicker = ent.getTicker(this.player.level(), this.blockState, blockEntity.getType());
 		}
-	}
-
-	public CompoundTag getServerTag() {
-		return this.serverTag;
-	}
-
-	public BlockInPlayer2 setServerTag(CompoundTag serverTag) {
-		if (this.blockEntity != null && this.player.level().isClientSide)
-			this.serverTag = Objects.requireNonNullElse(serverTag, new CompoundTag());
-		return this;
 	}
 
 	public void tick() {

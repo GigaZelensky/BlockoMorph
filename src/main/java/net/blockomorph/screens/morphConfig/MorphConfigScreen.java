@@ -4,6 +4,7 @@ import net.blockomorph.network.ServerBoundBlockMorphPacket;
 import net.blockomorph.screens.AbstractScreen;
 import net.blockomorph.screens.morph.AbstractMorphScreen;
 import net.blockomorph.screens.morph.MorphScreen;
+import net.blockomorph.screens.morphConfig.nbtEditor.PlayerBlockEntityNbtEditor;
 import net.blockomorph.screens.morphConfig.propertiesWidget.BlockStatePropsRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ListenerEditBox;
@@ -131,7 +132,7 @@ public class MorphConfigScreen extends AbstractScreen {
 			this.checkSaveButtons();
 		}, null, false);
 		SpriteImageButton nbtButton= new SpriteImageButton(this.leftPos + 31, this.topPos + 95, 26, 26, NBT_BUTTON_SPRITE, but -> {
-
+			GuiUtils.MC.setScreen(new PlayerBlockEntityNbtEditor());
 		}, () -> this.getState().getBlock() instanceof EntityBlock, true);
 		this.addRenderableWidget(nbtButton);
 		this.addRenderableWidget(this.deleteButton);

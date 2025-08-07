@@ -37,6 +37,9 @@
   "blockomorph.gui.stateSelectorOverlay.selectBlockType": "Select block for NBT tag:",
   "blockomorph.gui.nbtEditor.restore": "Restore previous state",
   "blockomorph.gui.nbtEditor.addOverlay.hint.collectionTag": "Add tag to end of list:\n- Empty field\nAdd tag before element with (number):\n- Number of element",
+  "blockomorph.gui.nbtEditor.waitingTag": "Waiting for tag from source",
+  "blockomorph.gui.nbtEditor.parseError.exception": "Error while saving tags:",
+  "blockomorph.gui.nbtEditor.parseError.save": "The tag was not applied, most likely it is not allowed in this block or is not editable.",
 
 
   "blockomorph.commands.option_change.default": "Value of option \"%s\" changed to %s.",

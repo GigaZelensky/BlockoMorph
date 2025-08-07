@@ -1,6 +1,8 @@
 package net.blockomorph.screens.utils;
 
 import net.minecraft.client.gui.components.EditBox;
+
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
@@ -29,19 +31,19 @@ public class ListenerEditBox extends EditBox {
 
 	@Override
 	public boolean keyPressed(int key, int scancode, int mods) {
-		if (this.active && this.visible && this.editable && this.isFocused()) {
-			boolean flag = super.keyPressed(key, scancode, mods);
-			this.action.accept(this.getValue());
-			return flag;
-		}
-		return false;
+		return this.check(() -> super.keyPressed(key, scancode, mods));
 	}
 
 	@Override
 	public boolean charTyped(char character, int mods) {
+		return this.check(() -> super.charTyped(character, mods));
+	}
+
+	private boolean check(BooleanSupplier input) {
 		if (this.active && this.visible && this.editable && this.isFocused()) {
-			boolean flag = super.charTyped(character, mods);
-			this.action.accept(this.getValue());
+			String value = this.getValue();
+			boolean flag = input.getAsBoolean();
+			if (!value.equals(this.getValue())) this.action.accept(this.getValue());
 			return flag;
 		}
 		return false;

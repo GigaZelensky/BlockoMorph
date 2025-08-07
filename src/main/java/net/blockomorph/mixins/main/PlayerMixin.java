@@ -104,8 +104,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	public CompoundTag getTag(InPlayerBlockPos pos) {
 		BlockInPlayer2 ent = this.blocksData.get(pos);
 		if (ent != null && ent.getBlockEntity() != null) {
-			if (this.level().isClientSide)
-				return ent.getServerTag();
 			return ent.getBlockEntity().saveWithoutMetadata(this.level().registryAccess());
 		}
 		return new CompoundTag();
@@ -169,7 +167,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 				CompoundTag tags = tg.getCompound("BlockEntityTag").orElseGet(CompoundTag::new);
 				BlockInPlayer2 block = new BlockInPlayer2(this, pos, state, (blockInPlayer) -> this.blocksData.put(pos, blockInPlayer));
 				if (client != null) {
-					block.setServerTag(tg.getCompound("ServerTag").orElseGet(CompoundTag::new));
 					block.handleClientTag(tags, client);
 				} else {
 					block.loadNBT(tags);
@@ -190,11 +187,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 				CompoundTag blockTag = new CompoundTag();
 				if (ent != null) {
 					CompoundTag servTag = ent.saveWithoutMetadata(this.level().registryAccess());
-					if (client) {
-						tg.put("ServerTag", servTag);
-					}
 					blockTag = client ? ent.getUpdateTag(this.level().registryAccess()) : servTag;
-
 				}
 				tg.put("BlockEntityTag", blockTag);
 				blocks.put(pos.string(), tg);
@@ -283,7 +276,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 			try {
 				if (ent.getUpdatePacket() != null)
 					this.sendNearby(ent.getUpdatePacket());
-				MorphUtils.sendPlayer(new ClientBoundServerBlockEntityTagPacket(block.getOffset(), ent.saveWithoutMetadata(this.level().registryAccess())), (ServerPlayer) this.player());
 			} catch (Exception e) {
 				MorphUtils.LOGGER.error("An error occurred while sending morphed player data on pos: " + block.getOffset() + " for block: " + block.getBlockState() + " on player: " + this.getName().getString(), e);
 			}
@@ -355,8 +347,18 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		}
 		this.setBlockState(InPlayerBlockPos.ZERO, state, 3);
 		BlockInPlayer2 block = this.blocksData.get(InPlayerBlockPos.ZERO);
-		if (block != null && tag != null && !tag.isEmpty())
-			block.loadNBT(tag);
+		if (block != null && tag != null && !tag.isEmpty()) {
+			Throwable e = block.loadNBT(tag);
+			ServerPlayer serverPlayer = (ServerPlayer) this.player();
+			if (e != null) {
+				MorphUtils.sendPlayer(ClientBoundServerBlockEntityTagPacket.createForError(e.getMessage(), true), serverPlayer);
+			} else {
+				CompoundTag newTag = this.getTag(InPlayerBlockPos.ZERO);
+				if (!newTag.equals(tag)) {
+					MorphUtils.sendPlayer(ClientBoundServerBlockEntityTagPacket.createForError("", false), serverPlayer);
+				}
+			}
+		}
 		BlockPos pos = InPlayerBlockPos.ZERO.boundedBlockPos(this.player());
 		if (pos != null) {
 			state.getBlock().setPlacedBy(this.level(), pos, state, this, new ItemStack(state.getBlock().asItem(), 1));

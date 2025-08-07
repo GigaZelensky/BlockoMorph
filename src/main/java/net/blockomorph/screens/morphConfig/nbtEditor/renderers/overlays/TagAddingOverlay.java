@@ -129,7 +129,7 @@ public class TagAddingOverlay<T extends Tag> extends TagEditingOverlay {
 		renderer.getBox().setX(oldX);
 		gui.disableScrissors();
 
-		gui.blit(NbtEditorScreen.BUTTONS_SPRITE, this.tagBoxX + 4, this.tagBoxY + 4, 0, 32, 46, 11, NbtEditorScreen.BUTTON_SPRITE_LENGTH, NbtEditorScreen.BUTTON_SPRITE_HEIGTH);
+		gui.blit(NbtEditorScreen.BUTTONS_SPRITE, this.tagBoxX + 4, this.tagBoxY + 4, 0, 32, 46, 11, NbtEditorScreen.BUTTON_SPRITE_LENGTH, NbtEditorScreen.BUTTON_SPRITE_HEIGHT);
 	}
 
 	@Override

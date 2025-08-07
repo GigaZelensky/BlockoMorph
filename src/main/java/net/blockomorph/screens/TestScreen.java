@@ -11,17 +11,20 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class TestScreen extends NbtEditorScreen {
 	private static CompoundTag tag = new CompoundTag();
+	private final CompoundTag primaryTag;
 	public TestScreen(BlockState state, boolean blockEntity) {
-		super(get(state, blockEntity), (tg) -> {
-			tag = tg;
-		});
-
+		this.primaryTag = get(state, blockEntity);
 	}
 
-	public TestScreen() {
-		super(get2(), tg -> {
-			tag = tg;
-		});
+	public TestScreen(boolean init) {
+		if (init) {
+			this.primaryTag = get2();
+		} else this.primaryTag = null;
+	}
+
+	@Override
+	protected void onTagEdited(CompoundTag tag2) {
+		tag = tag2;
 	}
 
 	private static CompoundTag get(BlockState state, boolean BE) {
@@ -79,5 +82,11 @@ public class TestScreen extends NbtEditorScreen {
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
 		super.render(guiGraphics, mouseX, mouseY, tick);
 		this.gui.drawString(Component.literal(tag.toString()), this.width / 2 - (this.font.width(tag.toString()) / 2), this.topPos - 20, -1, false);
+	}
+
+	@Override
+	protected void init() {
+		super.init();
+		this.setNewTag(this.primaryTag);
 	}
 }
