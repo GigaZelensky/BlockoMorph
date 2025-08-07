@@ -7,15 +7,21 @@ import net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays.TagEditi
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers.primitive.NumericTagRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.nbt.*;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.ARGB;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class CollectionTagRenderer<LIST extends CollectionTag> extends TagRenderer<LIST> {
 	private static final int BUTTON_SIZE = 16;
 	private final TagType<?>[] allowedTypes;
+	private static final List<Component> HINT = Stream.of(Component.translatable("blockomorph.gui.nbtEditor.addOverlay.hint.collectionTag").getString().split("\n")).map(word -> {
+		return Component.translationArg(Component.literal(word));
+	}).toList();
 	private boolean hovered;
 	private final int color;
 	
@@ -79,7 +85,7 @@ public class CollectionTagRenderer<LIST extends CollectionTag> extends TagRender
 			TagRenderer<?> renderer = TagTypes.getRendererForTag(index + "", tag, this.tagRendererContext.withTagUpdateListener(newTag -> {
 				this.getTag().setTag(index - 1, newTag);
 			}));
-			if (renderer != null) renderer.setNameVisibility(false);
+			//if (renderer != null) renderer.setNameVisibility(false); It's better not to turn it off for better orientation.
 			renderers.add(renderer);
 			i++;
 		}
@@ -114,7 +120,17 @@ public class CollectionTagRenderer<LIST extends CollectionTag> extends TagRender
 			this.signalChange(() -> {
 				this.getTag().addTag(index, tag);
 			}, false, index + 1);
-		}, this.allowedTypes);
+		}, this::getAddOverlayHint, HINT, this.allowedTypes);
+	}
+
+	private String getAddOverlayHint() {
+		if (this.getTag().isEmpty()) {
+			return "*Adding to end*";
+		} else if (this.getTag().size() == 1) {
+			return "1";
+		} else {
+			return "1-" + (this.getTag().size());
+		}
 	}
 
 	@Override

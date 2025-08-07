@@ -4,6 +4,7 @@
   "blockomorph.gui.stateSelectorOverlay.selectBlock": "Select block",
   "blockomorph.gui.stateSelectorOverlay.selectBlockType": "Select block for NBT tag:",
   "blockomorph.gui.nbtEditor.restore": "Restore previous state",
+  "blockomorph.gui.nbtEditor.addOverlay.hint.collectionTag": "Add tag to end of list:\n- Empty field\nAdd tag before element with (number):\n- Number of element",
 
 
   "blockomorph.commands.option_change.default": "Value of option \"%s\" changed to %s.",

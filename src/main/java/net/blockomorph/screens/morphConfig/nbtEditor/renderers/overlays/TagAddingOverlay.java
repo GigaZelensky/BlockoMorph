@@ -13,6 +13,7 @@ import net.minecraft.nbt.*;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -32,6 +33,8 @@ public class TagAddingOverlay<T extends Tag> extends TagEditingOverlay {
 	private final BiConsumer<String, T> onTagCreated;
 	private CachedType<? extends T> currentType;
 	private final TagType<? extends T> first;
+	@Nullable private final Supplier<String> nameSuggestion;
+	@Nullable private final List<Component> hint;
 	private int leftPos;
 	private int topPos;
 	private final boolean listDisabled;
@@ -39,7 +42,7 @@ public class TagAddingOverlay<T extends Tag> extends TagEditingOverlay {
 	private EditBox name;
 
 	@SafeVarargs
-	public TagAddingOverlay(Predicate<String> nameFilter, BiConsumer<String, T> onTagCreated, TagType<? extends T>... types) {
+	public TagAddingOverlay(Predicate<String> nameFilter, BiConsumer<String, T> onTagCreated, @Nullable Supplier<String> nameSuggestion, @Nullable List<Component> hint, TagType<? extends T>... types) {
 		List<TagType<?>> registered = List.of(TagTypes.getRegisteredTags());
 		List<TagType<? extends T>> filtered = Stream.of(types).filter(type -> {
 			if (registered.contains(type)) return true;
@@ -56,6 +59,8 @@ public class TagAddingOverlay<T extends Tag> extends TagEditingOverlay {
 		this.listDisabled = filtered.size() == 1;
 		this.filter = nameFilter;
 		this.first = filtered.getFirst();
+		this.nameSuggestion = nameSuggestion;
+		this.hint = hint;
 	}
 
 	private <TAG extends T> void setCurrentType(TagType<TAG> type) {
@@ -98,7 +103,12 @@ public class TagAddingOverlay<T extends Tag> extends TagEditingOverlay {
 		int y = this.tagBoxY + 6;
 		this.selector.renderName(gui, x, y, 38, null, this.currentType.type, -1);
 		this.selector.render(gui, x, y, -1, 10);
-
+		if (this.nameSuggestion != null && this.name.getValue().isEmpty() && !this.name.isHovered())
+			gui.drawString(Component.literal(this.nameSuggestion.get()), this.name.getX() + 4, this.name.getY() + (this.name.getHeight() - 8)/2,-8355712, true);
+		if (this.hint != null && this.name.isHovered()) {
+			int height = 3 + 3 + (this.hint.size() * gui.getFont().lineHeight) + 9 * 2;
+			gui.renderTooltip(this.hint, this.name.getX() - 12, this.name.getY() - height + 12);
+		}
 	}
 
 	@Override

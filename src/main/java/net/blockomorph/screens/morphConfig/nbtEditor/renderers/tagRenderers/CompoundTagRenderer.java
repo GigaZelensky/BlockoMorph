@@ -1,7 +1,5 @@
 package net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers;
 
-import com.mojang.serialization.DataResult;
-import net.blockomorph.screens.morphConfig.nbtEditor.NbtEditorScreen;
 import net.blockomorph.screens.morphConfig.nbtEditor.TagTypes;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.TagRendererContext;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.interpritationTagRenderers.AbstractInterpritationTagRenderer;
@@ -9,18 +7,15 @@ import net.blockomorph.screens.morphConfig.nbtEditor.renderers.interpritationTag
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays.TagAddingOverlay;
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays.TagEditingOverlay;
 import net.blockomorph.screens.utils.GuiUtils;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.blockomorph.utils.MorphUtils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ARGB;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 public class CompoundTagRenderer extends TagRenderer<CompoundTag> {
 	private static final int BUTTON_SIZE = 16;
@@ -86,7 +81,7 @@ public class CompoundTagRenderer extends TagRenderer<CompoundTag> {
 		return new TagAddingOverlay<>(Objects::nonNull, (name, tag) -> {
 			this.getTag().put(name, tag);
 			this.signalChange();
-		}, TagTypes.getRegisteredTags());
+		}, () -> "Tag name", null, TagTypes.getRegisteredTags());
 	}
 
 	@Override
@@ -111,11 +106,8 @@ public class CompoundTagRenderer extends TagRenderer<CompoundTag> {
 			if (self.contains("Properties") && self.size() == 2) {
 				return this.getBlockStateRenderer(onInterpretationBrake);
 			} else {
-				DataResult<ResourceLocation> result = ResourceLocation.read(self.getStringOr("Name", ""));
-				if (result.result().isPresent()) {
-					if (BuiltInRegistries.BLOCK.containsKey(result.result().get()) && self.size() == 1) {
-						return this.getBlockStateRenderer(onInterpretationBrake);
-					}
+				if (MorphUtils.blockPredicate().test(self.getStringOr("Name", "")) && self.size() == 1) {
+					return this.getBlockStateRenderer(onInterpretationBrake);
 				}
 			}
 		}

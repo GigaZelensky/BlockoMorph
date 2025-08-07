@@ -4,9 +4,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonArray;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 import com.mojang.brigadier.Command;
+import com.mojang.serialization.DataResult;
 import net.blockomorph.screens.config.renderers.BlockListConfigRenderer;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.Commands;
@@ -20,11 +23,11 @@ import org.jetbrains.annotations.Nullable;
 
 public class BlockListConfig extends ConfigInstance<List<String>> {
 	private static BlockListConfigRenderer RENDERER;
-	private final ResourceLocation frameTexture;
+	private final ListOptionContext context;
 
-	public BlockListConfig(String name, List<String> initialValue, boolean canOperatorModify, @Nullable Component tip, ResourceLocation frame) {
+	public BlockListConfig(String name, List<String> initialValue, boolean canOperatorModify, @Nullable Component tip, ListOptionContext ctx) {
 		super(name, initialValue, canOperatorModify, tip);
-		this.frameTexture = frame;
+		this.context = ctx;
 	}
 
 	@Override
@@ -62,7 +65,7 @@ public class BlockListConfig extends ConfigInstance<List<String>> {
 	}
 
 	public ResourceLocation getFrameTexture() {
-		return this.frameTexture;
+		return this.context.frame;
 	}
 
 	@Override
@@ -77,18 +80,28 @@ public class BlockListConfig extends ConfigInstance<List<String>> {
 
 		switch (action) {
 			case "+":
-				if (!this.value.contains(element))
-					this.value.add(element);
-				break;
+				if (context.allowedAddValue != null && context.allowedAddValue.test(element)) {
+					if (!this.value.contains(element))
+						this.value.add(element);
+					break;
+				} else throwError(action, element);
 			case "-":
-				this.value.remove(element);
-				break;
+				if (context.allowedRemoveValue != null && context.allowedRemoveValue.test(element)) {
+					this.value.remove(element);
+					break;
+				} else throwError(action, element);
 			case "r":
-				this.value.clear();
-				break;
+				if (context.canClear) {
+					this.value.clear();
+					break;
+				} else throwError(action, element);
 			default:
 				throw new IllegalArgumentException("Invalid action: " + action);
 		}
+	}
+
+	private void throwError(String option, String value) {
+		throw new IllegalArgumentException("Invalid action: " + option + " for value: " + value);
 	}
 
 	public LiteralArgumentBuilder<CommandSourceStack> buildArgument(LiteralArgumentBuilder<CommandSourceStack> optionNameArgument, CommandBuildContext context, Commands.CommandSelection environment) {
@@ -139,4 +152,6 @@ public class BlockListConfig extends ConfigInstance<List<String>> {
 		}
 		return RENDERER;
 	}
+
+	public record ListOptionContext(ResourceLocation frame, @Nullable Predicate<String> allowedAddValue, @Nullable Predicate<String> allowedRemoveValue, boolean canClear) {}
 }

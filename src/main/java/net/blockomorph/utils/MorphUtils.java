@@ -1,5 +1,6 @@
 package net.blockomorph.utils;
 
+import com.mojang.serialization.DataResult;
 import net.blockomorph.BlockomorphServer;
 import net.blockomorph.network.*;
 import net.blockomorph.utils.config.*;
@@ -62,6 +63,7 @@ import net.minecraft.core.BlockPos;
 
 import java.util.function.DoubleConsumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -139,6 +141,16 @@ public class MorphUtils {
 	public record BannedBlock(String reason, Component text) {
 		public static final BannedBlock SAME = new BannedBlock("You have already been turned into this block.",
 				Component.translatable("commands.blockomorph.blockSame"));
+	}
+
+	public static Predicate<String> blockPredicate() {
+		return value -> {
+			DataResult<ResourceLocation> result = ResourceLocation.read(value);
+			if (result.result().isPresent()) {
+				return BuiltInRegistries.BLOCK.containsKey(result.result().get());
+			}
+			return false;
+		};
 	}
 
 	public static Vec3 getRealBlockPos(PlayerAccessor original, InPlayerBlockPos offset) {

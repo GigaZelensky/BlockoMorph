@@ -25,13 +25,12 @@ public class Config {
 	public final List<ConfigInstance<?>> OPTIONS = List.of(
 			new EnumConfig<>("listMode", Mode.NONE, true, null),
 			new BooleanConfig("solidBlocksOnly", false, true, null),
-			new BlockListConfig("allowedBlocks", new ArrayList<>(), true, null, MorphUtils.res("textures/screens/sel_good.png")),
-			new BlockListConfig("bannedBlocks", new ArrayList<>(), true, null, MorphUtils.res("textures/screens/sel_bad.png")),
+			new BlockListConfig("allowedBlocks", new ArrayList<>(), true, null, new BlockListConfig.ListOptionContext(MorphUtils.res("textures/screens/sel_good.png"), MorphUtils.blockPredicate(), MorphUtils.blockPredicate(), true)),
+			new BlockListConfig("bannedBlocks", new ArrayList<>(), true, null, new BlockListConfig.ListOptionContext(MorphUtils.res("textures/screens/sel_bad.png"), MorphUtils.blockPredicate(), MorphUtils.blockPredicate(), true)),
 			new BooleanConfig("playerDieAfterDestroy", true, true, null),
 			new EnumConfig<>("useMode", UseMode.ALL, true, null),
 			new EnumConfig<>("placeMode", PlaceMode.OUT, true, null),
-			new BooleanConfig("canOperatorModifyConfig", true, false, null),
-			new BooleanConfig("canNonOperatorOpenMorphMenu", true, true, null)
+			new BooleanConfig("canOperatorModifyConfig", true, false, null)
 	);
 
 	private Config() {}
