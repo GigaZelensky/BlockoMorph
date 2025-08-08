@@ -6,8 +6,6 @@ import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.nbt.Tag;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 public abstract class AbstractInterpritationTagRenderer<T extends Tag> extends TagRenderer<T> {
 	protected static final int BUTTON_SIZE = 7;
 	protected final TagRenderer<T> parent;

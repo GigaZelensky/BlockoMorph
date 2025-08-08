@@ -25,8 +25,6 @@ import java.util.stream.Stream;
 
 public class TagAddingOverlay<T extends Tag> extends TagEditingOverlay {
 	private static final ResourceLocation MENU = GuiUtils.res("textures/screens/tag_adding_screen.png");
-	private static final int imageLength = 159;
-	private static final int imageHeight = 59;
 	private int tagBoxX;
 	private int tagBoxY;
 	private final ObjectListRenderer<TagTypes, TagType<? extends T>> selector;
@@ -41,8 +39,9 @@ public class TagAddingOverlay<T extends Tag> extends TagEditingOverlay {
 	private final Predicate<String> filter;
 	private EditBox name;
 
-	@SafeVarargs
-	public TagAddingOverlay(Predicate<String> nameFilter, BiConsumer<String, T> onTagCreated, @Nullable Supplier<String> nameSuggestion, @Nullable List<Component> hint, TagType<? extends T>... types) {
+	@SafeVarargs //TODO - Add interpretation patterns
+	public TagAddingOverlay(Predicate<String> nameFilter, BiConsumer<String, T> onTagCreated, @Nullable Supplier<String> nameSuggestion, @Nullable List<Component> hint, boolean needInterpritation, TagType<? extends T>... types) {
+		super(159, 59);
 		List<TagType<?>> registered = List.of(TagTypes.getRegisteredTags());
 		List<TagType<? extends T>> filtered = Stream.of(types).filter(type -> {
 			if (registered.contains(type)) return true;
@@ -98,6 +97,16 @@ public class TagAddingOverlay<T extends Tag> extends TagEditingOverlay {
 	}
 
 	@Override
+	public boolean keyPressed(int key, int scancode, int mods) {
+		if (key == 257) {
+			this.acceptTag();
+			GuiUtils.playClickSound();
+			return true;
+		}
+		return super.keyPressed(key, scancode, mods);
+	}
+
+	@Override
 	protected void renderInGui(GuiUtils gui) {
 		int x = this.tagBoxX + 6;
 		int y = this.tagBoxY + 6;
@@ -111,10 +120,16 @@ public class TagAddingOverlay<T extends Tag> extends TagEditingOverlay {
 		}
 	}
 
+	public void acceptTag() {
+		T tag = this.currentType.creator.get();
+		this.onTagCreated.accept(this.name.getValue(), tag);
+		this.onChange.accept(null);
+	}
+
 	@Override
 	protected void renderBackground(GuiUtils gui) {
 		TagRenderer<?> renderer = this.currentType.renderer;
-		gui.blitMonoImage(MENU, this.leftPos, this.topPos, imageLength, imageHeight);
+		gui.blitMonoImage(MENU, this.leftPos, this.topPos, this.imageLength, this.imageHeight);
 
 		gui.enableScrissors(this.tagBoxX, this.tagBoxY, this.tagBoxX + 50, this.tagBoxY + 20);
 		renderer.renderPlateWithoutCtx(gui);
@@ -135,8 +150,8 @@ public class TagAddingOverlay<T extends Tag> extends TagEditingOverlay {
 	@Override
 	public void init(int width, int height, Consumer<TagEditingOverlay> onChange) {
 		super.init(width, height, onChange);
-		this.leftPos = (this.width - imageLength) / 2;
-		this.topPos = (this.height - imageHeight) / 2;
+		this.leftPos = (this.width - this.imageLength) / 2;
+		this.topPos = (this.height - this.imageHeight) / 2;
 		this.tagBoxX = this.leftPos + 99;
 		this.tagBoxY = this.topPos + 7;
 
@@ -150,9 +165,7 @@ public class TagAddingOverlay<T extends Tag> extends TagEditingOverlay {
 		this.name.setValue(nameValue);
 
 		Button done = new Button(this.leftPos + 7, this.topPos + 32, 146, 20, CommonComponents.GUI_DONE, b -> {
-			T tag = this.currentType.creator.get();
-			this.onTagCreated.accept(name.getValue(), tag);
-			onChange.accept(null);
+			this.acceptTag();
 		}, Supplier::get) {
 			@Override
 			protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
@@ -161,6 +174,7 @@ public class TagAddingOverlay<T extends Tag> extends TagEditingOverlay {
 			}
 		};
 		this.addRenderableWidget(done);
+		this.setFocused(this.name);
 	}
 
 	private record CachedType<T extends Tag>(TagType<T> type, Supplier<T> creator, TagRenderer<T> renderer) {}

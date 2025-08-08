@@ -80,9 +80,11 @@ public class MorphConfigScreen extends AbstractScreen {
 		if (this.font.width(blockName) > 81) {
 			blockName = this.font.plainSubstrByWidth(blockName, 77) + "...";
 		}
-		this.gui.drawString(Component.literal(blockName), this.leftPos + 6, this.topPos + 6, 4210752, false);
-		this.gui.drawString(Component.literal("BlockState"), this.leftPos + 100, this.topPos + 15, 4210752, false);
-		this.gui.drawString(Component.translatable("blockomorph.gui.morphConfigScreen.save"), this.leftPos + 9, this.topPos + 127, 4210752, false);
+		int color = 4210752;
+		this.gui.drawString(Component.literal(blockName), this.leftPos + 6, this.topPos + 6, color, false);
+		this.gui.drawCenteredString(Component.literal("BlockState"), this.leftPos + 126, this.topPos + 15, color, false);
+		this.gui.drawString(Component.translatable("blockomorph.gui.morphConfigScreen.save"), this.leftPos + 9, this.topPos + 128, color, false);
+		this.gui.drawCenteredString(Component.translatable("blockomorph.gui.morphConfigScreen.extended"), this.leftPos + 44, this.topPos + 87, color, false);
 	}
 
 	@Override
@@ -96,7 +98,7 @@ public class MorphConfigScreen extends AbstractScreen {
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int type) {
 		if (this.needUpperTabs && GuiUtils.isMouseOver(this.leftPos + 41, this.topPos - 19, this.leftPos + 84, this.topPos + 3, mouseX, mouseY)) {
-			GuiUtils.MC.setScreen(new MorphScreen());
+			GuiUtils.MC.setScreen(new MorphScreen(AbstractMorphScreen.MorphScreenOptions.ALL));
 			return true;
 		} else if (this.propertiesRenderer.mouseClicked(mouseX, mouseY, type)) {
 			return true;
@@ -132,7 +134,7 @@ public class MorphConfigScreen extends AbstractScreen {
 			this.checkSaveButtons();
 		}, null, false);
 		SpriteImageButton nbtButton= new SpriteImageButton(this.leftPos + 31, this.topPos + 95, 26, 26, NBT_BUTTON_SPRITE, but -> {
-			GuiUtils.MC.setScreen(new PlayerBlockEntityNbtEditor());
+			GuiUtils.MC.setScreen(new PlayerBlockEntityNbtEditor(this));
 		}, () -> this.getState().getBlock() instanceof EntityBlock, true);
 		this.addRenderableWidget(nbtButton);
 		this.addRenderableWidget(this.deleteButton);

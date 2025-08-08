@@ -1,5 +1,6 @@
 package net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays;
 
+import net.blockomorph.screens.AbstractScreen;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.client.gui.screens.Screen;
 
@@ -9,11 +10,20 @@ public class ScreenAdapterOverlay<SC extends Screen> extends TagEditingOverlay {
 	protected final SC screen;
 
 	public ScreenAdapterOverlay(SC screen) {
+		super(getSize(true, screen), getSize(false, screen));
 		this.screen = screen;
+	}
+
+	private static int getSize(boolean x, Screen screen) {
+		if (screen instanceof AbstractScreen sc) {
+			return x ? sc.imageLength : sc.imageHeight;
+		}
+		return 0;
 	}
 
 	@Override
 	public void init(int width, int height, Consumer<TagEditingOverlay> onChange) {
+		super.init(width, height, onChange);
 		this.screen.init(GuiUtils.MC, width, height);
 	}
 
@@ -27,7 +37,10 @@ public class ScreenAdapterOverlay<SC extends Screen> extends TagEditingOverlay {
 
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int type) {
-		return this.screen.mouseClicked(mouseX, mouseY, type);
+		if (this.screen.mouseClicked(mouseX, mouseY, type)) {
+			return true;
+		}
+		return super.mouseClicked(mouseX, mouseY, type);
 	}
 
 	@Override

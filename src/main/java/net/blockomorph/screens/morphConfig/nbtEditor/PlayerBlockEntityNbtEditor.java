@@ -3,13 +3,25 @@ package net.blockomorph.screens.morphConfig.nbtEditor;
 import net.blockomorph.network.ServerBoundBlockMorphPacket;
 import net.blockomorph.network.ServerBoundSelfNbtRequestPacket;
 import net.blockomorph.screens.utils.GuiUtils;
+import net.blockomorph.screens.utils.SpriteImageButton;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
 public class PlayerBlockEntityNbtEditor extends NbtEditorScreen {
-	private boolean init;
+	private static final ResourceLocation BUTTON_REFRESH = GuiUtils.res("textures/screens/nbt_request.png");
+	protected boolean init;
+	private final Screen parentScreen;
+
+	public PlayerBlockEntityNbtEditor(Screen old) {
+		this.parentScreen = old;
+	}
 
 	private PlayerAccessor getPlayer() {
 		return PlayerAccessor.of(GuiUtils.MC.player);
@@ -28,5 +40,17 @@ public class PlayerBlockEntityNbtEditor extends NbtEditorScreen {
 			MorphUtils.sendServer(new ServerBoundSelfNbtRequestPacket());
 			this.init = true;
 		}
+
+		Button refreshButton = new SpriteImageButton(this.leftPos + 156, this.topPos + 6, 16, 16, BUTTON_REFRESH, b -> {
+			MorphUtils.sendServer(new ServerBoundSelfNbtRequestPacket());
+			this.setNewTag(null);
+		}, null, false);
+		refreshButton.setTooltip(Tooltip.create(Component.translatable("blockomorph.gui.nbtEditor.blockEntity.button.refresh.tooltip")));
+		this.addRenderableWidget(refreshButton);
+
+		Button done = Button.builder(Component.literal("<--"), b -> {
+			GuiUtils.MC.setScreen(this.parentScreen);
+		}).pos(this.leftPos - 25, this.topPos).size(20, 20).build();
+		this.addRenderableWidget(done);
 	}
 }

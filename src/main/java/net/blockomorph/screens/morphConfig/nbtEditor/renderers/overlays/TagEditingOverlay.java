@@ -1,14 +1,9 @@
 package net.blockomorph.screens.morphConfig.nbtEditor.renderers.overlays;
 
 import net.blockomorph.screens.utils.GuiUtils;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.events.AbstractContainerEventHandler;
-import net.minecraft.client.gui.components.events.ContainerEventHandler;
 import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,16 +12,39 @@ import java.util.function.Consumer;
 public abstract class TagEditingOverlay extends AbstractContainerEventHandler {
 	protected int width;
 	protected int height;
+	protected int imageLength;
+	protected int imageHeight;
 	protected Consumer<TagEditingOverlay> onChange;
 	private final List<AbstractWidget> widgets = new ArrayList<>();
 
-	public TagEditingOverlay() {}
+	public TagEditingOverlay(int imageLength, int imageHeigth) {
+		this.imageLength = imageLength;
+		this.imageHeight = imageHeigth;
+	}
 
 	public void init(int width, int height, Consumer<TagEditingOverlay> onChange) {
 		this.widgets.clear();
 		this.width = width;
 		this.height = height;
 		this.onChange = onChange;
+	}
+
+	@Override
+	public boolean mouseClicked(double mouseX, double mouseY, int type) {
+		if (this.closeOnEmptyClick(mouseX, mouseY, type)) {
+			this.onChange.accept(null);
+			return true;
+		}
+		return super.mouseClicked(mouseX, mouseY, type);
+	}
+
+	protected boolean closeOnEmptyClick(double mouseX, double mouseY, int type) {
+		if (type == 0) {
+			int x = this.width/2 - this.imageLength/2;
+			int y = this.height/2 - this.imageHeight/2;
+			return !GuiUtils.isMouseOver(x, y, x + this.imageLength, y + this.imageHeight, mouseX, mouseY);
+		}
+		return false;
 	}
 
 	public final void render(GuiUtils gui) {

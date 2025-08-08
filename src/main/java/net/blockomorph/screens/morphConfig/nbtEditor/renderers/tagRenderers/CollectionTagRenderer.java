@@ -120,7 +120,7 @@ public class CollectionTagRenderer<LIST extends CollectionTag> extends TagRender
 			this.signalChange(() -> {
 				this.getTag().addTag(index, tag);
 			}, false, index + 1);
-		}, this::getAddOverlayHint, HINT, this.allowedTypes);
+		}, this::getAddOverlayHint, HINT, true, this.allowedTypes);
 	}
 
 	private String getAddOverlayHint() {

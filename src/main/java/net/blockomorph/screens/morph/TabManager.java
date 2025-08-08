@@ -3,6 +3,7 @@ package net.blockomorph.screens.morph;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ListenerEditBox;
 import net.blockomorph.screens.utils.ScrollerManager;
+import net.blockomorph.utils.BannedBlock;
 import net.blockomorph.utils.SavedBlock;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -147,11 +148,19 @@ public class TabManager {
 	protected void putAllowedTabIfNeed() {
 		List<SavedBlock> blocks = BlocksManager.ALL_TAB_CONTENTS.get(getKeyFromTab(ALLOWED_TAB));
 		if (blocks != null) {
-			if (Config.getInstance().getValue("listMode", Config.Mode.class) == Config.Mode.NONE) {
+			if (!this.needAllowedTab) {
 				SPECIAL_TABS.remove(ALLOWED_TAB);
 			} else {
-				if (!SPECIAL_TABS.contains(ALLOWED_TAB))
-					SPECIAL_TABS.add(ALLOWED_TAB);
+				List<SavedBlock> filteredBlocks = blocks.stream().filter(savedBlock -> {
+					BannedBlock reason = BannedBlock.isBannedBlock(savedBlock.getState(), this.parentScreen.player, BannedBlock.Source.SYSTEM);
+					return reason == null || reason.systemLock();
+				}).toList();
+				if (filteredBlocks.size() != BlocksManager.ALL_BLOCKS.size()) {
+					if (!SPECIAL_TABS.contains(ALLOWED_TAB))
+						SPECIAL_TABS.add(ALLOWED_TAB);
+				} else {
+					SPECIAL_TABS.remove(ALLOWED_TAB);
+				}
 			}
 		}
 	}

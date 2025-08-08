@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
-import net.blockomorph.screens.morphConfig.BlockMorphConfigScreenOld;
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
 import net.blockomorph.utils.accessors.LevelRendererAccessor;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
@@ -76,10 +75,7 @@ public class MorphedPlayerRenderer {
 		EntityRenderState state = rend.createRenderState(tnt, partialticks);
 		try {
 			rend.render(state, posestack, buffer, light);
-		} catch (Exception e) {
-			if (player == Minecraft.getInstance().player && Minecraft.getInstance().screen instanceof BlockMorphConfigScreenOld sc)
-				sc.tagException = e.getMessage();
-		}
+		} catch (Exception ignored) {}
 	}
 
 	public void adjustMatrixForPlayer(PoseStack poseStack, PlayerAccessor pl, AbstractClientPlayer player) {
@@ -162,9 +158,7 @@ public class MorphedPlayerRenderer {
 					renderer.render(blockEntity, partialticks, posestack, src, light, OverlayTexture.NO_OVERLAY, cam.getPosition());
 					acc.setSpecialRenderingMode(false);
 				}
-			} catch (Exception e) {
-				if (player == Minecraft.getInstance().player && Minecraft.getInstance().screen instanceof BlockMorphConfigScreenOld sc)
-					sc.tagException = e.getMessage() == null ? e.getClass().toString() : e.getMessage();
+			} catch (Exception ignored) {
 			} finally {
 				posestack.popPose();
 			}

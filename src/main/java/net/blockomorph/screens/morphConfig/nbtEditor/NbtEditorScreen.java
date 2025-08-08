@@ -32,7 +32,6 @@ import java.util.function.Function;
 public abstract class NbtEditorScreen extends AbstractScreen {
 	private static final ScrollerManager.CustomBarData SCOLLER = new ScrollerManager.CustomBarData(GuiUtils.res("textures/screens/nbt_scroller.png"), 7, 15);
 	public static final ResourceLocation BUTTONS_SPRITE = GuiUtils.res("textures/screens/nbt_buttons.png");
-	private static final ResourceLocation WAITING_IMAGE = GuiUtils.res("textures/screens/nbt_waiting.png");
 	public static final ResourceLocation LOCK_IMAGE = GuiUtils.res("textures/screens/nbt_lock.png");
 	public static final int BUTTON_SPRITE_LENGTH = 46;
 	public static final int BUTTON_SPRITE_HEIGHT = 43;
@@ -75,7 +74,7 @@ public abstract class NbtEditorScreen extends AbstractScreen {
 	private boolean editorLocked;
 
 	protected NbtEditorScreen() {
-		super("nbt_editor_screen", new ScreenPosition(229, 191));
+		super("nbt_editor_screen", new ScreenPosition(204, 191));
 		this.scrollerManager = new ScrollerManager<>(() -> this.leftPos + 181, () -> this.topPos + 41, 138, 1, MAX_PLATES_COUNT, this.renderables, SCOLLER);
 		this.onTagEdited = () -> {
 			this.tagBox.setValue(this.editingTag.toString());
@@ -91,6 +90,9 @@ public abstract class NbtEditorScreen extends AbstractScreen {
 			this.editingTag = tag.copy();
 			this.tagBox.setValue(this.editingTag.toString());
 			if (!this.editorLocked) {
+				if (this.getTagByPath() == null) {
+					this.path = new NbtPath.RootNbtPath();
+				}
 				this.initList(false);
 			}
 		} else {
@@ -113,11 +115,15 @@ public abstract class NbtEditorScreen extends AbstractScreen {
 
 	protected abstract void onTagEdited(CompoundTag tag);
 
+	protected int getWaitingColor() {
+		return ARGB.color(255, 198, 198, 198);
+	}
+
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
 		super.render(guiGraphics, mouseX, mouseY, tick);
 		if (this.editingTag == null) {
-			this.gui.blitMonoImage(WAITING_IMAGE, this.leftPos, this.topPos, this.imageLength, this.imageHeight);
+			this.gui.fill(this.leftPos + 4, this.topPos + 4, this.leftPos + imageLength - 4, this.topPos + this.imageHeight - 4, this.getWaitingColor());
 			int x = this.leftPos + this.imageLength/2;
 			int y = this.topPos + this.imageHeight/2;
 			this.gui.drawCenteredString(Component.translatable("blockomorph.gui.nbtEditor.waitingTag"), x, y, -1, true);
@@ -329,7 +335,7 @@ public abstract class NbtEditorScreen extends AbstractScreen {
 				}
 			}, null, false, 0, 0, BUTTON_SPRITE_LENGTH, BUTTON_SPRITE_HEIGHT);
 		}
-		this.addButton.setPosition(this.internalBoxX + this.internalBoxLength + 3, this.internalBoxY + 3);
+		this.addButton.setPosition(this.leftPos + 177, this.topPos + 6);
 		this.addRenderableWidget(this.addButton);
 
 		if (!this.initialized) {
@@ -367,7 +373,8 @@ public abstract class NbtEditorScreen extends AbstractScreen {
 		this.initList(intr);
 	}
 
-	private void initList(boolean interpretationEnd) {
+	@Nullable
+	private TagRenderer<?> getTagByPath() {
 		Tag root = this.editingTag;
 		String previousName = "root";
 		for (String tagName : this.path.constructPath(new ArrayList<>())) {
@@ -380,25 +387,28 @@ public abstract class NbtEditorScreen extends AbstractScreen {
 					continue;
 				}
 			}
-			throw new IllegalArgumentException("Illegal path: " + this.path + " for tag: " + this.editingTag);
+			return null;
 		}
-		TagRenderer<?> rootRenderer = TagTypes.getRendererForTag("root", root, new TagRendererContext<>(this.provider(), this.onEntering, this.onTagEdited, this.onTagReceived, this::softEnteredTagRebuild));
-		if (rootRenderer != null) {
-			if (interpretationEnd) rootRenderer = Objects.requireNonNullElse(rootRenderer.getInterpretationRenderer(null), rootRenderer);
-			if (rootRenderer.canEnterInTag()) {
-				this.currentEnteredTag = rootRenderer;
-				List<RenderableTag<?>> renderableTags = new ArrayList<>();
-				for (TagRenderer<?> renderer : rootRenderer.getEnteringTags()) {
-					renderableTags.add(new RenderableTag<>(renderer));
-				}
-				this.scrollerManager.setMainList(renderableTags.stream().filter(RenderableTag::isValid).toList());
-				this.scrollerManager.setScrollOffset(0f);
-				this.scrollerManager.refreshList();
-				this.pathExit.visible = !this.path.isEmpty();
-				return;
+		return TagTypes.getRendererForTag(previousName, root, new TagRendererContext<>(this.provider(), this.onEntering, this.onTagEdited, this.onTagReceived, this::softEnteredTagRebuild));
+	}
+
+	private void initList(boolean interpretationEnd) {
+		TagRenderer<?> rootRenderer = this.getTagByPath();
+		if (rootRenderer == null) throw new IllegalArgumentException("Illegal path: " + this.path + " for tag: " + this.editingTag);
+		if (interpretationEnd) rootRenderer = Objects.requireNonNullElse(rootRenderer.getInterpretationRenderer(null), rootRenderer);
+		if (rootRenderer.canEnterInTag()) {
+			this.currentEnteredTag = rootRenderer;
+			List<RenderableTag<?>> renderableTags = new ArrayList<>();
+			for (TagRenderer<?> renderer : rootRenderer.getEnteringTags()) {
+				renderableTags.add(new RenderableTag<>(renderer));
 			}
+			this.scrollerManager.setMainList(renderableTags.stream().filter(RenderableTag::isValid).toList());
+			this.scrollerManager.setScrollOffset(0f);
+			this.scrollerManager.refreshList();
+			this.pathExit.visible = !this.path.isEmpty();
+			return;
 		}
-		throw new IllegalArgumentException("Tag: " + root.getType().getName() + " no enterable!");
+		throw new IllegalArgumentException("Tag: " + rootRenderer.getTag().getType().getName() + " no enterable!");
 	}
 
 	private void softEnteredTagRebuild(HashMap<String, String> mappings) {

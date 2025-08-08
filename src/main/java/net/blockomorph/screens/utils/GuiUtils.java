@@ -265,11 +265,10 @@ public class GuiUtils { //Cross-platform wrapper
 			if (renderer != null) {
 				ClientLevelAccessor acc = ClientLevelAccessor.of(MC.level);
 				try {
-					Camera cam = Minecraft.getInstance().getBlockEntityRenderDispatcher().camera; //TODO
+					Camera cam = Minecraft.getInstance().getBlockEntityRenderDispatcher().camera;
 					acc.setSpecialRenderingMode(true);
-					renderer.render(blockEntity, this.tick, stack, bufferSource, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY, cam.getPosition());
+					renderer.render(blockEntity, this.tick, stack, bufferSource, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY, cam.getPosition());//TODO
 				} catch (Exception ignored) {
-					boolean opa = true;
 				} finally {
 					acc.setSpecialRenderingMode(false);
 				}
@@ -291,5 +290,10 @@ public class GuiUtils { //Cross-platform wrapper
 
 	public static SoundInstance getClickSound() {
 		return SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1f);
+	}
+
+	public static void pushHotbarMessage(Component text) {
+		MC.gui.setOverlayMessage(text, false);
+		MC.getNarrator().sayNow(text);
 	}
 }

@@ -37,7 +37,7 @@ public class BlockTypeSelectorOverlay extends ScreenAdapterOverlay<AbstractMorph
 			public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
 				super.render(guiGraphics, mouseX, mouseY, tick);
 				Component text = Component.translatable("blockomorph.gui.stateSelectorOverlay.selectBlockType");
-				this.gui.drawCenteredString(text, this.width/2, this.topPos - 20, -1, true);
+				this.gui.drawCenteredString(text, this.width/2, this.topPos - (this.TAB_MANAGER.hasSearchBar() ? 30 : 20), -1, true);
 			}
 		});
 	}

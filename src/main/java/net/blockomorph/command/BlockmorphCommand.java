@@ -47,7 +47,7 @@ public class BlockmorphCommand {
 	private static int morphMany(CommandSourceStack stack, BlockState blockstate, Collection<ServerPlayer> players, CompoundTag tag) {
 		if (checkConfig(stack))
 			return 0;
-		MorphUtils.BannedBlock global = MorphUtils.isBannedBlock(blockstate, null);
+		BannedBlock global = BannedBlock.isBannedBlock(blockstate, null, BannedBlock.Source.COMMAND);
 		if (global != null) {
 			stack.sendFailure(
 					global.text()
@@ -57,7 +57,7 @@ public class BlockmorphCommand {
 		int success = 0;
 		for (ServerPlayer entity : players) {
 			if (entity instanceof PlayerAccessor pl) {
-				MorphUtils.BannedBlock reason = pl.applyBlockMorph(blockstate, tag);
+				BannedBlock reason = pl.applyBlockMorph(blockstate, tag, BannedBlock.Source.COMMAND);
 				if (reason == null)
 					success++;
 			}
@@ -70,7 +70,7 @@ public class BlockmorphCommand {
 	private static int morphSingle(CommandSourceStack stack, BlockState blockstate, ServerPlayer player, CompoundTag tag) {
 		if (checkConfig(stack))
 			return 0;
-		MorphUtils.BannedBlock reason = PlayerAccessor.of(player).applyBlockMorph(blockstate, tag);
+		BannedBlock reason = PlayerAccessor.of(player).applyBlockMorph(blockstate, tag, BannedBlock.Source.COMMAND);
 		if (reason != null) {
 			stack.sendFailure(
 					reason.text()

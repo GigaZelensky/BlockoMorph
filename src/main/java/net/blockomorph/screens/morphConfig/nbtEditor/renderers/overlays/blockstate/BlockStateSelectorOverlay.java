@@ -14,8 +14,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.function.Consumer;
 
 public class BlockStateSelectorOverlay extends TagEditingOverlay {
-	private static final int imageLength = 159;
-	private static final int imageHeight = 131;
 	private final Consumer<BlockState> handler;
 	private BlockState state;
 	private BlockEntity tempBE;
@@ -27,6 +25,7 @@ public class BlockStateSelectorOverlay extends TagEditingOverlay {
 	private Button typeEdit;
 
 	public BlockStateSelectorOverlay(BlockState state, Consumer<BlockState> handler) {
+		super(159, 131);
 		this.handler = handler;
 		this.state = state;
 		this.setTempBE();
@@ -56,7 +55,7 @@ public class BlockStateSelectorOverlay extends TagEditingOverlay {
 
 	@Override
 	protected void renderBackground(GuiUtils gui) {
-		gui.blitMonoImage(MENU, this.leftPos, this.topPos, imageLength, imageHeight);
+		gui.blitMonoImage(MENU, this.leftPos, this.topPos, this.imageLength, this.imageHeight);
 		this.renderString(gui);
 	}
 
@@ -94,8 +93,8 @@ public class BlockStateSelectorOverlay extends TagEditingOverlay {
 	@Override
 	public void init(int width, int height, Consumer<TagEditingOverlay> onChange) {
 		super.init(width, height, onChange);
-		this.leftPos = (this.width - imageLength) / 2;
-		this.topPos = (this.height - imageHeight) / 2;
+		this.leftPos = (this.width - this.imageLength) / 2;
+		this.topPos = (this.height - this.imageHeight) / 2;
 		this.propsRenderer = new BlockStatePropsRenderer(this.leftPos + 79, this.topPos + 20, 5, () -> this.state, this::changeBlockState);
 		this.exit = Button.builder(CommonComponents.GUI_DONE, b -> {
 			onChange.accept(null);

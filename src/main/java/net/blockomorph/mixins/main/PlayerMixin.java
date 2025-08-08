@@ -3,14 +3,10 @@ package net.blockomorph.mixins.main;
 import net.blockomorph.network.ClientBoundApplyBlockMorphPacket;
 import net.blockomorph.network.ClientBoundMorphUpdatePacket;
 import net.blockomorph.network.ClientBoundServerBlockEntityTagPacket;
-import net.blockomorph.screens.morphConfig.BlockMorphConfigScreenOld;
 import net.blockomorph.utils.*;
 import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.blockomorph.utils.tnt.TntHandler;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -85,9 +81,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		}
 		HITBOX_HANDLER.recalculatePositions();
 		this.refreshDimensions();
-
-		if (this.level().isClientSide && pos.equals(InPlayerBlockPos.ZERO))
-			this.clientUpdate();
 		return true;
 	}
 
@@ -328,15 +321,15 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	}
 
 	@Nullable
-	public MorphUtils.BannedBlock applyBlockMorph(BlockState state, CompoundTag tag) {
-		MorphUtils.BannedBlock mess = MorphUtils.isBannedBlock(state, null);
+	public BannedBlock applyBlockMorph(BlockState state, CompoundTag tag, BannedBlock.Source source) {
+		BannedBlock mess = BannedBlock.isBannedBlock(state, this, source);
 		if (mess != null) {
 			return mess;
 		}
 		BlockState old = this.getBlockState(InPlayerBlockPos.ZERO);
 		boolean flag = state.equals(old);
-		if ((tag == null || tag.isEmpty()) && flag)
-			return MorphUtils.BannedBlock.SAME;
+		if (tag == null && flag)
+			return BannedBlock.ALREADY_MORPHED;
 		MorphUtils.sendPlayer(new ClientBoundApplyBlockMorphPacket(state, this), (ServerPlayer) this.player());
 		this.onLoadingBlocks = true;
 		for (InPlayerBlockPos pos : this.blocksData.keySet()) {
@@ -347,7 +340,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		}
 		this.setBlockState(InPlayerBlockPos.ZERO, state, 3);
 		BlockInPlayer2 block = this.blocksData.get(InPlayerBlockPos.ZERO);
-		if (block != null && tag != null && !tag.isEmpty()) {
+		if (block != null && tag != null) {
 			Throwable e = block.loadNBT(tag);
 			ServerPlayer serverPlayer = (ServerPlayer) this.player();
 			if (e != null) {
@@ -411,12 +404,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 
 	public HitBoxCalculator getHitBoxHandler() {
 		return HITBOX_HANDLER;
-	}
-
-	@Environment(EnvType.CLIENT)
-	public void clientUpdate() {
-		if (Minecraft.getInstance().screen instanceof BlockMorphConfigScreenOld sc && Minecraft.getInstance().player == (PlayerAccessor)this)
-			sc.morphUpdate(this.getBlockState(InPlayerBlockPos.ZERO));
 	}
 
 	public VoxelShape getShape(InPlayerBlockPos offset, @Nullable Vec3 realPos) {

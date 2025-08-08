@@ -3,6 +3,7 @@ package net.blockomorph.screens.morph;
 import com.google.common.collect.ImmutableList;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ScrollerManager;
+import net.blockomorph.utils.BannedBlock;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.SavedBlock;
 import net.minecraft.client.player.LocalPlayer;
@@ -231,14 +232,15 @@ public class BlocksManager {
 
 	protected void putAllowedTab() {
 		ALL_TAB_CONTENTS.put(ALLOWED_TAB_KEY, ALL_BLOCKS.stream().map((block -> {
-			if (MorphUtils.isBannedBlock(block.defaultBlockState(), parentScreen.getPlayer().player()) == null) {
+			BannedBlock reason = BannedBlock.isBannedBlock(block.defaultBlockState(), parentScreen.getPlayer(), BannedBlock.Source.SYSTEM);
+			if (reason == null || reason.systemLock()) {
 				return new SavedBlock(block.defaultBlockState(), null, null);
 			}
 			return null;
 		})).filter(Objects::nonNull).toList());
 	}
 
-	public void updateAllowedBlocks() {
+	protected void updateAllowedBlocks() {
 		this.putAllowedTab();
 		TabManager tabs = this.parentScreen.TAB_MANAGER;
 		tabs.putAllowedTabIfNeed();
@@ -247,7 +249,6 @@ public class BlocksManager {
 				tabs.selectTab(TabManager.ALLOWED_TAB);
 			} else {
 				tabs.selectTab(CreativeModeTabs.getDefaultTab());
-				TabManager.tabPage = 0;
 			}
 		}
 	}

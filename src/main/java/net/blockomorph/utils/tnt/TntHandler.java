@@ -83,7 +83,7 @@ public class TntHandler {
 	}
 
 	private void deMorph() {
-		if (!this.player.level().isClientSide) this.pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), null);
+		if (!this.player.level().isClientSide) this.pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), null, BannedBlock.Source.SYSTEM);
 	}
 
 	public void setFuse(int i) {

@@ -71,17 +71,13 @@ import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 public class MorphUtils {
-	public static final ResourceKey<DamageType> PLAYER_DESTROYED = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("blockomorph", "player_destroyed"));
-	public static final ResourceKey<DamageType> PLAYER_DESTROYED_NULL = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("blockomorph", "player_destroyed_null"));
+	public static final ResourceKey<DamageType> PLAYER_DESTROYED = ResourceKey.create(Registries.DAMAGE_TYPE, res("player_destroyed"));
+	public static final ResourceKey<DamageType> PLAYER_DESTROYED_NULL = ResourceKey.create(Registries.DAMAGE_TYPE, res("player_destroyed_null"));
 	public static final Logger LOGGER = LoggerFactory.getLogger(BlockomorphServer.MOD_ID);
-	private static final HashMap<ResourceLocation, PacketInfo> handlers = new HashMap<>();
-	public static PacketInfo getHandler(ResourceLocation id) {
-		return handlers.get(id);
-	}
-
 	public static Path getGameDir() {
 		return FabricLoader.getInstance().getGameDir();
 	}
+
 
 	public static ResourceLocation res(String path) {
 		return ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, path);
@@ -89,6 +85,14 @@ public class MorphUtils {
 
 	public static ResourceLocation vanillaRes(String path) {
 		return ResourceLocation.withDefaultNamespace(path);
+	}
+
+
+	/****************************PACKET SYSTEM************************************/
+
+	private static final HashMap<ResourceLocation, PacketInfo> handlers = new HashMap<>();
+	public static PacketInfo getHandler(ResourceLocation id) {
+		return handlers.get(id);
 	}
 
 	public static void sendServer(BlockMorphPacket packet) {
@@ -106,42 +110,17 @@ public class MorphUtils {
 	}
 
 	public static void registerPacket(String id, Function<FriendlyByteBuf, BlockMorphPacket> bl, boolean client) {
-		ResourceLocation res = ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, id);
+		ResourceLocation res = res(id);
 		if (handlers.containsKey(res)) {
 			throw new IllegalArgumentException("Packet with Id: " + id + " alredy registered!");
 		}
-		handlers.put(ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, id), new PacketInfo(bl, client));
+		handlers.put(res, new PacketInfo(bl, client));
 	}
 
 	public record PacketInfo(Function<FriendlyByteBuf, BlockMorphPacket> packet, boolean isClient) {}
 
-	@Nullable
-	public static BannedBlock isBannedBlock(BlockState state, @Nullable Player pl) {
-		if (state.getBlock() instanceof LiquidBlock) {
-			return new BannedBlock("Morphing in liquids in development!", Component.translatable("commands.blockmorph.liquid"));
-		} else if (state.getBlock() == Blocks.AIR) {
-			return null;
-		}
-		String name = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
-		Config.Mode mode = Config.getInstance().getValue("listMode", Config.Mode.class);
-		if ((!state.isSolid() || state.getBlock() instanceof BarrierBlock || state.getBlock() instanceof MovingPistonBlock) && (state.getBlock() != Blocks.AIR) && Config.getInstance().getValue("solidBlocksOnly", Boolean.class)) {
-			return new BannedBlock("Block " + name + " not allowed because is solid!", Component.translatable("commands.blockmorph.solid"));
-		} else if (pl != null && ((PlayerAccessor)pl).getTnt() != null) {
-			return new BannedBlock("Block " + name + " not allowed because player-tnt caught fire!", Component.translatable("commands.blockmorph.tnt"));
-		} else if (mode == Config.Mode.WHITELIST) {
-			if (!Config.getInstance().getValue("allowedBlocks", List.class).contains(name))
-				return new BannedBlock("Block " + name + " not allowed because it not in whitelist!", Component.translatable("commands.blockmorph.whitelist"));
-		} else if (mode == Config.Mode.BLACKLIST) {
-			if (Config.getInstance().getValue("bannedBlocks", List.class).contains(name))
-				return new BannedBlock("Block " + name + " not allowed because it in blacklist!", Component.translatable("commands.blockmorph.blacklist"));
-		}
-		return null;
-	}
+	/****************************PACKET SYSTEM************************************/
 
-	public record BannedBlock(String reason, Component text) {
-		public static final BannedBlock SAME = new BannedBlock("You have already been turned into this block.",
-				Component.translatable("commands.blockomorph.blockSame"));
-	}
 
 	public static Predicate<String> blockPredicate() {
 		return value -> {
@@ -265,6 +244,16 @@ public class MorphUtils {
 	}
 
 	@Environment(EnvType.CLIENT)
+	public static boolean canOpenConfig() {
+		Minecraft mc = Minecraft.getInstance();
+		return mc.player != null && mc.player.hasPermissions(2) && Config.getInstance().getValue("canOperatorModifyConfig", Boolean.class);
+	}
+
+	public static Config.ScreenAccess getScreenAccess() {
+		return Config.getInstance().getValue("screenAccess", Config.ScreenAccess.class);
+	}
+
+	@Environment(EnvType.CLIENT)
 	public static boolean canOpenMenuIn(PlayerAccessor pl, InPlayerBlockPos offset) {
 		BlockInPlayer2 block = pl.getBlocksData2().get(offset);
 		if (block != null) {
@@ -303,7 +292,7 @@ public class MorphUtils {
 						tnt.setFuse(tnt.getFuse() / 2);
 					}
 				}
-				if (!(damage.is(PLAYER_DESTROYED) || damage.is(PLAYER_DESTROYED_NULL))) return true;
+				return !(damage.is(PLAYER_DESTROYED) || damage.is(PLAYER_DESTROYED_NULL));
 			}
 		}
 		return false;

@@ -1,14 +1,15 @@
 {
   "blockomorph.gui.morphScreen.allowed_tab": "Allowed blocks",
   "blockomorph.gui.morphConfigScreen.save": "Save",
+  "blockomorph.gui.morphConfigScreen.extended": "Extended",
   "blockomorph.gui.stateSelectorOverlay.selectBlock": "Select block",
   "blockomorph.gui.stateSelectorOverlay.selectBlockType": "Select block for NBT tag:",
   "blockomorph.gui.nbtEditor.restore": "Restore previous state",
   "blockomorph.gui.nbtEditor.addOverlay.hint.collectionTag": "Add tag to end of list:\n- Empty field\nAdd tag before element with (number):\n- Number of element",
   "blockomorph.gui.nbtEditor.waitingTag": "Waiting for tag from source",
-  "blockomorph.gui.nbtEditor.parseError.exception": "Error while saving tags:",
+  "blockomorph.gui.nbtEditor.parseError.exception": "Error while saving tags: ",
   "blockomorph.gui.nbtEditor.parseError.save": "The tag was not applied, most likely it is not allowed in this block or is not editable.",
-
+  "blockomorph.gui.nbtEditor.blockEntity.button.refresh.tooltip": "Refresh NBT tag from server",
 
   "blockomorph.commands.option_change.default": "Value of option \"%s\" changed to %s.",
   "blockomorph.commands.option_change.list.clear": "List-option \"%s\" has been cleared.",
@@ -18,5 +19,34 @@
   "blockomorph.commands.option_get.default": "Value of option \"%s\" is %s.",
   "blockomorph.commands.option_get.list": "Values of list-option \"%s\" with size %s is: %s",
 
-  "blockomorph.config_option."
+  "blockomorph.config_option.listMode": "List mode",
+  "blockomorph.config_option.solidBlocksOnly": "Solid blocks only",
+  "blockomorph.config_option.allowedBlocks": "Allowed blocks",
+  "blockomorph.config_option.bannedBlocks": "Banned blocks",
+  "blockomorph.config_option.playerDieAfterDestroy": "Player die after destroy",
+  "blockomorph.config_option.useMode": "Use mode",
+  "blockomorph.config_option.placeMode": "Place mode",
+  "blockomorph.config_option.canOperatorModifyConfig": "Can operator edit config",
+  "blockomorph.config_option.screenAccess": "Screen access",
+
+  "blockomorph.bannedBlock.same": "You are already this block.",
+  "blockomorph.bannedBlock.liquid": "Morphing in liquids in development!",
+  "blockomorph.bannedBlock.tnt": "You can't morph, when your TNT is lit!",
+  "blockomorph.bannedBlock.solid": "You do not have permission to turn into this block because not solid block not allowed.",
+  "blockomorph.bannedBlock.whitelist": "You do not have permission to turn into this block because it is not in the white list.",
+  "blockomorph.bannedBlock.blacklist": "You do not have permission to turn into this block because it is blacklisted.",
+
+  "blockomorph.key.morph_menu": "Block Morph GUI",
+  "blockomorph.key.morph_config_menu": "Block Morph Config GUI",
+  "blockomorph.key.config_menu": "Config options",
+  "blockomorph.key.morph_menu.error": "Morph menu disabled on this world!",
+  "blockomorph.key.morph_config_menu.error": "Morph config menu disabled on this world!",
+  "blockomorph.key.config_menu.error": "You can't access to edit config!",
+
+  "death.attack.player_destroyed": "%1$s broken was running away from %2$s",
+  "death.attack.player_destroyed.item": "%1$s was destroyed by %2$s using %3$s",
+  "death.attack.player_destroyed.player": "%1$s broken was running away from %2$s",
+  "death.attack.player_destroyed_null": "%1$s destroyed",
+  "death.attack.player_destroyed_null.item": "%1$s was destroyed by %2$s using %3$s",
+  "death.attack.player_destroyed_null.player": "%1$s broken was running away from %2$s"
 }

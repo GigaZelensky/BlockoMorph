@@ -16,10 +16,11 @@ import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 
 import java.util.function.Consumer;
 
-public abstract class AbstractMorphScreen extends AbstractScreen {
+public abstract class AbstractMorphScreen extends AbstractScreen implements ConfigSyncListener {
 	private static final ResourceLocation SEARCH_BAR = GuiUtils.res("textures/screens/searchbar.png");
 	private static final ResourceLocation MODE_TABS = GuiUtils.res("textures/screens/exit_tabs.png");
 	public static final SavedBlockManager SAVED_BLOCK_MANAGER = new SavedBlockManager(MorphUtils.getGameDir());
@@ -27,7 +28,7 @@ public abstract class AbstractMorphScreen extends AbstractScreen {
 	public final TabManager TAB_MANAGER;
 	public final BlocksManager BLOCKS_MANAGER;
 	protected PlayerAccessor player;
-	private final MorphScreenOptions options;
+	protected final MorphScreenOptions options;
 	protected boolean ignoreSearchBoxInput;
 
 
@@ -169,6 +170,9 @@ public abstract class AbstractMorphScreen extends AbstractScreen {
 		super.init();
 		this.initAdditional(this::addRenderableWidget);
 		TAB_MANAGER.init(this::addRenderableWidget);
+		if (!TAB_MANAGER.SPECIAL_TABS.contains(TabManager.selectedTab)) {
+			TabManager.selectedTab = CreativeModeTabs.getDefaultTab();
+		}
 		TAB_MANAGER.selectTab(TabManager.getSelectedTab());
 	}
 
@@ -192,6 +196,11 @@ public abstract class AbstractMorphScreen extends AbstractScreen {
 	@FunctionalInterface
 	public interface OnRenderingFrame {
 		void render(SavedBlock block, int x, int y);
+	}
+
+	@Override
+	public void onConfigSynced() {
+		BLOCKS_MANAGER.updateAllowedBlocks();
 	}
 
 	public record MorphScreenOptions(boolean useAllowedTab, boolean useSavedBlocksTab, boolean useUpperTabs) {

@@ -40,7 +40,7 @@ public class ClientBoundServerBlockEntityTagPacket implements BlockMorphPacket {
 				if (this.tagForGui != null) {
 					boolean exc = this.tagForGui.getBooleanOr("exc", true);
 					Component text = Component.translatable(exc ? "blockomorph.gui.nbtEditor.parseError.exception" : "blockomorph.gui.nbtEditor.parseError.save");
-					String error = (!exc ? ": " : " ") + text.getString() + this.tagForGui.getStringOr("err", null);
+					String error = text.getString() + this.tagForGui.getStringOr("err", null);
 					nbtEditor.setError(error);
 				}
 			} else nbtEditor.setNewTag(this.tagForGui);

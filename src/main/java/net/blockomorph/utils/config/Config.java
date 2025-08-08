@@ -30,7 +30,8 @@ public class Config {
 			new BooleanConfig("playerDieAfterDestroy", true, true, null),
 			new EnumConfig<>("useMode", UseMode.ALL, true, null),
 			new EnumConfig<>("placeMode", PlaceMode.OUT, true, null),
-			new BooleanConfig("canOperatorModifyConfig", true, false, null)
+			new BooleanConfig("canOperatorModifyConfig", true, false, null),
+			new EnumConfig<>("screenAccess", ScreenAccess.ALL, true, null)
 	);
 
 	private Config() {}
@@ -153,5 +154,20 @@ public class Config {
 		DISABLED,
 		IN,
 		OUT
+	}
+
+	public enum ScreenAccess {
+		NONE(false, false),
+		MORPH_SCREEN(true, false),
+		CONFIG_MORPH_SCREEN(false, true),
+		ALL(true, true);
+
+		public final boolean morph;
+		public final boolean config;
+
+		ScreenAccess(boolean morph, boolean config) {
+			this.morph = morph;
+			this.config = config;
+		}
 	}
 }

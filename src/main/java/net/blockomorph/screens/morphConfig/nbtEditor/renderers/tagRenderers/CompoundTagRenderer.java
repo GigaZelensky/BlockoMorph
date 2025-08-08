@@ -81,7 +81,7 @@ public class CompoundTagRenderer extends TagRenderer<CompoundTag> {
 		return new TagAddingOverlay<>(Objects::nonNull, (name, tag) -> {
 			this.getTag().put(name, tag);
 			this.signalChange();
-		}, () -> "Tag name", null, TagTypes.getRegisteredTags());
+		}, () -> "Tag name", null, true, TagTypes.getRegisteredTags());
 	}
 
 	@Override

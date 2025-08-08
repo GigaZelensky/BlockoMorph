@@ -40,6 +40,9 @@
   "blockomorph.gui.nbtEditor.waitingTag": "Waiting for tag from source",
   "blockomorph.gui.nbtEditor.parseError.exception": "Error while saving tags:",
   "blockomorph.gui.nbtEditor.parseError.save": "The tag was not applied, most likely it is not allowed in this block or is not editable.",
+  "blockomorph.gui.morphConfigScreen.extended": "Extended",
+  "blockomorph.gui.nbtEditor.blockEntity.button.refresh.tooltip": "Refresh NBT tag from server",
+  "blockomorph.gui.morphConfigScreen.save": "Save",
 
 
   "blockomorph.commands.option_change.default": "Value of option \"%s\" changed to %s.",

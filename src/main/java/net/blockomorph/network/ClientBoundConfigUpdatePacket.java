@@ -1,6 +1,6 @@
 package net.blockomorph.network;
 
-import net.blockomorph.screens.morph.AbstractMorphScreen;
+import net.blockomorph.screens.morph.ConfigSyncListener;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
@@ -31,8 +31,8 @@ public class ClientBoundConfigUpdatePacket implements BlockMorphPacket {
 	public void handle(Player player) {
 		if (!Minecraft.getInstance().isLocalServer())
 			Config.loadExternal(this.config);
-		if (Minecraft.getInstance().screen instanceof AbstractMorphScreen gui) {
-			gui.BLOCKS_MANAGER.updateAllowedBlocks();
+		if (Minecraft.getInstance().screen instanceof ConfigSyncListener gui) {
+			gui.onConfigSynced();
 		}
 	}
 }

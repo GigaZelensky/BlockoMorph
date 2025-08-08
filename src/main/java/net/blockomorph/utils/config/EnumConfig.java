@@ -20,7 +20,7 @@ public class EnumConfig<T extends Enum<T>> extends ConfigInstance<T> {
 
 	public EnumConfig(String name, T initialValue, boolean canOperatorModify, @Nullable Component tip) {
 		super(name, initialValue, canOperatorModify, tip);
-		this.classType = value.getDeclaringClass();
+		this.classType = this.value.getDeclaringClass();
 	}
 
 	public Class<T> getEnumClass() {

@@ -3,22 +3,23 @@ package net.blockomorph.screens.morph;
 import net.blockomorph.network.ServerBoundBlockMorphPacket;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.SpriteImageButton;
+import net.blockomorph.utils.BannedBlock;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.SavedBlock;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.TntBlock;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -30,8 +31,8 @@ public class MorphScreen extends AbstractMorphScreen {
 	private static final ResourceLocation SELECTED_FRAME = GuiUtils.res("textures/screens/selected.png");
 	private SpriteImageButton fuseButton;
 
-	public MorphScreen() {
-		super(MorphScreenOptions.ALL);
+	public MorphScreen(MorphScreenOptions options) {
+		super(options);
 	}
 
 	@Override
@@ -47,6 +48,12 @@ public class MorphScreen extends AbstractMorphScreen {
 	}
 
 	@Override
+	protected void init() {
+		super.init();
+		this.checkSavedTab();
+	}
+
+	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
 		super.render(guiGraphics, mouseX, mouseY, tick);
 		this.fuseButtonVisibilityCheck();
@@ -56,9 +63,35 @@ public class MorphScreen extends AbstractMorphScreen {
 		this.fuseButton.visible = this.player.getBlockState(InPlayerBlockPos.ZERO).getBlock() instanceof TntBlock;
 	}
 
+	@Nullable
+	private BannedBlock isBannedBlock(SavedBlock block) {
+		return BannedBlock.isBannedBlock(block.getState(), this.player, BannedBlock.Source.NETWORK);
+	}
+
+	@Override
+	public void onConfigSynced() {
+		super.onConfigSynced();
+		this.checkSavedTab();
+	}
+
+	private void checkSavedTab() {
+		if (this.options.useSavedBlocksTab()) {
+			CreativeModeTab savedBlocks = TabManager.getTabFromKey(CreativeModeTabs.HOTBAR);
+			if (!MorphUtils.getScreenAccess().config) {
+				TAB_MANAGER.SPECIAL_TABS.remove(savedBlocks);
+				if (TabManager.getSelectedTab() == savedBlocks) {
+					TAB_MANAGER.selectTab(CreativeModeTabs.getDefaultTab());
+				}
+			} else {
+				if (!TAB_MANAGER.SPECIAL_TABS.contains(savedBlocks))
+					TAB_MANAGER.SPECIAL_TABS.add(2, savedBlocks);
+			}
+		}
+	}
+
 	@Override
 	protected SoundInstance onClickOnBlock(SavedBlock block, int number, CreativeModeTab selectedTab, int page) {
-		if (MorphUtils.isBannedBlock(block.getState(), this.player.player()) == null) {
+		if (this.isBannedBlock(block) == null) {
 			MorphUtils.sendServer(ServerBoundBlockMorphPacket.create(block.getState(), block.getTag()));
 			return GuiUtils.getClickSound();
 		}
@@ -68,7 +101,7 @@ public class MorphScreen extends AbstractMorphScreen {
 	@Override
 	protected void renderFrame(SavedBlock block, int x, int y) {
 		BlockState state = block.getState();
-		MorphUtils.BannedBlock ban = MorphUtils.isBannedBlock(state, this.player.player());
+		BannedBlock ban = this.isBannedBlock(block);
 		if (ban != null) {
 			gui.blitMonoImage(LOCK_FRAME, x, y, BLOCK_FRAME_SIZE, BLOCK_FRAME_SIZE);
 			return;
@@ -88,7 +121,7 @@ public class MorphScreen extends AbstractMorphScreen {
 	protected void renderTooltip() {
 		SavedBlock block = BLOCKS_MANAGER.getBlockAtPosition(gui.getMouseX(), gui.getMouseY());
 		if (block != null) {
-			MorphUtils.BannedBlock ban = MorphUtils.isBannedBlock(block.getState(), this.player.player());
+			BannedBlock ban = this.isBannedBlock(block);
 			if (ban != null) {
 				Component name = block.getName() == null ? block.getState().getBlock().getName() : Component.literal(block.getName());
 				List<Component> hints = List.of(name, Component.literal(ChatFormatting.RED + ban.text().getString()));
