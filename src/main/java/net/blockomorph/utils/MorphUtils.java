@@ -3,6 +3,7 @@ package net.blockomorph.utils;
 import com.mojang.serialization.DataResult;
 import net.blockomorph.BlockomorphServer;
 import net.blockomorph.network.*;
+import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.config.*;
 
 
@@ -325,7 +326,7 @@ public class MorphUtils {
 		int x = width / 2 - 91;
 		int y = height - 39;
 
-		renderBar(gui, x, y, progress);
+		//renderBar(gui, x, y, progress);
 
 		for (int i = 0; i < maxHearts; i++) {
 			int xPos = x + i * 8;
@@ -333,7 +334,10 @@ public class MorphUtils {
 
 
 			if (i < 9 - progress) {
-				gui.blitSprite(RenderType::guiTextured, sprite, xPos + 1, yPos + 1, 7, 7);
+				GuiUtils guiUtils = new GuiUtils();
+				guiUtils.setGuiGraphics(gui, Minecraft.getInstance().font, -100, -100, 0);
+				guiUtils.blit(sprite.atlasLocation(), xPos, yPos, sprite.getU0(), sprite.getV0(), 7, 7, (int)sprite.getU1(), (int)sprite.getV1());
+				//gui.blitSprite(RenderType::guiTextured, sprite, xPos + 1, yPos + 1, 7, 7);
 			}
 		}
 	}

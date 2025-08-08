@@ -1,13 +1,14 @@
 package net.blockomorph.screens.utils;
 
 import com.mojang.blaze3d.platform.Lighting;
+import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.blockomorph.BlockomorphServer;
+import net.blockomorph.screens.overlay.Overlay;
+import net.blockomorph.screens.overlay.PlayerCrackOverlay;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -33,7 +34,6 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.BlockItemStateProperties;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -41,19 +41,18 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
-import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
-import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.IntConsumer;
 
 public class GuiUtils { //Cross-platform wrapper
 	public static final BlockPos AIR = new BlockPos(0, 500, 0);
 	public static final Minecraft MC = Minecraft.getInstance();
+	public static final List<Overlay> OVERLAYS = new ArrayList<>();
 	private static final Vector3f DIFFUSE_LIGHT_START;
 	private static final Vector3f DIFFUSE_LIGHT_END;
 	public static final MultiBufferSource.BufferSource bufferSource = MC.renderBuffers().bufferSource();
@@ -70,6 +69,7 @@ public class GuiUtils { //Cross-platform wrapper
 		Matrix4f matrix4f = (new Matrix4f()).scaling(1.0F, -1.0F, 1.0F).rotateYXZ(1.0821041F, 3.2375858F, 0.0F).rotateYXZ((-(float)Math.PI / 1.3F), 2.3561945F, 0.0F);
 		DIFFUSE_LIGHT_START = matrix4f.transformDirection((new Vector3f(0.2F, 1.0F, -0.7F)).normalize(), new Vector3f());
 		DIFFUSE_LIGHT_END = matrix4f.transformDirection((new Vector3f(-0.2F, 1.0F, 0.7F)).normalize(), new Vector3f());
+		OVERLAYS.add(new PlayerCrackOverlay());
 	}
 
 	public static ResourceLocation res(String path) {
@@ -192,6 +192,15 @@ public class GuiUtils { //Cross-platform wrapper
 		stack.translate(0, 0, 300);
 		rendering.run();
 		stack.popPose();
+	}
+
+	public static void renderOverlay(GuiGraphics gui, float delta) {
+		GuiUtils guiUtils = new GuiUtils();
+		guiUtils.setGuiGraphics(gui, MC.font, -100, -100, delta);
+		Window window = Minecraft.getInstance().getWindow();
+		if (MC.level != null) {
+			OVERLAYS.forEach(overlay -> overlay.render(guiUtils, window.getGuiScaledWidth(), window.getGuiScaledHeight()));
+		}
 	}
 
 	private void doMainRenderingItem(PoseStack stack) {

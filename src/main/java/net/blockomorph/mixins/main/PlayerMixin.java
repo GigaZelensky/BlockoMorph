@@ -53,6 +53,8 @@ import java.util.function.Predicate;
 public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor {
 	@Shadow protected abstract boolean canPlayerFitWithinBlocksAndEntitiesWhen(Pose pose);
 
+	@Shadow public abstract void remove(RemovalReason removalReason);
+
 	private static final EntityDataAccessor<Integer> TNT_PROGRESS = SynchedEntityData.defineId(Player.class, EntityDataSerializers.INT);
 	private final TntHandler TNT_HANDLER = new TntHandler(this, this.entityData, TNT_PROGRESS);
 	private final HitBoxCalculator HITBOX_HANDLER = new HitBoxCalculator(this);
@@ -395,9 +397,12 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 
 	public int getBiggestProgress() {
 		if (this.blocksData != null) {
-			BlockInPlayer2 main = this.blocksData.get(InPlayerBlockPos.ZERO);
-			if (main != null)
-				return MorphedPlayerRenderer.getBrakeProgress(main.getPos());
+			int progress = -1;
+			for (BlockInPlayer2 block : this.blocksData.values()) {
+				int k = MorphedPlayerRenderer.getBrakeProgress(block.getPos());
+				if (k > progress) progress = k;
+			}
+			return progress;
 		}
 		return -1;
 	}

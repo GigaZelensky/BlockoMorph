@@ -1,7 +1,7 @@
 package net.blockomorph.core;
 
 import net.blockomorph.command.*;
-import net.blockomorph.screens.PlayerCrackOverlay;
+import net.blockomorph.screens.overlay.PlayerCrackOverlay;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.network.*;
 import net.blockomorph.utils.config.*;
@@ -28,7 +28,6 @@ public class MainBus {
 				context.client().getConnection().getConnection().disconnect(Component.literal(e.getMessage()));
 			}
 		});
-		HudRenderCallback.EVENT.register(PlayerCrackOverlay::render);
 		KeyMappings.registerKeyMappings(KeyBindingHelper::registerKeyBinding);
 	}
 
@@ -36,13 +35,8 @@ public class MainBus {
 		registerMain();
 	}
 
-	//@SuppressWarnings("rawtypes")
+	@SuppressWarnings({"deprecated", "internal"})
 	private static void registerMain() {
-		/*ArgumentTypeRegistry.registerArgumentType(
-				GuiUtils.res("enum_argument"),//ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, "enum_argument"),
-				Enum2Argument.class,//EnumArgument.class,
-				new Enum2Argument.ContextInfo<>()//new EnumArgument.ContextInfo()
-		);*/
 		CommandRegistrationCallback.EVENT.register((dispatcher, commandBuildContext, environment) -> {
 			BlockmorphCommand.register(dispatcher, commandBuildContext, environment);
 			BlockmorphconfigCommand.register(dispatcher, commandBuildContext, environment);
