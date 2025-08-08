@@ -5,6 +5,7 @@ import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import net.blockomorph.screens.overlay.BlockHeartOverlay;
 import net.blockomorph.screens.overlay.Overlay;
 import net.blockomorph.screens.overlay.PlayerCrackOverlay;
 import net.blockomorph.utils.MorphUtils;
@@ -20,6 +21,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
@@ -56,8 +58,8 @@ public class GuiUtils { //Cross-platform wrapper
 	private static final Vector3f DIFFUSE_LIGHT_START;
 	private static final Vector3f DIFFUSE_LIGHT_END;
 	public static final MultiBufferSource.BufferSource bufferSource = MC.renderBuffers().bufferSource();
-	private static final BlockRenderDispatcher blockRenderer = MC.getBlockRenderer();
-	private static final BlockEntityRenderDispatcher blockEntityRenderer = MC.getBlockEntityRenderDispatcher();
+	public static final BlockRenderDispatcher blockRenderer = MC.getBlockRenderer();
+	public static final BlockEntityRenderDispatcher blockEntityRenderer = MC.getBlockEntityRenderDispatcher();
 	private ItemStackRenderState scratchItemStackRenderState;
 	private GuiGraphics GUI;
 	private int mouseX;
@@ -70,6 +72,7 @@ public class GuiUtils { //Cross-platform wrapper
 		DIFFUSE_LIGHT_START = matrix4f.transformDirection((new Vector3f(0.2F, 1.0F, -0.7F)).normalize(), new Vector3f());
 		DIFFUSE_LIGHT_END = matrix4f.transformDirection((new Vector3f(-0.2F, 1.0F, 0.7F)).normalize(), new Vector3f());
 		OVERLAYS.add(new PlayerCrackOverlay());
+		OVERLAYS.add(new BlockHeartOverlay());
 	}
 
 	public static ResourceLocation res(String path) {
@@ -116,8 +119,8 @@ public class GuiUtils { //Cross-platform wrapper
 		y - start of texture Y (left up corner)
 		uvMaxX - length of start of UV
 		uvMaxY - length of start of UV
-		max X - length
-		max Y - height
+		max X - length \
+		max Y - height /   - size on screen
 	*/
 	public void blit(ResourceLocation resourceLocation, int x, int y, float u, float v, int uvMaxX, int uvMaxY, int maxX, int maxY) {
 		GUI.blit(RenderType::guiTextured, resourceLocation, x, y, u, v, uvMaxX, uvMaxY, maxX, maxY);
@@ -137,6 +140,10 @@ public class GuiUtils { //Cross-platform wrapper
 
 	public void renderSprite(ResourceLocation resourceLocation, int x, int y, int maxSizeX, int maxSizeY) {
 		GUI.blitSprite(RenderType::guiTextured, resourceLocation, x, y, maxSizeX, maxSizeY);
+	}
+
+	public void renderFromSpriteClass(TextureAtlasSprite sprite, int x, int y, int maxSizeX, int maxSizeY) {
+		GUI.blitSprite(RenderType::guiTextured, sprite, x, y, maxSizeX, maxSizeY);
 	}
 
 	public void drawString(Component text, int x, int y, int color, boolean useShadow) {

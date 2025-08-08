@@ -334,10 +334,7 @@ public class MorphUtils {
 
 
 			if (i < 9 - progress) {
-				GuiUtils guiUtils = new GuiUtils();
-				guiUtils.setGuiGraphics(gui, Minecraft.getInstance().font, -100, -100, 0);
-				guiUtils.blit(sprite.atlasLocation(), xPos, yPos, sprite.getU0(), sprite.getV0(), 7, 7, (int)sprite.getU1(), (int)sprite.getV1());
-				//gui.blitSprite(RenderType::guiTextured, sprite, xPos + 1, yPos + 1, 7, 7);
+				gui.blitSprite(RenderType::guiTextured, sprite, xPos + 1, yPos + 1, 7, 7);
 			}
 		}
 	}

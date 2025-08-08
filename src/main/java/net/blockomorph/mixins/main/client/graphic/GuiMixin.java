@@ -2,6 +2,7 @@ package net.blockomorph.mixins.main.client.graphic;
 
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.MorphUtils;
+import net.blockomorph.utils.PlayerAccessor;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
@@ -24,6 +25,6 @@ public class GuiMixin {
 
 	@Inject(method = "renderHearts", at = @At("HEAD"), cancellable = true)
 	private void renderHearts(GuiGraphics guiGraphics, Player player, int i, int j, int k, int l, float f, int m, int n, int o, boolean bl, CallbackInfo ci) {
-		if (MorphUtils.onHudRender(guiGraphics)) ci.cancel();
+		if (PlayerAccessor.of(player).isActive()) ci.cancel();
 	}
 }
