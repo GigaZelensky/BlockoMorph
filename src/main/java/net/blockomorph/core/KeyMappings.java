@@ -31,7 +31,7 @@ public class KeyMappings {
 	private static final ArrayList<KeyMapping> KEYS = new ArrayList<>();
 
 	public static final KeyMapping MORPH = new HandlerKeymapping("morph_menu", GLFW.GLFW_KEY_Y, () -> {
-		Config.ScreenAccess access = MorphUtils.getScreenAccess();
+		Config.ScreenAccess access = MorphUtils.getScreenAccess(mc.player);
 		if (access.morph) {
 			mc.setScreen(new MorphScreen(new AbstractMorphScreen.MorphScreenOptions(true, true, access.config)).ignoreInitInput());
 			return true;
@@ -40,7 +40,7 @@ public class KeyMappings {
 	});
 
 	public static final KeyMapping MORPH_CONFIG = new HandlerKeymapping("morph_config_menu", GLFW.GLFW_KEY_U, () -> {
-		Config.ScreenAccess access = MorphUtils.getScreenAccess();
+		Config.ScreenAccess access = MorphUtils.getScreenAccess(mc.player);
 		if (access.config) {
 			mc.setScreen(new MorphConfigScreen(access.morph));
 			return true;

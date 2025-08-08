@@ -50,7 +50,7 @@ public class ServerBoundBlockMorphPacket implements BlockMorphPacket {
 	}
 
 	private void doMorph(PlayerAccessor player, BlockState state, CompoundTag nbt) {
-		Config.ScreenAccess access = MorphUtils.getScreenAccess();
+		Config.ScreenAccess access = MorphUtils.getScreenAccess(player.player());
 		if (!access.morph) {
 			if (!player.getBlockState(InPlayerBlockPos.ZERO).is(state.getBlock())) {
 				throw new IllegalArgumentException("You not have access to change your blockstate.");

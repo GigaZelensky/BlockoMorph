@@ -43,10 +43,10 @@ public class BlockStateSelectorOverlay extends TagEditingOverlay {
 		gui.renderBlockInGui(this.state, this.tempBE, this.leftPos + 63.85f, this.topPos + 64f, 36f);
 		gui.renderAdditionalOnBlock(this.state, this.leftPos + 30.5f, this.topPos + 40.5f, 55f);
 		this.propsRenderer.render(gui);
-		String text = Component.translatable("blockomorph.gui.stateSelectorOverlay.selectBlock").getString();
+		String[] text = Component.translatable("blockomorph.gui.stateSelectorOverlay.selectBlock").getString().split("\n");
 		int x = this.leftPos + 8 + (this.typeEdit.getWidth()/2);
-		gui.drawCenteredString(Component.literal(text.split(" ")[0]), x, this.topPos + 84, -1, true);
-		gui.drawCenteredString(Component.literal(text.split(" ")[1]), x, this.topPos + 93, -1, true);
+		gui.drawCenteredString(Component.literal(text[0]), x, this.topPos + 84, -1, true);
+		gui.drawCenteredString(Component.literal(text[1]), x, this.topPos + 93, -1, true);
 
 		if (GuiUtils.isMouseOver(this.leftPos + 8, this.topPos + 18, this.leftPos + 69, this.topPos + 79, gui.getMouseX(), gui.getMouseY())) {
 			gui.renderTooltip(this.state.getBlock().getName(), gui.getMouseX(), gui.getMouseY());

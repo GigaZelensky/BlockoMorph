@@ -77,7 +77,7 @@ public class MorphScreen extends AbstractMorphScreen {
 	private void checkSavedTab() {
 		if (this.options.useSavedBlocksTab()) {
 			CreativeModeTab savedBlocks = TabManager.getTabFromKey(CreativeModeTabs.HOTBAR);
-			if (!MorphUtils.getScreenAccess().config) {
+			if (!MorphUtils.getScreenAccess(this.player.player()).config) {
 				TAB_MANAGER.SPECIAL_TABS.remove(savedBlocks);
 				if (TabManager.getSelectedTab() == savedBlocks) {
 					TAB_MANAGER.selectTab(CreativeModeTabs.getDefaultTab());

@@ -11,7 +11,6 @@ import net.minecraft.nbt.*;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class TagTypes {
@@ -23,7 +22,7 @@ public class TagTypes {
 		RENDERERS.put(type, factory);
 	}
 
-	public static void registerTagCreator(TagType<?> type, Supplier<?> creator) {
+	public static <T extends Tag> void registerTagCreator(TagType<T> type, Supplier<T> creator) {
 		if (TAGS.containsKey(type)) throw new IllegalArgumentException("Type " + type.getName() + " already registered!");
 		TAGS.put(type, creator);
 	}

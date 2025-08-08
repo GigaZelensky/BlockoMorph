@@ -25,6 +25,7 @@ public class Config {
 	public final List<ConfigInstance<?>> OPTIONS = List.of(
 			new EnumConfig<>("listMode", Mode.NONE, true, null),
 			new BooleanConfig("solidBlocksOnly", false, true, null),
+			new BooleanConfig("offUnbreakableBlocks", false, true, null),
 			new BlockListConfig("allowedBlocks", new ArrayList<>(), true, null, new BlockListConfig.ListOptionContext(MorphUtils.res("textures/screens/sel_good.png"), MorphUtils.blockPredicate(), MorphUtils.blockPredicate(), true)),
 			new BlockListConfig("bannedBlocks", new ArrayList<>(), true, null, new BlockListConfig.ListOptionContext(MorphUtils.res("textures/screens/sel_bad.png"), MorphUtils.blockPredicate(), MorphUtils.blockPredicate(), true)),
 			new BooleanConfig("playerDieAfterDestroy", true, true, null),

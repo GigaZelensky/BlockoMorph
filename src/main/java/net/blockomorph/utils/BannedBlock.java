@@ -48,6 +48,15 @@ public record BannedBlock(String reason, Component text, boolean systemLock) {
 		});
 
 		TESTS.add((state, player, source) -> {
+			if (state.getBlock().defaultDestroyTime() < 0) {
+				if (Config.getInstance().getValue("offUnbreakableBlocks", Boolean.class)) {
+					return new BannedBlock("Unbreakable blocks not allowed!", Component.translatable("blockomorph.bannedBlock.unbreakable"));
+				}
+			}
+			return null;
+		});
+
+		TESTS.add((state, player, source) -> {
 			if ((!state.isSolid() || state.getRenderShape() == RenderShape.INVISIBLE) && Config.getInstance().getValue("solidBlocksOnly", Boolean.class)) {
 				return new BannedBlock("Not solid blocks not allowed!", Component.translatable("blockomorph.bannedBlock.solid"));
 			}

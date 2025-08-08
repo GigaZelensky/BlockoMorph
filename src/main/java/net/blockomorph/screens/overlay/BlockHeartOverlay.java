@@ -11,7 +11,7 @@ public class BlockHeartOverlay implements Overlay {
 
 	@Override
 	public void render(GuiUtils gui, int screenWidth, int screenHeight) {
-		if (GuiUtils.MC.player instanceof PlayerAccessor player && GuiUtils.MC.gameMode != null && GuiUtils.MC.gameMode.canHurtPlayer()) {
+		if (GuiUtils.MC.player instanceof PlayerAccessor player && player.isActive() && GuiUtils.MC.gameMode != null && GuiUtils.MC.gameMode.canHurtPlayer()) {
 			int progress = player.getBiggestProgress();
 			int x = screenWidth/2 - 90;
 			int y = screenHeight - 38;

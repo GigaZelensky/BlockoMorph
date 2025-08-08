@@ -250,7 +250,8 @@ public class MorphUtils {
 		return mc.player != null && mc.player.hasPermissions(2) && Config.getInstance().getValue("canOperatorModifyConfig", Boolean.class);
 	}
 
-	public static Config.ScreenAccess getScreenAccess() {
+	public static Config.ScreenAccess getScreenAccess(Player player) {
+		if (player != null && player.getPermissionLevel() > 2) return Config.ScreenAccess.ALL;
 		return Config.getInstance().getValue("screenAccess", Config.ScreenAccess.class);
 	}
 

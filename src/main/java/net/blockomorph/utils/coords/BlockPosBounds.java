@@ -1,10 +1,8 @@
 package net.blockomorph.utils.coords;
 
-import net.blockomorph.BlockomorphServer;
 import net.blockomorph.network.ClientBoundBlockPosBoundPacket;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.Config;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtAccounter;

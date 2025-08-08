@@ -1,6 +1,7 @@
 
 package net.blockomorph.command;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.blockomorph.utils.*;
 import net.blockomorph.utils.accessors.BlockAccessor;
 import net.blockomorph.utils.config.*;
@@ -44,7 +45,7 @@ public class BlockmorphCommand {
 		);
 	}
 
-	private static int morphMany(CommandSourceStack stack, BlockState blockstate, Collection<ServerPlayer> players, CompoundTag tag) {
+	private static int morphMany(CommandSourceStack stack, BlockState blockstate, Collection<ServerPlayer> players, CompoundTag tag) throws CommandSyntaxException {
 		if (checkConfig(stack))
 			return 0;
 		BannedBlock global = BannedBlock.isBannedBlock(blockstate, null, BannedBlock.Source.COMMAND);
@@ -62,8 +63,11 @@ public class BlockmorphCommand {
 					success++;
 			}
 		}
+		if (success == 0) {
+			throw EntityArgument.NO_PLAYERS_FOUND.create();
+		}
 		final int result = success;
-		stack.sendSuccess(() -> Component.translatable("commands.blockmorph.many", result, blockstate.getBlock().getName()), true);
+		stack.sendSuccess(() -> Component.translatable("blockomorph.morphCommand.many", result, blockstate.getBlock().getName()), true);
 		return players.size();
 	}
 
@@ -77,7 +81,7 @@ public class BlockmorphCommand {
 			);
 			return 0;
 		}
-		stack.sendSuccess(() -> Component.translatable("commands.blockmorph.you", blockstate.getBlock().getName()), true);
+		stack.sendSuccess(() -> Component.translatable("blockomorph.morphCommand.single", blockstate.getBlock().getName()), true);
 		return 1;
 	}
 
