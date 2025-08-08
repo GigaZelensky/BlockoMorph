@@ -20,9 +20,4 @@ public class GuiMixin {
 	private void renderHearts(GuiGraphics guiGraphics, Player player, int i, int j, int k, int l, float f, int m, int n, int o, boolean bl, CallbackInfo ci) {
 		if (MorphUtils.onHudRender(guiGraphics)) ci.cancel();
 	}
-
-	@Inject(method = "*()V", at = @At("HEAD"), cancellable = true)
-	private void run(GuiGraphics gui, CallbackInfo ci) {
-
-	}
 }
