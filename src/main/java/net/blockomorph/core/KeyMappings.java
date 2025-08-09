@@ -1,24 +1,16 @@
 package net.blockomorph.core;
 
-import net.blockomorph.screens.TestScreen;
-import net.blockomorph.screens.TestScreen2;
-import net.blockomorph.screens.TestScreen3;
 import net.blockomorph.screens.config.ConfigScreen;
 import net.blockomorph.screens.morph.AbstractMorphScreen;
 import net.blockomorph.screens.morph.MorphScreen;
 import net.blockomorph.screens.morphConfig.MorphConfigScreen;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.MorphUtils;
-import net.blockomorph.utils.SavedBlock;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.CreativeModeTab;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
@@ -57,7 +49,7 @@ public class KeyMappings {
 	});
 
 	public static final KeyMapping DEBUG = new HandlerKeymapping("debug", GLFW.GLFW_KEY_J, () -> {
-		if (false) {
+		/*if (false) {
 			AbstractMorphScreen sc = new AbstractMorphScreen(AbstractMorphScreen.MorphScreenOptions.CONFIG) {
 				@Override
 				protected void initAdditional(Consumer<AbstractWidget> action) {
@@ -91,17 +83,17 @@ public class KeyMappings {
 			GuiUtils.MC.setScreen(sc);
 		} else {
 			GuiUtils.MC.setScreen(new TestScreen(false));
-		}
+		}*/
 		return true;
 	});
 
 	public static final KeyMapping DEBUG2 = new HandlerKeymapping("debug2", GLFW.GLFW_KEY_K, () -> {
-		mc.setScreen(new TestScreen2());
+		//mc.setScreen(new TestScreen2());
 		return true;
 	});
 
 	public static final KeyMapping DEBUG3 = new HandlerKeymapping("debug3", GLFW.GLFW_KEY_L, () -> {
-		mc.setScreen(new TestScreen3());
+		//mc.setScreen(new TestScreen3());
 		return true;
 	});
 

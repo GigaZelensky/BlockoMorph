@@ -18,6 +18,7 @@ public class PlayerBlockEntityNbtEditor extends NbtEditorScreen {
 	private static final ResourceLocation BUTTON_REFRESH = GuiUtils.res("textures/screens/nbt_request.png");
 	protected boolean init;
 	private final Screen parentScreen;
+	private Button exit;
 
 	public PlayerBlockEntityNbtEditor(Screen old) {
 		this.parentScreen = old;
@@ -25,6 +26,14 @@ public class PlayerBlockEntityNbtEditor extends NbtEditorScreen {
 
 	private PlayerAccessor getPlayer() {
 		return PlayerAccessor.of(GuiUtils.MC.player);
+	}
+
+	@Override
+	public boolean mouseClicked(double mouseX, double mouseY, int type) {
+		if (this.exit.mouseClicked(mouseX, mouseY, type)) {
+			return true;
+		}
+		return super.mouseClicked(mouseX, mouseY, type);
 	}
 
 	@Override
@@ -52,5 +61,6 @@ public class PlayerBlockEntityNbtEditor extends NbtEditorScreen {
 			GuiUtils.MC.setScreen(this.parentScreen);
 		}).pos(this.leftPos - 25, this.topPos).size(20, 20).build();
 		this.addRenderableWidget(done);
+		this.exit = done;
 	}
 }

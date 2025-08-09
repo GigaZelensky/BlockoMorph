@@ -26,7 +26,7 @@ public record BannedBlock(String reason, Component text, boolean systemLock) {
 
 	static {
 		TESTS.add((state, player, source) -> {
-			if (state.isAir()) return ALWAYS_ON;
+			if (state.isAir() && (source != Source.NETWORK || (player != null && player.getTnt() == null))) return ALWAYS_ON;
 			return null;
 		});
 

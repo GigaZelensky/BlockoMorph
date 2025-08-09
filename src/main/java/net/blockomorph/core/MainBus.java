@@ -35,7 +35,6 @@ public class MainBus {
 		registerMain();
 	}
 
-	@SuppressWarnings({"deprecated", "internal"})
 	private static void registerMain() {
 		CommandRegistrationCallback.EVENT.register((dispatcher, commandBuildContext, environment) -> {
 			BlockmorphCommand.register(dispatcher, commandBuildContext, environment);

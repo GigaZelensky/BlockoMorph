@@ -30,7 +30,7 @@
   "blockomorph.config_option.useMode": "Режим клика по блоку",
   "blockomorph.config_option.placeMode": "Режим размещения блоков",
   "blockomorph.config_option.canOperatorModifyConfig": "Может ли оператор редактировать конфигурацию",
-  "blockomorph.config_option.screenAccess": "Доступ к ГУИ",
+  "blockomorph.config_option.screenAccess": "Доступ к меню",
 
   "blockomorph.bannedBlock.same": "Вы уже превращены в этот блок",
   "blockomorph.bannedBlock.liquid": "Превращение в жидкости в разработке!",

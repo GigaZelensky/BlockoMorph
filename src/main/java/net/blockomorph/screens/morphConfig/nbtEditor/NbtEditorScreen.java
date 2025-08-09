@@ -355,6 +355,7 @@ public abstract class NbtEditorScreen extends AbstractScreen {
 			this.pathExit = Button.builder(Component.literal("<--"), button -> {
 				this.enterInTag(this.path.back(), false);
 			}).size(22, 9).build();
+			this.pathExit.visible = false;
 		}
 		this.pathExit.setPosition(this.internalBoxX + 146, this.internalBoxY + 4);
 		this.addRenderableWidget(this.pathExit);
