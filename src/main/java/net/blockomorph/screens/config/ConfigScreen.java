@@ -3,12 +3,9 @@ package net.blockomorph.screens.config;
 import net.blockomorph.screens.AbstractScreen;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.config.Config;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.events.GuiEventListener;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 
 import java.util.Optional;
 
