@@ -48,55 +48,6 @@ public class KeyMappings {
 		return false;
 	});
 
-	public static final KeyMapping DEBUG = new HandlerKeymapping("debug", GLFW.GLFW_KEY_J, () -> {
-		/*if (false) {
-			AbstractMorphScreen sc = new AbstractMorphScreen(AbstractMorphScreen.MorphScreenOptions.CONFIG) {
-				@Override
-				protected void initAdditional(Consumer<AbstractWidget> action) {
-
-				}
-
-				@Override
-				protected void renderFrame(SavedBlock block, int x, int y) {
-
-				}
-
-				@Override
-				protected SoundInstance onClickOnBlock(SavedBlock block, int number, CreativeModeTab selectedTab, int page) {
-					GuiUtils.MC.setScreen(new TestScreen(block.getState(), true) {
-						@Override
-						protected void init() {
-							super.init();
-							Button button = Button.builder(Component.literal("<--"), b -> {
-								open();
-							}).pos(this.leftPos - 25, this.topPos).size(20, 20).build();
-							this.addRenderableWidget(button);
-						}
-					});
-					return null;
-				}
-
-				public void open() {
-					GuiUtils.MC.setScreen(this);
-				}
-			};
-			GuiUtils.MC.setScreen(sc);
-		} else {
-			GuiUtils.MC.setScreen(new TestScreen(false));
-		}*/
-		return true;
-	});
-
-	public static final KeyMapping DEBUG2 = new HandlerKeymapping("debug2", GLFW.GLFW_KEY_K, () -> {
-		//mc.setScreen(new TestScreen2());
-		return true;
-	});
-
-	public static final KeyMapping DEBUG3 = new HandlerKeymapping("debug3", GLFW.GLFW_KEY_L, () -> {
-		//mc.setScreen(new TestScreen3());
-		return true;
-	});
-
 	static void registerKeyMappings(Consumer<KeyMapping> register) {
 		for (KeyMapping key : KEYS) {
 			register.accept(key);
