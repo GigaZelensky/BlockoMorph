@@ -130,11 +130,11 @@ public abstract class AbstractMorphScreen extends AbstractScreen implements Conf
 	}
 
 	@Override
-	public boolean mouseScrolled(double x, double y, double xScrolled, double yScrolled) {
+	public boolean mouseScrolled(double x, double y, double yScrolled) {
 		if (BLOCKS_MANAGER.scrollerManager.mouseScrolled(yScrolled)) {
 			return true;
 		}
-		return super.mouseScrolled(x, y, xScrolled, yScrolled);
+		return super.mouseScrolled(x, y, yScrolled);
 	}
 
 	public AbstractMorphScreen ignoreInitInput() {

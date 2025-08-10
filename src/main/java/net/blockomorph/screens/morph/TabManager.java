@@ -28,9 +28,9 @@ import java.util.function.Function;
 
 public class TabManager {
 	protected static final CreativeModeTab ALLOWED_TAB = CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0).title(Component.translatable("blockomorph.gui.morphScreen.allowed_tab")).icon(() -> new ItemStack(Items.NETHER_STAR)).build();
+	private static final ResourceLocation TABS_SPRITE = GuiUtils.res("textures/screens/block_selector_tabs.png");
 	protected final AbstractMorphScreen parentScreen;
 	protected final List<CreativeModeTab> CONTENT_TABS;
-	protected static final Function<String, ResourceLocation> TAB_LOCATION = (tabName) -> GuiUtils.vanillaRes("textures/gui/sprites/advancements/tab_" + tabName+ ".png");
 	protected final List<CreativeModeTab> SPECIAL_TABS;
 	protected static CreativeModeTab selectedTab = CreativeModeTabs.getDefaultTab();
 	protected static int tabPage = 0;
@@ -173,8 +173,7 @@ public class TabManager {
 	protected void renderSpecialTabs(GuiUtils gui) {
 		for (int i = 0; i < SPECIAL_TABS.size(); i++) {
 			int tabXSpecial = parentScreen.getLeftPos() + parentScreen.imageLength - 38 - i * 32;
-			String selectedWord = (this.isSelected(true, i) ? "_selected" : "");
-			gui.blitMonoImage(TAB_LOCATION.apply("below_middle" + selectedWord), tabXSpecial, this.getTabY(-1), 28, 32);
+			gui.blit(TABS_SPRITE, tabXSpecial, this.getTabY(-1), this.isSelected(true, i) ? 28 : 0, 0, 28, 32, 64, 88);
 			this.renderItemInTab(gui, null, i, -1);
 		}
 	}
@@ -184,9 +183,10 @@ public class TabManager {
 		for (int i = tabPage * 10; i < tabPage * 10 + 10; i++) {
 			if (i < CONTENT_TABS.size()) {
 				boolean isRight = count >= 5;
-				String selectedWord = (this.isSelected(false, i) ? "_selected" : "");
+				//String selectedWord = (this.isSelected(false, i) ? "_selected" : "");
 				int tabXSpecial = parentScreen.getLeftPos() + (isRight ? parentScreen.imageLength - 4 : -28);
-				gui.blitMonoImage(TAB_LOCATION.apply((isRight ? "right" : "left") + "_middle" + selectedWord), tabXSpecial, this.getTabY(count), 32, 28);
+				//gui.blitMonoImage(TAB_LOCATION.apply((isRight ? "right" : "left") + "_middle" + selectedWord), tabXSpecial, this.getTabY(count), 32, 28);
+				gui.blit(TABS_SPRITE, tabXSpecial, this.getTabY(count), isRight ? 32 : 0, this.isSelected(false, i) ? 60 : 32, 32, 28, 64, 88);
 				this.renderItemInTab(gui, isRight, i, count);
 				count++;
 			} else break;

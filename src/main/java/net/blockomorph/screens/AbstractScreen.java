@@ -35,6 +35,15 @@ public class AbstractScreen extends Screen {
 	}
 
 	@Override
+	public final boolean mouseScrolled(double mouseX, double mouseY, double xScrollOffset, double yScrollOffset) {
+		return this.mouseScrolled(mouseX, mouseY, yScrollOffset);
+	}
+
+	public boolean mouseScrolled(double mouseX, double mouseY, double yScrollOffset) {
+		return super.mouseScrolled(mouseX, mouseY, 0, yScrollOffset);
+	}
+
+	@Override
 	public boolean isPauseScreen() {
 		return false;
 	}

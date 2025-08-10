@@ -107,11 +107,11 @@ public class MorphConfigScreen extends AbstractScreen {
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double xWheelOffset, double yWheelOffset) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double yWheelOffset) {
 		if (this.propertiesRenderer.mouseScrolled(mouseX, mouseY, yWheelOffset)) {
 			return true;
 		}
-		return super.mouseScrolled(mouseX, mouseY, xWheelOffset, yWheelOffset);
+		return super.mouseScrolled(mouseX, mouseY, yWheelOffset);
 	}
 
 	@Override
