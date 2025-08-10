@@ -1,15 +1,12 @@
 package net.blockomorph.mixins.main;
 
-import net.blockomorph.Blockomorph;
 import net.blockomorph.network.ClientBoundApplyBlockMorphPacket;
 import net.blockomorph.network.ClientBoundMorphUpdatePacket;
 import net.blockomorph.network.ClientBoundServerBlockEntityTagPacket;
-import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.utils.*;
 import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.blockomorph.utils.tnt.TntHandler;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -39,8 +36,6 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -86,8 +81,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		HITBOX_HANDLER.recalculatePositions();
 		this.refreshDimensions();
 
-		if (this.level().isClientSide && pos.equals(InPlayerBlockPos.ZERO))
-			this.clientUpdate();
 		return true;
 	}
 
@@ -135,7 +128,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	}
 
 	public void breakingModeStart(boolean yes) {
-		if ((Boolean) Config.getInstance().getValue("playerDieAfterDestroy") || !yes)
+		if ((Boolean) Config.getInstance().getValue("playerDieAfterDestroy", Boolean.class) || !yes)
 			this.breakingMode = yes;
 	}
 
@@ -197,7 +190,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 				tg.put("BlockEntityTag", blockTag);
 				blocks.put(pos.string(), tg);
 			} catch (Exception e) {
-				Blockomorph.LOGGER.error("An error occurred while saving morphed player data on pos: " + pos + " for block: " + data.getBlockState() + " on player: " + this.getName().getString(), e);
+				MorphUtils.LOGGER.error("An error occurred while saving morphed player data on pos: " + pos + " for block: " + data.getBlockState() + " on player: " + this.getName().getString(), e);
 			}
 		});
 		return blocks;
@@ -282,9 +275,8 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 			try {
 				if (ent.getUpdatePacket() != null)
 					this.sendNearby(ent.getUpdatePacket());
-				MorphUtils.sendPlayer(new ClientBoundServerBlockEntityTagPacket(block.getOffset(), ent.saveWithoutMetadata(this.registryAccess())), (ServerPlayer) this.player());
 			} catch (Exception e) {
-				Blockomorph.LOGGER.error("An error occurred while sending morphed player data on pos: " + block.getOffset() + " for block: " + block.getBlockState() + " on player: " + this.getName().getString(), e);
+				MorphUtils.LOGGER.error("An error occurred while sending morphed player data on pos: " + block.getOffset() + " for block: " + block.getBlockState() + " on player: " + this.getName().getString(), e);
 			}
 		}
 	}
@@ -409,17 +401,14 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 
 	public int getBiggestProgress() {
 		if (this.blocksData != null) {
-			BlockInPlayer2 main = this.blocksData.get(InPlayerBlockPos.ZERO);
-			if (main != null)
-				return MorphedPlayerRenderer.getBrakeProgress(main.getPos());
+			int progress = -1;
+			for (BlockInPlayer2 block : this.blocksData.values()) {
+				int k = MorphedPlayerRenderer.getBrakeProgress(block.getPos());
+				if (k > progress) progress = k;
+			}
+			return progress;
 		}
 		return -1;
-	}
-
-	@OnlyIn(Dist.CLIENT)
-	public void clientUpdate() {
-		if (Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc && Minecraft.getInstance().player == (PlayerAccessor)this)
-			sc.morphUpdate(this.getBlockState(InPlayerBlockPos.ZERO));
 	}
 
 	public VoxelShape getShape(InPlayerBlockPos offset, @Nullable Vec3 realPos) {

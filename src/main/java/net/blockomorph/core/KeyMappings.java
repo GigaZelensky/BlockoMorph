@@ -48,7 +48,7 @@ public class KeyMappings {
 		return false;
 	});
 
-	static void registerKeyMappings(Consumer<KeyMapping> register) {
+	public static void registerKeyMappings(Consumer<KeyMapping> register) {
 		for (KeyMapping key : KEYS) {
 			register.accept(key);
 		}

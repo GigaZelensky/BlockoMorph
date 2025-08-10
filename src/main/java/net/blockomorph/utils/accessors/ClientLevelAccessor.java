@@ -1,11 +1,10 @@
 package net.blockomorph.utils.accessors;
 
-import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.level.Level;
 
 public interface ClientLevelAccessor {
-	boolean blockEntityRendering();
-	void setBlockEntityRenderingMode(boolean yes);
+	boolean specialRenderingMode();
+	void setSpecialRenderingMode(boolean yes);
 
 	static ClientLevelAccessor of(Level lv) {
 		if (lv instanceof ClientLevelAccessor acc)
@@ -15,8 +14,8 @@ public interface ClientLevelAccessor {
 
 	ClientLevelAccessor NULL = new ClientLevelAccessor() {
 		@Override
-		public boolean blockEntityRendering() { return false; }
+		public boolean specialRenderingMode() { return false; }
 		@Override
-		public void setBlockEntityRenderingMode(boolean yes) {}
+		public void setSpecialRenderingMode(boolean yes) {}
 	};
 }

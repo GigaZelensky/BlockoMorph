@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 
 public interface PlayerAccessor {
-    MorphUtils.BannedBlock applyBlockMorph(BlockState state, CompoundTag tag);
+    BannedBlock applyBlockMorph(BlockState state, CompoundTag tag, BannedBlock.Source source);
     boolean isActive();
     boolean isFullActive();
     VoxelShape getShape(InPlayerBlockPos offset, @Nullable Vec3 realPos);

@@ -15,6 +15,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.model.data.ModelData;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -28,7 +29,6 @@ public class BlockInPlayer2 {
 	private BlockEntityTicker blockEntityTicker;
 	//client only \/
 	private ModelData data = ModelData.EMPTY;
-	private CompoundTag serverTag = new CompoundTag(); //temp
 
 	public BlockInPlayer2(PlayerAccessor pl, InPlayerBlockPos pos, BlockState state, Consumer<BlockInPlayer2> preInit) {
 		this.offset = pos;
@@ -59,13 +59,16 @@ public class BlockInPlayer2 {
 		return offset;
 	}
 
-	public BlockInPlayer2 loadNBT(CompoundTag tg) {
+	@Nullable
+	public Throwable loadNBT(CompoundTag tg) {
 		if (this.blockEntity != null) {
 			try {
-				this.blockEntity.loadWithComponents(tg, this.player.registryAccess());
-			} catch (Exception ignored) {}
+				this.blockEntity.loadWithComponents(tg, this.player.level().registryAccess());
+			} catch (Throwable e) {
+				return e;
+			}
 		}
-		return this;
+		return null;
 	}
 
 	public BlockInPlayer2 handleClientTag(CompoundTag tg, ClientBoundMorphUpdatePacket pkt) {
@@ -131,7 +134,6 @@ public class BlockInPlayer2 {
 	public void clearBlockEntity() {
 		this.blockEntity = null;
 		this.blockEntityTicker = null;
-		this.serverTag = new CompoundTag();
 	}
 
 	private void initBlockEntity() {
@@ -150,22 +152,12 @@ public class BlockInPlayer2 {
 		}
 	}
 
-	public CompoundTag getServerTag() {
-		return this.serverTag;
-	}
-
 	public void connectModelData(ModelData data) {
 		this.data = Objects.requireNonNullElse(data, ModelData.EMPTY);
 	}
 
 	public ModelData getModelData() {
 		return this.data;
-	}
-
-	public BlockInPlayer2 setServerTag(CompoundTag serverTag) {
-		if (this.blockEntity != null && this.player.level().isClientSide)
-			this.serverTag = Objects.requireNonNullElse(serverTag, new CompoundTag());
-		return this;
 	}
 
 	public void tick() {
@@ -175,7 +167,7 @@ public class BlockInPlayer2 {
 					blockEntityTicker.tick(this.player.level(), this.pos, this.blockState, this.blockEntity);
 				} catch (Exception e) {
 					this.blockEntityTicker = null;
-					Blockomorph.LOGGER.error(
+					MorphUtils.LOGGER.error(
 							"An unexpected exception occurred while ticking a block entity in a transformed player with username " +
 									this.player.getName().getString() +
 									": ", e

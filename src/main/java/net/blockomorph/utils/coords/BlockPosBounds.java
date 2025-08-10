@@ -109,7 +109,7 @@ public class BlockPosBounds {
         try {
             tg = NbtIo.readCompressed(FILE.toPath(), NbtAccounter.unlimitedHeap());
         } catch (IOException ex) {
-            Blockomorph.LOGGER.fatal("Unable to read PLAYER-BLOCKPOS mappings.", ex);
+            MorphUtils.LOGGER.error("Unable to read PLAYER-BLOCKPOS mappings.", ex);
             return;
         }
         for (String key : tg.keySet()) {
@@ -126,7 +126,7 @@ public class BlockPosBounds {
         try {
             NbtIo.writeCompressed(tg, FILE.toPath());
         } catch (IOException ex) {
-            Blockomorph.LOGGER.fatal("Unable to save PLAYER-BLOCKPOS mappings.", ex);
+            MorphUtils.LOGGER.error("Unable to save PLAYER-BLOCKPOS mappings.", ex);
         }
     }
 

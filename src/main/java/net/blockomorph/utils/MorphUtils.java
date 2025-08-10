@@ -2,6 +2,9 @@ package net.blockomorph.utils;
 
 import com.mojang.serialization.DataResult;
 import net.blockomorph.Blockomorph;
+import net.blockomorph.command.BlockmorphCommand;
+import net.blockomorph.command.BlockmorphconfigCommand;
+import net.blockomorph.core.KeyMappings;
 import net.blockomorph.network.*;
 import net.blockomorph.utils.config.*;
 
@@ -47,7 +50,9 @@ import java.nio.file.Path;
 import java.util.List;
 import javax.annotation.Nullable;
 
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RenderBlockScreenEffectEvent;
+import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDrownEvent;
 import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
@@ -110,11 +115,11 @@ public class MorphUtils {
 	}
 
 	public static void registerPacket(String id, Function<FriendlyByteBuf, BlockMorphPacket> bl, boolean client) {
-		ResourceLocation res = ResourceLocation.fromNamespaceAndPath(Blockomorph.MODID, id);
+		ResourceLocation res = res(id);
 		if (handlers.containsKey(res)) {
 			throw new IllegalArgumentException("Packet with Id: " + id + " alredy registered!");
 		}
-		handlers.put(ResourceLocation.fromNamespaceAndPath(Blockomorph.MODID, id), new PacketInfo(bl, client));
+		handlers.put(res, new PacketInfo(bl, client));
 	}
 
 	public record PacketInfo(Function<FriendlyByteBuf, BlockMorphPacket> packet, boolean isClient) {}
@@ -125,6 +130,17 @@ public class MorphUtils {
 	public static void run(ServerStartingEvent event) {
 		Config.setServer(event.getServer());
 		BlockPosBounds.load();
+	}
+
+	@SubscribeEvent
+	public static void commandRegister(RegisterCommandsEvent event) {
+		BlockmorphconfigCommand.register(event.getDispatcher(), event.getBuildContext(), event.getCommandSelection());
+		BlockmorphCommand.register(event.getDispatcher(), event.getBuildContext(), event.getCommandSelection());
+	}
+
+	@SubscribeEvent
+	public static void registerKeys(RegisterKeyMappingsEvent event) {
+		KeyMappings.registerKeyMappings(event::register);
 	}
 
 	@SubscribeEvent
@@ -203,7 +219,7 @@ public class MorphUtils {
 	public static boolean needRejectUse(Level lv, BlockHitResult block) {
 		if (InPlayerBlockPos.isMorphedPlayerX(block.getBlockPos().getX())) {
 			BlockState state = lv.getBlockState(block.getBlockPos());
-			Config.UseMode mode = Config.getInstance().getValue("useMode");
+			Config.UseMode mode = Config.getInstance().getValue("useMode", Config.UseMode.class);
 			switch (mode) {
 				case DISABLED -> {
 					return true;
@@ -219,7 +235,7 @@ public class MorphUtils {
 
 	public static UseOnContext checkOnRealIfOut(UseOnContext ctx, ItemStack stack) {
 		if (stack.getItem() instanceof BlockItem && InPlayerBlockPos.isMorphedPlayerX(ctx.getClickedPos().getX())) {
-			Config.PlaceMode mode = Config.getInstance().getValue("placeMode");
+			Config.PlaceMode mode = Config.getInstance().getValue("placeMode", Config.PlaceMode.class);
 			if (mode == Config.PlaceMode.OUT) {
 				Vec3 realHit = InPlayerBlockPos.checkOnReal(ctx.getClickLocation());
 				realHit = toDirection(realHit, ctx.getClickedFace());
@@ -253,7 +269,7 @@ public class MorphUtils {
 	@SubscribeEvent
 	public static void onRightClick(PlayerInteractEvent.RightClickBlock event) {
 		if (event.getEntity().getItemInHand(event.getHand()).getItem() instanceof BlockItem) {
-			Config.PlaceMode mode = Config.getInstance().getValue("placeMode");
+			Config.PlaceMode mode = Config.getInstance().getValue("placeMode", Config.PlaceMode.class);
 			if (mode == Config.PlaceMode.DISABLED && InPlayerBlockPos.isMorphedPlayerX(event.getHitVec().getBlockPos().getX())) {
 				event.setUseItem(TriState.FALSE);
 			}
@@ -268,6 +284,12 @@ public class MorphUtils {
 			return pr != null;
 		}
 		return false;
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	public static boolean canOpenConfig() {
+		Minecraft mc = Minecraft.getInstance();
+		return mc.player != null && mc.player.hasPermissions(2) && Config.getInstance().getValue("canOperatorModifyConfig", Boolean.class);
 	}
 
 	public static Config.ScreenAccess getScreenAccess(Player player) {
@@ -305,14 +327,6 @@ public class MorphUtils {
 	public static void onPlayerDrown(LivingDrownEvent event) {
 		if (event.getEntity() instanceof PlayerAccessor pl) {
 			if (pl.isActive()) event.setDrowning(false);
-		}
-	}
-
-	@OnlyIn(Dist.CLIENT)
-	@SubscribeEvent
-	public static void onRenderFire(RenderBlockScreenEffectEvent event) {
-		if (((PlayerAccessor)event.getPlayer()).isActive()) {
-			if (event.getOverlayType() == RenderBlockScreenEffectEvent.OverlayType.FIRE) event.setCanceled(true);
 		}
 	}
 
