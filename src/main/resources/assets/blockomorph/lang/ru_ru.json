@@ -8,7 +8,7 @@
   "blockomorph.gui.nbtEditor.addOverlay.hint.collectionTag": "Добавить тег в конец списка:\n- Пустое поле\nДобавить тег перед элементом с (номер):\n- Номер элемента",
   "blockomorph.gui.nbtEditor.waitingTag": "Ожидание тега от источника",
   "blockomorph.gui.nbtEditor.parseError.exception": "Ошибка при сохранении тега:",
-  "blockomorph.gui.nbtEditor.parseError.save": "Тег не был применен, скорее всего, он недопустим в этом блоке или недоступен для редактирования.",
+  "blockomorph.gui.nbtEditor.parseError.save": "Тег не был применен, скорее всего, он неуместен или недоступен для изменения.",
   "blockomorph.gui.nbtEditor.blockEntity.button.refresh.tooltip": "Обновить NBT тег с сервера",
 
   "blockomorph.commands.option_change.default": "Значение параметра \"%s\" изменено на %s.",

@@ -65,6 +65,7 @@
     "main.client.graphic.BlockModelRendererMixin",
     "main.client.graphic.BlockTintCacheMixin",
     "main.client.graphic.DebugScreenMixin",
+    "main.client.graphic.GuiFireRenderMixin",
     "main.client.graphic.GuiMixin",
     "main.client.graphic.LevelRenderMixin",
     "main.client.graphic.ModelRendererMixin",
