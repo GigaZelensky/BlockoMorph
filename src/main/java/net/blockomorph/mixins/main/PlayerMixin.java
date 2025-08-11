@@ -190,7 +190,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 				tg.put("BlockEntityTag", blockTag);
 				blocks.put(pos.string(), tg);
 			} catch (Exception e) {
-				BlockomorphServer.LOGGER.error("An error occurred while saving morphed player data on pos: " + pos + " for block: " + data.getBlockState() + " on player: " + this.getName().getString(), e);
+				MorphUtils.LOGGER.error("An error occurred while saving morphed player data on pos: " + pos + " for block: " + data.getBlockState() + " on player: " + this.getName().getString(), e);
 			}
 		});
 		return blocks;
@@ -275,7 +275,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 				if (ent.getUpdatePacket() != null)
 					this.sendNearby(ent.getUpdatePacket());
 			} catch (Exception e) {
-				BlockomorphServer.LOGGER.error("An error occurred while sending morphed player data on pos: " + block.getOffset() + " for block: " + block.getBlockState() + " on player: " + this.getName().getString(), e);
+				MorphUtils.LOGGER.error("An error occurred while sending morphed player data on pos: " + block.getOffset() + " for block: " + block.getBlockState() + " on player: " + this.getName().getString(), e);
 			}
 		}
 	}

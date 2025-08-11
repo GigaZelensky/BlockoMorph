@@ -87,7 +87,7 @@ public class BlockInPlayer2 {
 			try {
 				old.onRemove(this.player.level(), this.pos, state, update);
 			} catch (Exception e) {
-				BlockomorphServer.LOGGER.error("An error occurred while removing block in morphed player on pos: " + this.offset + " for block: " + old + " on player: " + this.player.getName().getString(), e);
+				MorphUtils.LOGGER.error("An error occurred while removing block in morphed player on pos: " + this.offset + " for block: " + old + " on player: " + this.player.getName().getString(), e);
 			} finally {
 				if (this.needRemoveBlockEntity(old, state))
 					this.clearBlockEntity();
@@ -134,7 +134,7 @@ public class BlockInPlayer2 {
 					blockEntityTicker.tick(this.player.level(), this.pos, this.blockState, this.blockEntity);
 				} catch (Exception e) {
 					this.blockEntityTicker = null;
-					BlockomorphServer.LOGGER.error(
+					MorphUtils.LOGGER.error(
 							"An unexpected exception occurred while ticking a block entity in a transformed player with username " +
 									this.player.getName().getString() +
 									": ", e

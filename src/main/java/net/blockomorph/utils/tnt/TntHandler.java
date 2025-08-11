@@ -73,7 +73,7 @@ public class TntHandler {
 					}
 				}
 			} catch (Exception e) {
-				BlockomorphServer.LOGGER.error("Error while ticking TNT in morphed player " + this.player.getDisplayName().getString(), e);
+				MorphUtils.LOGGER.error("Error while ticking TNT in morphed player " + this.player.getDisplayName().getString(), e);
 				this.deMorph();
 			}
 		}
@@ -103,7 +103,7 @@ public class TntHandler {
 					} catch (Exception e) {
 						TNT = lv.extractTnt();
 						if (TNT == null) {
-							BlockomorphServer.LOGGER.error("Error while init TNT in morphed player " + this.player.getDisplayName().getString(), e);
+							MorphUtils.LOGGER.error("Error while init TNT in morphed player " + this.player.getDisplayName().getString(), e);
 							return false;
 						}
 					}
