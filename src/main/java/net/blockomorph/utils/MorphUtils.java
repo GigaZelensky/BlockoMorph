@@ -182,7 +182,7 @@ public class MorphUtils {
 	public static boolean needRejectUse(Level lv, BlockHitResult block) {
 		if (InPlayerBlockPos.isMorphedPlayerX(block.getBlockPos().getX())) {
 			BlockState state = lv.getBlockState(block.getBlockPos());
-			Config.UseMode mode = Config.getInstance().getValue("useMode");
+			Config.UseMode mode = Config.getInstance().getValue("useMode", Config.UseMode.class);
 			switch (mode) {
 				case DISABLED -> {
 					return true;
@@ -198,7 +198,7 @@ public class MorphUtils {
 
 	public static UseOnContext checkOnRealIfOut(UseOnContext ctx, ItemStack stack) {
 		if (stack.getItem() instanceof BlockItem && InPlayerBlockPos.isMorphedPlayerX(ctx.getClickedPos().getX())) {
-			Config.PlaceMode mode = Config.getInstance().getValue("placeMode");
+			Config.PlaceMode mode = Config.getInstance().getValue("placeMode", Config.PlaceMode.class);
 			if (mode == Config.PlaceMode.OUT) {
 				Vec3 realHit = InPlayerBlockPos.checkOnReal(ctx.getClickLocation());
 				realHit = toDirection(realHit, ctx.getClickedFace());
@@ -252,13 +252,13 @@ public class MorphUtils {
 	}
 
 	public static Config.ScreenAccess getScreenAccess(Player player) {
-		if (player != null && player.hasPermissionLevel(2)) return Config.ScreenAccess.ALL;
+		if (player != null && player.hasPermissions(2)) return Config.ScreenAccess.ALL;
 		return Config.getInstance().getValue("screenAccess", Config.ScreenAccess.class);
 	}
 
 	public static void onRightClick(Player localPlayer, InteractionHand interactionHand, BlockHitResult blockHitResult, CallbackInfoReturnable<InteractionResult> cir) {
 		if (localPlayer.getItemInHand(interactionHand).getItem() instanceof BlockItem) {
-			Config.PlaceMode mode = Config.getInstance().getValue("placeMode");
+			Config.PlaceMode mode = Config.getInstance().getValue("placeMode", Config.PlaceMode.class);
 			if (mode == Config.PlaceMode.DISABLED && InPlayerBlockPos.isMorphedPlayerX(blockHitResult.getBlockPos().getX())) {
 				cir.setReturnValue(InteractionResult.PASS);
 			}

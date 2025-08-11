@@ -1,17 +1,12 @@
 package net.blockomorph.mixins.main;
 
-import net.blockomorph.BlockomorphServer;
 import net.blockomorph.network.ClientBoundApplyBlockMorphPacket;
 import net.blockomorph.network.ClientBoundMorphUpdatePacket;
 import net.blockomorph.network.ClientBoundServerBlockEntityTagPacket;
-import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.utils.*;
 import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.blockomorph.utils.tnt.TntHandler;
-import net.fabricmc.api.EnvType;
-import net.fabricmc.api.Environment;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -85,9 +80,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		}
 		HITBOX_HANDLER.recalculatePositions();
 		this.refreshDimensions();
-
-		if (this.level().isClientSide && pos.equals(InPlayerBlockPos.ZERO))
-			this.clientUpdate();
 		return true;
 	}
 
@@ -135,7 +127,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	}
 
 	public void breakingModeStart(boolean yes) {
-		if ((Boolean) Config.getInstance().getValue("playerDieAfterDestroy") || !yes)
+		if (Config.getInstance().getValue("playerDieAfterDestroy", Boolean.class) || !yes)
 			this.breakingMode = yes;
 	}
 
@@ -193,7 +185,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 				tg.put("BlockEntityTag", blockTag);
 				blocks.put(pos.string(), tg);
 			} catch (Exception e) {
-				BlockomorphServer.LOGGER.error("An error occurred while saving morphed player data on pos: " + pos + " for block: " + data.getBlockState() + " on player: " + this.getName().getString(), e);
+				MorphUtils.LOGGER.error("An error occurred while saving morphed player data on pos: " + pos + " for block: " + data.getBlockState() + " on player: " + this.getName().getString(), e);
 			}
 		});
 		return blocks;
@@ -279,9 +271,8 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 			try {
 				if (ent.getUpdatePacket() != null)
 					this.sendNearby(ent.getUpdatePacket());
-				MorphUtils.sendPlayer(new ClientBoundServerBlockEntityTagPacket(block.getOffset(), ent.saveWithoutMetadata(this.level().registryAccess())), (ServerPlayer) this.player());
 			} catch (Exception e) {
-				BlockomorphServer.LOGGER.error("An error occurred while sending morphed player data on pos: " + block.getOffset() + " for block: " + block.getBlockState() + " on player: " + this.getName().getString(), e);
+				MorphUtils.LOGGER.error("An error occurred while sending morphed player data on pos: " + block.getOffset() + " for block: " + block.getBlockState() + " on player: " + this.getName().getString(), e);
 			}
 		}
 	}
@@ -419,12 +410,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 
 	public HitBoxCalculator getHitBoxHandler() {
 		return HITBOX_HANDLER;
-	}
-
-	@Environment(EnvType.CLIENT)
-	public void clientUpdate() {
-		if (Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc && Minecraft.getInstance().player == (PlayerAccessor)this)
-			sc.morphUpdate(this.getBlockState(InPlayerBlockPos.ZERO));
 	}
 
 	public VoxelShape getShape(InPlayerBlockPos offset, @Nullable Vec3 realPos) {

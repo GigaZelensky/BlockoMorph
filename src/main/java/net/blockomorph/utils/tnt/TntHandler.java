@@ -62,7 +62,7 @@ public class TntHandler {
 				if (!this.player.level().isClientSide) {
 					this.setFuse(tnt.getFuse());
 					if (!tnt.isAlive()) {
-						if ((boolean) Config.getInstance().getOption("playerDieAfterDestroy").getValue()) {
+						if (Config.getInstance().getValue("playerDieAfterDestroy", Boolean.class)) {
 							MorphUtils.destroy(this.pl, null);
 						} else {
 							this.deMorph();
@@ -72,7 +72,7 @@ public class TntHandler {
 					}
 				}
 			} catch (Exception e) {
-				BlockomorphServer.LOGGER.error("Error while ticking TNT in morphed player " + this.player.getDisplayName().getString(), e);
+				MorphUtils.LOGGER.error("Error while ticking TNT in morphed player " + this.player.getDisplayName().getString(), e);
 				this.deMorph();
 			}
 		}
@@ -82,7 +82,7 @@ public class TntHandler {
 	}
 
 	private void deMorph() {
-		if (!this.player.level().isClientSide) this.pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), null);
+		if (!this.player.level().isClientSide) this.pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), null, BannedBlock.Source.SYSTEM);
 	}
 
 	public void setFuse(int i) {
@@ -102,7 +102,7 @@ public class TntHandler {
 					} catch (Exception e) {
 						TNT = lv.extractTnt();
 						if (TNT == null) {
-							BlockomorphServer.LOGGER.error("Error while init TNT in morphed player " + this.player.getDisplayName().getString(), e);
+							MorphUtils.LOGGER.error("Error while init TNT in morphed player " + this.player.getDisplayName().getString(), e);
 							return false;
 						}
 					}

@@ -1,6 +1,7 @@
 package net.blockomorph.mixins.main.server;
 
 import com.mojang.authlib.GameProfile;
+import net.blockomorph.utils.BannedBlock;
 import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.blockomorph.utils.MorphUtils;
@@ -76,8 +77,8 @@ public abstract class ServerPlayerMixin extends Player {
 	public void restoreBlockMorphData(ServerPlayer old, boolean fromEnd, CallbackInfo ci) {
 		PlayerAccessor pl = PlayerAccessor.of(this);
 		PlayerAccessor oldPl = PlayerAccessor.of(old);
-		if (!fromEnd && (Boolean) Config.getInstance().getValue("playerDieAfterDestroy")) {
-			pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), null);
+		if (!fromEnd && Config.getInstance().getValue("playerDieAfterDestroy", Boolean.class)) {
+			pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), null, BannedBlock.Source.SYSTEM);
 			for (InPlayerBlockPos pos : oldPl.getUpdates()) {
 				pl.prepareSync(pos);
 			}
