@@ -3,10 +3,7 @@ package net.blockomorph.screens.utils;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.*;
 import com.mojang.math.Axis;
 import net.blockomorph.screens.overlay.BlockHeartOverlay;
 import net.blockomorph.screens.overlay.Overlay;
@@ -56,6 +53,12 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class GuiUtils { //Cross-platform wrapper
+	private static final Function<ResourceLocation, RenderType> GUI_TEXTURE_WITH_ALPHA = Util.memoize(texture -> RenderType.create(
+			"gui_texture_with_alpha", //alpha rendering fix for textures on this game version, because it's not fixed in vanilla
+			DefaultVertexFormat.POSITION_TEX,
+			VertexFormat.Mode.QUADS, 786432, RenderType.CompositeState.builder().setTextureState(
+					new RenderStateShard.TextureStateShard(texture, false, false)
+			).setShaderState(RenderType.POSITION_TEX_SHADER).setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY).setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST).createCompositeState(false)));
 	public static final BlockPos AIR = new BlockPos(0, 500, 0);
 	public static final Minecraft MC = Minecraft.getInstance();
 	public static final List<Overlay> OVERLAYS = new ArrayList<>();
@@ -113,28 +116,6 @@ public class GuiUtils { //Cross-platform wrapper
 	public float getTick() {
 		return tick;
 	}
-
-
-	public void blit(ResourceLocation texture, int x, int y, float u, float v, int uvMaxX, int uvMaxY, int maxX, int maxY, int color) {
-		this.innerBlit(texture, x, x + uvMaxX, y, y + uvMaxY, (u + 0.0F) / (float)maxX, (u + (float)uvMaxX) / (float)maxX, (v + 0.0F) / (float)maxY, (v + (float)uvMaxY) / (float)maxY, color);
-	}
-	
-
-	private void innerBlit(ResourceLocation p_283254_, int x, int xEnd, int y, int yEnd, float u, float uEnd, float v, float vEnd, int color) {
-		RenderType rendertype = RenderType.gui();
-		Matrix4f matrix4f = GUI.pose().last().pose();
-		VertexConsumer vertexconsumer = bufferSource.getBuffer(rendertype);
-		vertexconsumer.addVertex(matrix4f, (float)x, (float)y, 0.0F).setUv(u, v).setColor(color);
-		vertexconsumer.addVertex(matrix4f, (float)x, (float)yEnd, 0.0F).setUv(u, vEnd).setColor(color);
-		vertexconsumer.addVertex(matrix4f, (float)xEnd, (float)yEnd, 0.0F).setUv(uEnd, vEnd).setColor(color);
-		vertexconsumer.addVertex(matrix4f, (float)xEnd, (float)y, 0.0F).setUv(uEnd, v).setColor(color);
-	}
-
-	private static final Function<ResourceLocation, RenderType> GUI_TEXTURED = Util.memoize((p_359222_) -> RenderType.create(
-			"gui_textured",
-			DefaultVertexFormat.POSITION_TEX_COLOR,
-			VertexFormat.Mode.QUADS, 786432, RenderType.CompositeState.builder().setTextureState(
-					new RenderStateShard.TextureStateShard(p_359222_, false, false)).setShaderState(RenderStateShard.POSITION_TEXTURE_COLOR_SHADER).setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY).setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST).createCompositeState(false)));
 	
 	/* HINT:
 		X - up left corner
@@ -146,13 +127,21 @@ public class GuiUtils { //Cross-platform wrapper
 		max X - length \
 		max Y - height /   - size on screen
 	*/
-	public void blit(ResourceLocation resourceLocation, int x, int y, float u, float v, int uvMaxX, int uvMaxY, int maxX, int maxY) {
-		//GUI.blit(resourceLocation, x, y, u, v, uvMaxX, uvMaxY, maxX, maxY);
-		this.blit(resourceLocation, x, y, u, v, uvMaxX, uvMaxY, maxX, maxY, -1);
+	public void blit(ResourceLocation texture, int x, int y, float u, float v, int uvMaxX, int uvMaxY, int maxX, int maxY) {
+		this.drawPreparedTexture(texture, x, x + uvMaxX, y, y + uvMaxY, u / (float)maxX, (u + (float)uvMaxX) / (float)maxX, v / (float)maxY, (v + (float)uvMaxY) / (float)maxY);
 	}
 
 	public void blitMonoImage(ResourceLocation resourceLocation, int x, int y, int maxSizeX, int maxSizeY) {
 		this.blit(resourceLocation, x, y, 0, 0, maxSizeX, maxSizeY, maxSizeX, maxSizeY);
+	}
+
+	private void drawPreparedTexture(ResourceLocation texture, int x, int xEnd, int y, int yEnd, float u, float uEnd, float v, float vEnd) {
+		Matrix4f matrix4f = GUI.pose().last().pose();
+		VertexConsumer vertexconsumer = bufferSource.getBuffer(GUI_TEXTURE_WITH_ALPHA.apply(texture));
+		vertexconsumer.addVertex(matrix4f, (float)x, (float)y, 0).setUv(u, v);
+		vertexconsumer.addVertex(matrix4f, (float)x, (float)yEnd, 0).setUv(u, vEnd);
+		vertexconsumer.addVertex(matrix4f, (float)xEnd, (float)yEnd, 0).setUv(uEnd, vEnd);
+		vertexconsumer.addVertex(matrix4f, (float)xEnd, (float)y, 0).setUv(uEnd, v);
 	}
 
 	public void renderTooltip(Component text, int mouseX, int mouseY) {
