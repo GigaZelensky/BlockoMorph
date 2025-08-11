@@ -1,6 +1,7 @@
 
 package net.blockomorph.command;
 
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.blockomorph.utils.*;
 import net.blockomorph.utils.accessors.BlockAccessor;
 import net.blockomorph.utils.config.*;
@@ -44,10 +45,10 @@ public class BlockmorphCommand {
 		);
 	}
 
-	private static int morphMany(CommandSourceStack stack, BlockState blockstate, Collection<ServerPlayer> players, CompoundTag tag) {
+	private static int morphMany(CommandSourceStack stack, BlockState blockstate, Collection<ServerPlayer> players, CompoundTag tag) throws CommandSyntaxException {
 		if (checkConfig(stack))
 			return 0;
-		MorphUtils.BannedBlock global = MorphUtils.isBannedBlock(blockstate, null);
+		BannedBlock global = BannedBlock.isBannedBlock(blockstate, null, BannedBlock.Source.COMMAND);
 		if (global != null) {
 			stack.sendFailure(
 					global.text()
@@ -57,27 +58,30 @@ public class BlockmorphCommand {
 		int success = 0;
 		for (ServerPlayer entity : players) {
 			if (entity instanceof PlayerAccessor pl) {
-				MorphUtils.BannedBlock reason = pl.applyBlockMorph(blockstate, tag);
+				BannedBlock reason = pl.applyBlockMorph(blockstate, tag, BannedBlock.Source.COMMAND);
 				if (reason == null)
 					success++;
 			}
 		}
+		if (success == 0) {
+			throw EntityArgument.NO_PLAYERS_FOUND.create();
+		}
 		final int result = success;
-		stack.sendSuccess(() -> Component.translatable("commands.blockmorph.many", result, blockstate.getBlock().getName()), true);
+		stack.sendSuccess(() -> Component.translatable("blockomorph.morphCommand.many", result, blockstate.getBlock().getName()), true);
 		return players.size();
 	}
 
 	private static int morphSingle(CommandSourceStack stack, BlockState blockstate, ServerPlayer player, CompoundTag tag) {
 		if (checkConfig(stack))
 			return 0;
-		MorphUtils.BannedBlock reason = PlayerAccessor.of(player).applyBlockMorph(blockstate, tag);
+		BannedBlock reason = PlayerAccessor.of(player).applyBlockMorph(blockstate, tag, BannedBlock.Source.COMMAND);
 		if (reason != null) {
 			stack.sendFailure(
 					reason.text()
 			);
 			return 0;
 		}
-		stack.sendSuccess(() -> Component.translatable("commands.blockmorph.you", blockstate.getBlock().getName()), true);
+		stack.sendSuccess(() -> Component.translatable("blockomorph.morphCommand.single", blockstate.getBlock().getName()), true);
 		return 1;
 	}
 

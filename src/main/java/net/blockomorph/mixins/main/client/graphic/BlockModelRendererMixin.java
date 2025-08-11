@@ -2,13 +2,16 @@ package net.blockomorph.mixins.main.client.graphic;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.blockomorph.utils.accessors.ClientLevelAccessor;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -20,5 +23,25 @@ public class BlockModelRendererMixin {
 		AtomicReference<BlockState> state = new AtomicReference<>(original.call(instance, blockPos));
 		InPlayerBlockPos.check(blockPos, (pl, realPos) -> state.set(pl.getBlockState(realPos)), null, true);
 		return state.get();
+	}
+
+	@ModifyVariable(ordinal = 3, method = {
+			"tesselateWithoutAO",
+	}, at = @At("STORE"))
+	private int changeLight(int i, BlockAndTintGetter level) {
+		if (level instanceof ClientLevelAccessor acc && acc.specialRenderingMode()) {
+			return LightTexture.pack(15, 15);
+		}
+		return i;
+	}
+
+	@ModifyVariable(ordinal = 0, method = {
+			"renderModelFaceFlat",
+	}, at = @At("STORE"))
+	private int changeLight2(int i, BlockAndTintGetter level) {
+		if (level instanceof ClientLevelAccessor acc && acc.specialRenderingMode()) {
+			return LightTexture.pack(15, 15);
+		}
+		return i;
 	}
 }

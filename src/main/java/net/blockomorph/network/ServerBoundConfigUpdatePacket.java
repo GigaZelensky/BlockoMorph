@@ -31,7 +31,7 @@ public class ServerBoundConfigUpdatePacket implements BlockMorphPacket {
 
 	@Override
 	public void handle(Player player) {
-		if (player.hasPermissions(2) && (boolean) Config.getInstance().getValue("canOperatorModifyConfig")) {
+		if (player.hasPermissions(2) && Config.getInstance().getValue("canOperatorModifyConfig", Boolean.class)) {
 			Config.getInstance().parse(this.option, this.value, true);
 		}
 	}

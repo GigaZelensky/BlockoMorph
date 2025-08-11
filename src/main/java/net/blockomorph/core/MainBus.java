@@ -1,8 +1,6 @@
 package net.blockomorph.core;
 
-import net.blockomorph.BlockomorphServer;
 import net.blockomorph.command.*;
-import net.blockomorph.screens.PlayerCrackOverlay;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.network.*;
 import net.blockomorph.utils.config.*;
@@ -10,20 +8,12 @@ import net.blockomorph.utils.config.*;
 import net.blockomorph.utils.coords.BlockPosBounds;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.impl.networking.PayloadTypeRegistryImpl;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
-import net.minecraft.server.level.ServerPlayer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.command.v2.ArgumentTypeRegistry;
 
 public class MainBus {
 
@@ -36,7 +26,6 @@ public class MainBus {
 				context.client().getConnection().getConnection().disconnect(Component.literal(e.getMessage()));
 			}
 		});
-		HudRenderCallback.EVENT.register(PlayerCrackOverlay::render);
 		KeyMappings.registerKeyMappings(KeyBindingHelper::registerKeyBinding);
 	}
 
@@ -45,11 +34,6 @@ public class MainBus {
 	}
 
 	private static void registerMain() {
-		ArgumentTypeRegistry.registerArgumentType(
-				ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, "enum_argument"),
-				EnumArgument.class,
-				new EnumArgument.ContextInfo()
-		);
 		CommandRegistrationCallback.EVENT.register((dispatcher, commandBuildContext, environment) -> {
 			BlockmorphCommand.register(dispatcher, commandBuildContext, environment);
 			BlockmorphconfigCommand.register(dispatcher, commandBuildContext, environment);
@@ -75,5 +59,6 @@ public class MainBus {
 
 		MorphUtils.registerPacket(ServerBoundBlockMorphPacket.ID, ServerBoundBlockMorphPacket::new, false);
 		MorphUtils.registerPacket(ServerBoundConfigUpdatePacket.ID, ServerBoundConfigUpdatePacket::new, false);
+		MorphUtils.registerPacket(ServerBoundSelfNbtRequestPacket.ID, ServerBoundSelfNbtRequestPacket::new, false);
 	}
 }

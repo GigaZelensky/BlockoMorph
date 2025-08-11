@@ -1,33 +1,51 @@
 package net.blockomorph.core;
 
-import net.blockomorph.screens.BlockMorphConfigScreen;
-import net.blockomorph.screens.ConfigScreen;
-import net.blockomorph.screens.MorphScreen;
+import net.blockomorph.screens.config.ConfigScreen;
+import net.blockomorph.screens.morph.AbstractMorphScreen;
+import net.blockomorph.screens.morph.MorphScreen;
+import net.blockomorph.screens.morphConfig.MorphConfigScreen;
+import net.blockomorph.screens.utils.GuiUtils;
+import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.Config;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 
 public class KeyMappings {
-    private static final Minecraft mc = Minecraft.getInstance();
+	private static final Minecraft mc = Minecraft.getInstance();
 	private static final ArrayList<KeyMapping> KEYS = new ArrayList<>();
 
-	public static final KeyMapping MORPH = new HandlerKeymapping("key.blockomorph.morph_menu", GLFW.GLFW_KEY_Y, () ->
-			mc.setScreen(new MorphScreen(Config.Mode.NONE, false))
-	);
-
-	public static final KeyMapping MORPH_CONFIG = new HandlerKeymapping("key.blockomorph.morph_config_menu", GLFW.GLFW_KEY_U, () ->
-			mc.setScreen(new BlockMorphConfigScreen(false))
-	);
-
-	public static final KeyMapping CONFIG = new HandlerKeymapping("key.blockomorph.config_menu", GLFW.GLFW_KEY_N, () -> {
-		if (canOpenConfig()) {
-			mc.setScreen(new ConfigScreen());
+	public static final KeyMapping MORPH = new HandlerKeymapping("morph_menu", GLFW.GLFW_KEY_Y, () -> {
+		Config.ScreenAccess access = MorphUtils.getScreenAccess(mc.player);
+		if (access.morph) {
+			mc.setScreen(new MorphScreen(new AbstractMorphScreen.MorphScreenOptions(true, true, access.config)).ignoreInitInput());
+			return true;
 		}
+		return false;
+	});
+
+	public static final KeyMapping MORPH_CONFIG = new HandlerKeymapping("morph_config_menu", GLFW.GLFW_KEY_U, () -> {
+		Config.ScreenAccess access = MorphUtils.getScreenAccess(mc.player);
+		if (access.config) {
+			mc.setScreen(new MorphConfigScreen(access.morph));
+			return true;
+		}
+		return false;
+	});
+
+	public static final KeyMapping CONFIG = new HandlerKeymapping("config_menu", GLFW.GLFW_KEY_N, () -> {
+		if (MorphUtils.canOpenConfig()) {
+			mc.setScreen(new ConfigScreen());
+			return true;
+		}
+		return false;
 	});
 
 	static void registerKeyMappings(Consumer<KeyMapping> register) {
@@ -36,15 +54,11 @@ public class KeyMappings {
 		}
 	}
 
-	private static boolean canOpenConfig() {
-		return mc.player != null && mc.player.hasPermissions(2) && (boolean)Config.getInstance().getValue("canOperatorModifyConfig");
-	}
-
 	private static class HandlerKeymapping extends KeyMapping {
-		private final Runnable action;
+		private final BooleanSupplier action;
 
-		public HandlerKeymapping(String lang, int key, Runnable action) {
-			super(lang, key, "key.categories.ui");
+		public HandlerKeymapping(String lang, int key, BooleanSupplier action) {
+			super("blockomorph.key." + lang, key, CATEGORY_INTERFACE);
 			KEYS.add(this);
 			this.action = action;
 		}
@@ -53,7 +67,9 @@ public class KeyMappings {
 		public void setDown(boolean isDown) {
 			super.setDown(isDown);
 			if (isDown && mc.screen == null) {
-				this.action.run();
+				if (!this.action.getAsBoolean() && mc.level != null) {
+					GuiUtils.pushHotbarMessage(Component.translatable(this.getName() + ".error").withStyle(ChatFormatting.RED));
+				}
 			}
 		}
 	}

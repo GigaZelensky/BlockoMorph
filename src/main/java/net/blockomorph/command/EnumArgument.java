@@ -1,107 +1,109 @@
 package net.blockomorph.command;
 
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
-import net.minecraft.commands.SharedSuggestionProvider;
-import com.mojang.brigadier.suggestion.SuggestionsBuilder;
-import com.mojang.brigadier.context.CommandContext;
-import java.util.concurrent.CompletableFuture;
-import com.mojang.brigadier.suggestion.Suggestions;
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
-import net.minecraft.network.chat.Component;
+import com.google.gson.JsonObject;
 import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.arguments.ArgumentType;
+import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import java.util.Arrays;
-import java.util.Collection;
+import com.mojang.brigadier.exceptions.Dynamic2CommandExceptionType;
+import com.mojang.brigadier.suggestion.Suggestions;
+import com.mojang.brigadier.suggestion.SuggestionsBuilder;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.synchronization.ArgumentTypeInfo;
 import net.minecraft.network.FriendlyByteBuf;
-import com.google.gson.JsonObject;
-import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
 
-//from forge
-public class EnumArgument<T extends Enum<T>> implements ArgumentType<T> {
-    private static final Dynamic2CommandExceptionType INVALID_ENUM = new Dynamic2CommandExceptionType(
-            (found, constants) -> Component.translatable("commands.blockmorph.enumArg", found, constants));
-    private final Class<T> enumClass;
-    
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
-    public static <R extends Enum<R>> EnumArgument<R> enumArgument(Class<R> enumClass) {
-        return new EnumArgument<>(enumClass);
-    }
-    
-    private EnumArgument(final Class<T> enumClass) {
-        this.enumClass = enumClass;
-    }
+public class EnumArgument<ENUM extends Enum<ENUM>> implements ArgumentType<ENUM> {
+	private static final Dynamic2CommandExceptionType INVALID_VALUE = new Dynamic2CommandExceptionType(
+			(found, constants) -> Component.translatable("blockomorph.commands.enum_argument.wrong", found, constants)
+	);
+	private final Class<ENUM> type;
 
-    public T parse(final StringReader reader) throws CommandSyntaxException {
-        String name = reader.readUnquotedString();
-        try {
-            return Enum.valueOf(enumClass, name);
-        } catch (IllegalArgumentException e) {
-            throw INVALID_ENUM.createWithContext(reader, name, Arrays.toString(Stream.of(enumClass.getEnumConstants()).map(Enum::name).toArray()));
-        }
-    }
+	private EnumArgument(Class<ENUM> type) {
+		this.type = type;
+	}
 
-    public static <R extends Enum<R>> R getEnum(final CommandContext<?> context, Class<R> enumClass, final String name) {
-        return context.getArgument(name, enumClass);
-    }
+	@Override
+	public ENUM parse(StringReader reader) throws CommandSyntaxException {
+		String name = reader.readUnquotedString();
+		try {
+			return Enum.valueOf(this.type, name);
+		} catch (IllegalArgumentException e) {
+			throw INVALID_VALUE.createWithContext(reader, name, this.getEnumList().toString());
+		}
+	}
 
-    public <S> CompletableFuture<Suggestions> listSuggestions(final CommandContext<S> context, final SuggestionsBuilder builder) {
-        return SharedSuggestionProvider.suggest(Stream.of(enumClass.getEnumConstants()).map(Enum::name), builder);
-    }
+	public static <ENUM_CLASS extends Enum<ENUM_CLASS>> EnumArgument<ENUM_CLASS> enumArg(Class<ENUM_CLASS> type) {
+		return new EnumArgument<>(type);
+	}
 
-    public Collection<String> getExamples() {
-        return Stream.of(enumClass.getEnumConstants()).map(Enum::name).collect(Collectors.toList());
-    }
+	public static <ENUM_CLASS extends Enum<ENUM_CLASS>> ENUM_CLASS getEnum(CommandContext<CommandSourceStack> commandContext, String name, Class<ENUM_CLASS> data) {
+		return commandContext.getArgument(name, data);
+	}
 
-    public static class ContextInfo<T extends Enum<T>> implements ArgumentTypeInfo<EnumArgument<T>, ContextInfo<T>.Template> {
-        @Override
-        public void serializeToNetwork(Template template, FriendlyByteBuf buffer) {
-            buffer.writeUtf(template.enumClass.getName());
-        }
+	@Override
+	public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder builder) {
+		return SharedSuggestionProvider.suggest(this.getEnumList(), builder);
+	}
 
-        @Nullable
-        @SuppressWarnings("unchecked")
-        @Override
-        public Template deserializeFromNetwork(FriendlyByteBuf buffer) {
-            try {
-                String name = buffer.readUtf();
-                return new Template((Class<T>) Class.forName(name));
-            } catch (ClassNotFoundException e) {
-                return null;
-            }
-        }
+	@Override
+	public Collection<String> getExamples() {
+		return this.getEnumList();
+	}
 
-        @Override
-        public void serializeToJson(Template template, JsonObject json) {
-            json.addProperty("enum", template.enumClass.getName());
-        }
+	private List<String> getEnumList() {
+		return Stream.of(this.type.getEnumConstants()).map(Enum::name).toList();
+	}
 
-        @Override
-        public Template unpack(EnumArgument<T> argument) {
-            return new Template(argument.enumClass);
-        }
+	public static class ContextInfo<ENUM extends Enum<ENUM>> implements ArgumentTypeInfo<EnumArgument<ENUM>, ContextInfo<ENUM>.Template> {
+		@Override
+		public void serializeToNetwork(Template template, FriendlyByteBuf buffer) {
+			buffer.writeUtf(template.enumType.getName());
+		}
 
-        public class Template implements ArgumentTypeInfo.Template<EnumArgument<T>> {
-            final Class<T> enumClass;
+		@Override @Nullable @SuppressWarnings("unchecked")
+		public Template deserializeFromNetwork(FriendlyByteBuf buffer) {
+			try {
+				return new Template((Class<ENUM>) Class.forName(buffer.readUtf()));
+			} catch (ClassNotFoundException e) {
+				return null;
+			}
+		}
 
-            private Template(Class<T> enumClass) {
-                this.enumClass = enumClass;
-            }
+		@Override
+		public void serializeToJson(Template template, JsonObject json) {
+			json.addProperty("enum", template.enumType.getName());
+		}
 
-            @Override
-            public EnumArgument<T> instantiate(CommandBuildContext c) {
-                return new EnumArgument<>(this.enumClass);
-            }
+		@Override
+		public Template unpack(EnumArgument<ENUM> argument) {
+			return new Template(argument.type);
+		}
 
-            @Override
-            public ArgumentTypeInfo<EnumArgument<T>, ?> type() {
-                return ContextInfo.this;
-            }
-        }
-    }
+		public class Template implements ArgumentTypeInfo.Template<EnumArgument<ENUM>> {
+			final Class<ENUM> enumType;
 
+			private Template(Class<ENUM> enumType) {
+				this.enumType = enumType;
+			}
+
+			@Override
+			public EnumArgument<ENUM> instantiate(CommandBuildContext c) {
+				return new EnumArgument<>(this.enumType);
+			}
+
+			@Override
+			public ArgumentTypeInfo<EnumArgument<ENUM>, ?> type() {
+				return ContextInfo.this;
+			}
+		}
+	}
 }
-

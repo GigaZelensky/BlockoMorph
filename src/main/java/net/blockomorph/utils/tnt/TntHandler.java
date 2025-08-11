@@ -63,7 +63,7 @@ public class TntHandler {
 				if (!this.player.level().isClientSide) {
 					this.setFuse(tnt.getFuse());
 					if (!tnt.isAlive()) {
-						if ((boolean) Config.getInstance().getOption("playerDieAfterDestroy").getValue()) {
+						if (Config.getInstance().getValue("playerDieAfterDestroy", Boolean.class)) {
 							MorphUtils.destroy(this.pl, null);
 						} else {
 							this.deMorph();
@@ -83,7 +83,7 @@ public class TntHandler {
 	}
 
 	private void deMorph() {
-		if (!this.player.level().isClientSide) this.pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), null);
+		if (!this.player.level().isClientSide) this.pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), null, BannedBlock.Source.SYSTEM);
 	}
 
 	public void setFuse(int i) {
