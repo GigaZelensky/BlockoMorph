@@ -291,55 +291,6 @@ public class MorphUtils {
 		return false;
 	}
 
-	@Environment(EnvType.CLIENT)
-	public static boolean onHudRender(GuiGraphics GUI) {
-		Minecraft mc = Minecraft.getInstance();
-		Entity player = mc.getCameraEntity();
-
-		if (player instanceof PlayerAccessor pl && pl.isActive()) {
-			int width = mc.getWindow().getGuiScaledWidth();
-			int height = mc.getWindow().getGuiScaledHeight();
-			renderBlockHeart(GUI, pl, width, height);
-			return true;
-		}
-		return false;
-	}
-
-	@Environment(EnvType.CLIENT)
-	private static void renderBlockHeart(GuiGraphics gui, PlayerAccessor pl, int width, int height) {
-		int maxHearts = 10;
-		int progress = pl.getBiggestProgress();
-
-		BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
-		BakedModel model = dispatcher.getBlockModel(pl.getBlockState(InPlayerBlockPos.ZERO));
-		TextureAtlasSprite sprite = model.getParticleIcon();
-
-
-		int x = width / 2 - 91;
-		int y = height - 39;
-
-		renderBar(gui, x, y, progress);
-
-		for (int i = 0; i < maxHearts; i++) {
-			int xPos = x + i * 8;
-			int yPos = y;
-
-
-			if (i < 9 - progress) {
-				gui.blit(xPos + 1, yPos + 1, 0, 7, 7, sprite);
-			}
-		}
-	}
-
-	@Environment(EnvType.CLIENT)
-	private static void renderBar(GuiGraphics graphics, int x, int y, int progress) {
-		if (progress == 9) {
-			graphics.blit(ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 10, 81, 9, 81, 19);
-		} else {
-			graphics.blit(ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 0, 81, 9, 81, 19);
-		}
-	}
-
 	public static void destroy(PlayerAccessor mob_pl, @Nullable Entity attacker) {
 		Entity mob = (Player)mob_pl;
 
