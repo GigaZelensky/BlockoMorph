@@ -1,5 +1,6 @@
 package net.blockomorph.utils;
 
+import com.mojang.serialization.DataResult;
 import net.blockomorph.BlockomorphServer;
 import net.blockomorph.network.*;
 import net.blockomorph.utils.config.*;
@@ -62,6 +63,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.function.DoubleConsumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class MorphUtils {
 	public static final ResourceKey<DamageType> PLAYER_DESTROYED = ResourceKey.create(Registries.DAMAGE_TYPE, res("player_destroyed"));
@@ -111,34 +113,21 @@ public class MorphUtils {
 
 	public record PacketInfo(Function<FriendlyByteBuf, BlockMorphPacket> packet, boolean isClient) {}
 
-	@Nullable
-	public static BannedBlock isBannedBlock(BlockState state, @Nullable Player pl) {
-		if (state.getBlock() instanceof LiquidBlock) {
-			return new BannedBlock("Morphing in liquids in development!", Component.translatable("commands.blockmorph.liquid"));
-		}
-		String name = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
-		Config.Mode mode = Config.getInstance().getValue("listMode");
-		if ((!state.isSolid() || state.getBlock() instanceof BarrierBlock || state.getBlock() instanceof MovingPistonBlock) && (state.getBlock() != Blocks.AIR) && (boolean)Config.getInstance().getValue("solidBlocksOnly")) {
-			return new BannedBlock("Block " + name + " not allowed because is solid!", Component.translatable("commands.blockmorph.solid"));
-		} else if (pl != null && ((PlayerAccessor)pl).getTnt() != null) {
-			return new BannedBlock("Block " + name + " not allowed because player-tnt caught fire!", Component.translatable("commands.blockmorph.tnt"));
-		} else if (mode == Config.Mode.WHITELIST) {
-			if (!((List<String>)Config.getInstance().getValue("allowedBlocks")).contains(name))
-				return new BannedBlock("Block " + name + " not allowed because it not in whitelist!", Component.translatable("commands.blockmorph.whitelist"));
-		} else if (mode == Config.Mode.BLACKLIST) {
-			if (((List<String>)Config.getInstance().getValue("bannedBlocks")).contains(name))
-				return new BannedBlock("Block " + name + " not allowed because it in blacklist!", Component.translatable("commands.blockmorph.blacklist"));
-		}
-		return null;
-	}
+	/****************************PACKET SYSTEM************************************/
 
-	public record BannedBlock(String reason, Component text) {
-		public static final BannedBlock SAME = new BannedBlock("You have already been turned into this block.",
-				Component.translatable("commands.blockomorph.blockSame"));
-	}
 
 	public static Vec3 getRealBlockPos(PlayerAccessor original, InPlayerBlockPos offset) {
 		return getRealBlockPos(original, new Vec3(offset.x, offset.y, offset.z));
+	}
+
+	public static Predicate<String> blockPredicate() {
+		return value -> {
+			DataResult<ResourceLocation> result = ResourceLocation.read(value);
+			if (result.result().isPresent()) {
+				return BuiltInRegistries.BLOCK.containsKey(result.result().get());
+			}
+			return false;
+		};
 	}
 
 	public static Vec3 getRealBlockPos(PlayerAccessor original, Vec3 offset) {
@@ -254,6 +243,17 @@ public class MorphUtils {
 			return pr != null;
 		}
 		return false;
+	}
+
+	@Environment(EnvType.CLIENT)
+	public static boolean canOpenConfig() {
+		Minecraft mc = Minecraft.getInstance();
+		return mc.player != null && mc.player.hasPermissions(2) && Config.getInstance().getValue("canOperatorModifyConfig", Boolean.class);
+	}
+
+	public static Config.ScreenAccess getScreenAccess(Player player) {
+		if (player != null && player.hasPermissionLevel(2)) return Config.ScreenAccess.ALL;
+		return Config.getInstance().getValue("screenAccess", Config.ScreenAccess.class);
 	}
 
 	public static void onRightClick(Player localPlayer, InteractionHand interactionHand, BlockHitResult blockHitResult, CallbackInfoReturnable<InteractionResult> cir) {
