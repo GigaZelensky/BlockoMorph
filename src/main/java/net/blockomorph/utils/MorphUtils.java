@@ -258,7 +258,7 @@ public class MorphUtils {
 	}
 
 	public static Config.ScreenAccess getScreenAccess(Player player) {
-		if (player != null && player.getPermissionLevel() >= 2) return Config.ScreenAccess.ALL;
+		if (player != null && player.hasPermissions(2)) return Config.ScreenAccess.ALL;
 		return Config.getInstance().getValue("screenAccess", Config.ScreenAccess.class);
 	}
 
