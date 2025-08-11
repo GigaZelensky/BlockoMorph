@@ -14,6 +14,8 @@ import net.minecraft.network.chat.CommonComponents;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class ConfigRenderableList extends AbstractWidget {
 	private final GuiUtils gui = new GuiUtils();
@@ -23,12 +25,12 @@ public class ConfigRenderableList extends AbstractWidget {
 	private final int plateHeight;
 	private final int plateLength;
 
-	public ConfigRenderableList(List<ConfigInstance<?>> options, int x, int y, int length, int height, int barX, int barY, int barHeight, int plateHeight, int plateLength, Screen parentScreen) {
+	public ConfigRenderableList(List<ConfigInstance<?>> options, ConfigRenderer.ConfigRenderingContext ctx, int x, int y, int length, int height, int barX, int barY, int barHeight, int plateHeight, int plateLength) {
 		super(x, y, length, height, CommonComponents.EMPTY);
 		ImmutableList.Builder<RenderableConfigInstance<?>> builder = new ImmutableList.Builder<>();
 		for (ConfigInstance<?> option : options) {
 			if (option.canEditedByOperators()) {
-				builder.add(new RenderableConfigInstance<>(option, parentScreen));
+				builder.add(new RenderableConfigInstance<>(option, ctx));
 				if (!types.contains(option.getRenderer())) {
 					this.types.add(option.getRenderer());
 				}
@@ -99,15 +101,15 @@ public class ConfigRenderableList extends AbstractWidget {
 	}
 
 	protected static class RenderableConfigInstance<T extends ConfigInstance<?>> {
-		private final Screen parentScreen;
+		protected final ConfigRenderer.ConfigRenderingContext context;
 		private final T instance;
 		private final ConfigRenderer<T> renderer;
 		private final Rect2i box = new Rect2i(0, 0, 0, 0);
 
 		@SuppressWarnings("unchecked")
-		protected RenderableConfigInstance(T instance, Screen parentScreen) {
+		protected RenderableConfigInstance(T instance, ConfigRenderer.ConfigRenderingContext ctx) {
+			this.context = ctx;
 			this.instance = instance;
-			this.parentScreen = parentScreen;
 			this.renderer = (ConfigRenderer<T>)instance.getRenderer();
 		}
 
@@ -128,11 +130,11 @@ public class ConfigRenderableList extends AbstractWidget {
 		}
 
 		public boolean mouseClicked(double mouseX, double mouseY) {
-			return this.renderer.mouseClicked(this.instance, mouseX, mouseY, this.box, this.parentScreen);
+			return this.renderer.mouseClicked(this.instance, mouseX, mouseY, this.box, this.context);
 		}
 
 		public boolean mouseScrolled(double mouseX, double mouseY, double yOffsetWheel) {
-			return this.renderer.mouseScrolled(this.instance, mouseX, mouseY, yOffsetWheel, this.box, this.parentScreen);
+			return this.renderer.mouseScrolled(this.instance, mouseX, mouseY, yOffsetWheel, this.box, this.context);
 		}
 	}
 }

@@ -14,6 +14,8 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.CommandBuildContext;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public class EnumConfig<T extends Enum<T>> extends ConfigInstance<T> {
 	private static EnumConfigRenderer RENDERER;
 	private final Class<T> classType;

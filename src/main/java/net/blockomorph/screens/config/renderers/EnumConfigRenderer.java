@@ -1,12 +1,9 @@
 package net.blockomorph.screens.config.renderers;
 
-import net.blockomorph.network.ServerBoundConfigUpdatePacket;
 import net.blockomorph.screens.config.ConfigRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ObjectListRenderer;
-import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.config.EnumConfig;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 
 import java.util.List;
@@ -32,13 +29,13 @@ public class EnumConfigRenderer implements ConfigRenderer<EnumConfig<?>> {
 	}
 
 	@Override
-	public boolean mouseClicked(EnumConfig<?> configInstance, double mouseX, double mouseY, Rect2i box, Screen parentScreen) {
+	public boolean mouseClicked(EnumConfig<?> configInstance, double mouseX, double mouseY, Rect2i box, ConfigRenderingContext context) {
 		if (ENUM_LIST_RENDERER2.isCurrentProperty(configInstance) && ENUM_LIST_RENDERER2.mouseClicked(mouseX, mouseY)) {
 			return true;
 		} else if (GuiUtils.isInBounds(box, mouseX, mouseY)) {
 			ENUM_LIST_RENDERER2.drop(configInstance, (value) -> {
 				GuiUtils.playClickSound();
-				MorphUtils.sendServer(new ServerBoundConfigUpdatePacket(configInstance.getName(), value.name()));
+				context.onValueChanged().accept(configInstance.getName(), value.name());
 			});
 			this.notClose = true;
 			GuiUtils.playClickSound();
@@ -48,7 +45,7 @@ public class EnumConfigRenderer implements ConfigRenderer<EnumConfig<?>> {
 	}
 
 	@Override
-	public boolean mouseScrolled(EnumConfig<?> configInstance, double mouseX, double mouseY, double yOffsetWheel, Rect2i box, Screen parentScreen) {
+	public boolean mouseScrolled(EnumConfig<?> configInstance, double mouseX, double mouseY, double yOffsetWheel, Rect2i box, ConfigRenderingContext context) {
 		if (ENUM_LIST_RENDERER2.isCurrentProperty(configInstance)) {
 			return ENUM_LIST_RENDERER2.mouseScrolled(mouseX, mouseY, yOffsetWheel);
 		}

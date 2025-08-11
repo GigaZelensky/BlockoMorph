@@ -1,20 +1,15 @@
 package net.blockomorph.utils.config;
 
-import java.io.*;
-import java.util.ArrayList;
-
 import com.google.gson.*;
-
-import java.util.List;
-import java.nio.file.Files;
-
-import net.blockomorph.screens.utils.GuiUtils;
+import net.blockomorph.network.ClientBoundConfigUpdatePacket;
 import net.blockomorph.utils.MorphUtils;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.server.Main;
 import net.minecraft.server.MinecraftServer;
-import net.blockomorph.network.ClientBoundConfigUpdatePacket;
-import net.minecraft.world.level.block.state.properties.RailShape;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Config {
 	private static final Gson WRITER = new GsonBuilder().setPrettyPrinting().create();
@@ -44,7 +39,13 @@ public class Config {
 	}
 
 	public static void loadExternal(Config cfg) {
-		INSTANCE = cfg;
+		if (INSTANCE == null) INSTANCE = new Config();
+		for (ConfigInstance<?> instance : cfg.OPTIONS) {
+			ConfigInstance<?> realInstance = INSTANCE.getOption(instance.getName());
+			if (!realInstance.trySetValue(instance)) {
+				MorphUtils.LOGGER.error("Option with name: {} throw error then setting value: {}", instance.getName(), instance.value);
+			}
+		}
 	}
 
 	public static MinecraftServer getServer() {

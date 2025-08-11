@@ -7,9 +7,7 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import com.mojang.brigadier.Command;
-import com.mojang.serialization.DataResult;
 import net.blockomorph.screens.config.renderers.BlockListConfigRenderer;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.FriendlyByteBuf;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.Commands;
