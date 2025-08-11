@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.blockomorph.screens.overlay.BlockHeartOverlay;
 import net.blockomorph.screens.overlay.Overlay;
@@ -48,6 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public class GuiUtils { //Cross-platform wrapper
 	public static final BlockPos AIR = new BlockPos(0, 500, 0);
@@ -108,6 +110,22 @@ public class GuiUtils { //Cross-platform wrapper
 		return tick;
 	}
 
+
+	public void blit(Function<ResourceLocation, RenderType> res, ResourceLocation texture, int x, int y, float u, float v, int uvMaxX, int uvMaxY, int maxX, int maxY, int color) {
+		this.innerBlit(res, texture, x, x + uvMaxX, y, y + uvMaxY, (u + 0.0F) / (float)maxX, (u + (float)uvMaxX) / (float)maxX, (v + 0.0F) / (float)maxY, (v + (float)uvMaxY) / (float)maxY, color);
+	}
+	
+
+	private void innerBlit(Function<ResourceLocation, RenderType> res, ResourceLocation p_283254_, int x, int xEnd, int y, int yEnd, float u, float uEnd, float v, float vEnd, int color) {
+		RenderType rendertype = res.apply(p_283254_);
+		Matrix4f matrix4f = GUI.pose().last().pose();
+		VertexConsumer vertexconsumer = bufferSource.getBuffer(rendertype);
+		vertexconsumer.addVertex(matrix4f, (float)x, (float)y, 0.0F).setUv(u, v).setColor(color);
+		vertexconsumer.addVertex(matrix4f, (float)x, (float)yEnd, 0.0F).setUv(u, vEnd).setColor(color);
+		vertexconsumer.addVertex(matrix4f, (float)xEnd, (float)yEnd, 0.0F).setUv(uEnd, vEnd).setColor(color);
+		vertexconsumer.addVertex(matrix4f, (float)xEnd, (float)y, 0.0F).setUv(uEnd, v).setColor(color);
+	}
+	
 	/* HINT:
 		X - up left corner
 		Y - up left corner
