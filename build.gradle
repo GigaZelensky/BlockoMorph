@@ -3,7 +3,7 @@ plugins {
     id 'maven-publish'
 }
 
-version = '5.0.4'
+version = '5.0.5'
 group = 'net.blockomorph'
 archivesBaseName = "blockomorph-1.21.4-fabric"
 testmodid = 'blockomorph'
