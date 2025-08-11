@@ -10,7 +10,6 @@ import net.blockomorph.screens.overlay.Overlay;
 import net.blockomorph.screens.overlay.PlayerCrackOverlay;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
-import net.fabricmc.fabric.api.util.TriState;
 import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -36,6 +35,8 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.BlockItemStateProperties;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -59,6 +60,7 @@ public class GuiUtils { //Cross-platform wrapper
 			VertexFormat.Mode.QUADS, 786432, RenderType.CompositeState.builder().setTextureState(
 					new RenderStateShard.TextureStateShard(texture, false, false)
 			).setShaderState(RenderType.POSITION_TEX_SHADER).setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY).setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST).createCompositeState(false)));
+	private static final HashMap<Block, Boolean> BE_WITH_RENDERERS = new HashMap<>();
 	public static final BlockPos AIR = new BlockPos(0, 500, 0);
 	public static final Minecraft MC = Minecraft.getInstance();
 	public static final List<Overlay> OVERLAYS = new ArrayList<>();
@@ -142,6 +144,7 @@ public class GuiUtils { //Cross-platform wrapper
 		vertexconsumer.addVertex(matrix4f, (float)x, (float)yEnd, 0).setUv(u, vEnd);
 		vertexconsumer.addVertex(matrix4f, (float)xEnd, (float)yEnd, 0).setUv(uEnd, vEnd);
 		vertexconsumer.addVertex(matrix4f, (float)xEnd, (float)y, 0).setUv(uEnd, v);
+		GUI.flush();
 	}
 
 	public void renderTooltip(Component text, int mouseX, int mouseY) {
@@ -268,8 +271,21 @@ public class GuiUtils { //Cross-platform wrapper
 		}
 	}
 
+	private Boolean skipCheckOrContainsRenderer(BlockState state) {
+		Block block = state.getBlock();
+		if (block instanceof EntityBlock entityBlock) {
+			return BE_WITH_RENDERERS.computeIfAbsent(block, b -> {
+				BlockEntity ent = entityBlock.newBlockEntity(AIR, state);
+				if (ent == null) return false;
+				return blockEntityRenderer.getRenderer(ent) != null;
+			});
+		}
+		return null;
+	}
+
 	public void renderAdditionalOnBlock(BlockState blockState, float x, float y, float scale) {
-		if (blockState.getRenderShape() == RenderShape.INVISIBLE) {
+		Boolean result = this.skipCheckOrContainsRenderer(blockState);
+		if (blockState.getRenderShape() == RenderShape.INVISIBLE && (result == null || !result)) {
 			Item item = null;
 			if (blockState.getBlock() instanceof LiquidBlock) {
 				item = blockState.getFluidState().getType().getBucket();

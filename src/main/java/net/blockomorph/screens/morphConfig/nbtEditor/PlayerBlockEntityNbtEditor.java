@@ -50,7 +50,7 @@ public class PlayerBlockEntityNbtEditor extends NbtEditorScreen {
 			this.init = true;
 		}
 
-		Button refreshButton = new SpriteImageButton(this.leftPos + 156, this.topPos + 6, 16, 16, BUTTON_REFRESH, b -> {
+		SpriteImageButton refreshButton = new SpriteImageButton(this.leftPos + 156, this.topPos + 6, 16, 16, BUTTON_REFRESH, b -> {
 			MorphUtils.sendServer(new ServerBoundSelfNbtRequestPacket());
 			this.setNewTag(null);
 		}, null, false);
