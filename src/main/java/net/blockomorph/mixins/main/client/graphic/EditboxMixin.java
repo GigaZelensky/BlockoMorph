@@ -7,6 +7,7 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
+import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -15,6 +16,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import java.util.function.BiFunction;
 
+@Debug(export = true)
 @Mixin(value = EditBox.class, priority = 20000)
 public abstract class EditboxMixin extends AbstractWidget {
 	private String tempValue;
@@ -41,12 +43,12 @@ public abstract class EditboxMixin extends AbstractWidget {
 		return orig;
 	}
 
-	@ModifyVariable(ordinal = 6, method = "renderWidget", at = @At("STORE"))
+	@ModifyVariable(ordinal = 6, method = "renderWidget", at = @At(value = "STORE", ordinal = 1))
 	private int renderText(int o, GuiGraphics gui) {
 		if ((Object)this instanceof ListenerEditBox box) {
 			if (box.shadowDisabled()) {
 				int y = this.bordered ? this.getY() + (this.height - 8) / 2 : this.getY();
-				return gui.drawString(this.font, this.formatter.apply(this.tempValue, this.displayPos), this.bordered ? this.getX() + 4 : this.getX(), y, this.isEditable ? this.textColor : this.textColorUneditable);
+				return gui.drawString(this.font, this.formatter.apply(this.tempValue, this.displayPos), this.bordered ? this.getX() + 4 : this.getX(), y, this.isEditable ? this.textColor : this.textColorUneditable, false);
 			}
 		}
 		return o;
