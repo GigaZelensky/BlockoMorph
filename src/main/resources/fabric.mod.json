@@ -8,7 +8,7 @@
     "151gamemode1chit"
   ],
   "license": "MIT License",
-  "icon": "assets/blockomorph/icon.png",
+  "icon": "assets/blockomorph/textures/title.png",
   "environment": "*",
   "contact": {
     "homepage": "https://modrinth.com/mod/block-o-morph",
