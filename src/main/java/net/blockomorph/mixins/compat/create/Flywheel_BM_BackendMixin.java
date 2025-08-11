@@ -14,7 +14,7 @@ public class Flywheel_BM_BackendMixin {
 
 	@Inject(method = "canUseInstancing", at = @At("HEAD"), cancellable = true, require = 0, expect = 0)
 	private static void check(Level world, CallbackInfoReturnable<Boolean> cir) {
-		if (world instanceof ClientLevelAccessor acc && acc.blockEntityRendering()) {
+		if (world instanceof ClientLevelAccessor acc && acc.specialRenderingMode()) {
 			cir.setReturnValue(false);
 		}
 	}

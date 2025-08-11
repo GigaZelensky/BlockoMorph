@@ -16,7 +16,6 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -155,9 +154,9 @@ public class MorphedPlayerRenderer {
 						};
 					}
 					ClientLevelAccessor acc = ClientLevelAccessor.of(blockEntity.getLevel());
-					acc.setBlockEntityRenderingMode(true);
+					acc.setSpecialRenderingMode(true);
 					renderer.render(blockEntity, partialticks, posestack, src, light, OverlayTexture.NO_OVERLAY);
-					acc.setBlockEntityRenderingMode(false);
+					acc.setSpecialRenderingMode(false);
 				}
 			} catch (Exception e) {
 				if (player == Minecraft.getInstance().player && Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc)

@@ -48,7 +48,6 @@ import java.util.Collection;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.WidgetSprites;
@@ -545,9 +544,9 @@ public class BlockMorphConfigScreen extends Screen {
                 if (renderer != null) {
            	        posestack.pushPose();
 					ClientLevelAccessor acc = ClientLevelAccessor.of(world);
-					acc.setBlockEntityRenderingMode(true);
+					acc.setSpecialRenderingMode(true);
                     renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY);
-					acc.setBlockEntityRenderingMode(false);
+					acc.setSpecialRenderingMode(false);
                     posestack.popPose();
                 }
               } catch (Exception e) {

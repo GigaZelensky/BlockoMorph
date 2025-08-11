@@ -45,6 +45,7 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.world.item.ItemStack;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -55,19 +56,31 @@ import net.fabricmc.loader.api.FabricLoader;
 import java.util.HashMap;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.function.DoubleConsumer;
 import java.util.function.Function;
 
 public class MorphUtils {
-	public static final ResourceKey<DamageType> PLAYER_DESTROYED = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("blockomorph", "player_destroyed"));
-	public static final ResourceKey<DamageType> PLAYER_DESTROYED_NULL = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("blockomorph", "player_destroyed_null"));
-	public static final SavedBlockManager bmanager = getSavedManager();
-
-	private static SavedBlockManager getSavedManager() {
-		return new SavedBlockManager(FabricLoader.getInstance().getGameDir());
+	public static final ResourceKey<DamageType> PLAYER_DESTROYED = ResourceKey.create(Registries.DAMAGE_TYPE, res("player_destroyed"));
+	public static final ResourceKey<DamageType> PLAYER_DESTROYED_NULL = ResourceKey.create(Registries.DAMAGE_TYPE, res("player_destroyed_null"));
+	public static final Logger LOGGER = LoggerFactory.getLogger(BlockomorphServer.MOD_ID);
+	public static Path getGameDir() {
+		return FabricLoader.getInstance().getGameDir();
 	}
+
+	public static ResourceLocation res(String path) {
+		return ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, path);
+	}
+
+	public static ResourceLocation vanillaRes(String path) {
+		return ResourceLocation.withDefaultNamespace(path);
+	}
+
+
+	/****************************PACKET SYSTEM************************************/
 
 	private static final HashMap<ResourceLocation, PacketInfo> handlers = new HashMap<>();
 	public static PacketInfo getHandler(ResourceLocation id) {
