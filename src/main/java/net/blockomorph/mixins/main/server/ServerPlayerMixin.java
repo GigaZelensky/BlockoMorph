@@ -1,19 +1,18 @@
 package net.blockomorph.mixins.main.server;
 
 import com.mojang.authlib.GameProfile;
+import net.blockomorph.utils.BannedBlock;
 import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemCooldowns;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
@@ -79,8 +78,8 @@ public abstract class ServerPlayerMixin extends Player {
     public void restoreBlockMorphData(ServerPlayer old, boolean fromEnd, CallbackInfo ci) {
         PlayerAccessor pl = PlayerAccessor.of(this);
         PlayerAccessor oldPl = PlayerAccessor.of(old);
-        if (!fromEnd && (Boolean) Config.getInstance().getValue("playerDieAfterDestroy")) {
-            pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), null);
+        if (!fromEnd && Config.getInstance().getValue("playerDieAfterDestroy", Boolean.class)) {
+            pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), null, BannedBlock.Source.SYSTEM);
             for (InPlayerBlockPos pos : oldPl.getUpdates()) {
                 pl.prepareSync(pos);
             }

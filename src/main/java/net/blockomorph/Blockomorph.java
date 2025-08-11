@@ -2,8 +2,6 @@ package net.blockomorph;
 
 import net.blockomorph.network.*;
 import net.blockomorph.utils.MorphUtils;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -12,7 +10,6 @@ import net.neoforged.bus.api.IEventBus;
 
 @Mod(Blockomorph.MODID)
 public class Blockomorph {
-	public static final Logger LOGGER = LogManager.getLogger(Blockomorph.class);
 	public static final String MODID = "blockomorph";
 
 	public Blockomorph(IEventBus modEventBus) {
@@ -27,6 +24,7 @@ public class Blockomorph {
 		MorphUtils.registerPacket(ClientBoundApplyBlockMorphPacket.ID, ClientBoundApplyBlockMorphPacket::new, true);
 		MorphUtils.registerPacket(ServerBoundBlockMorphPacket.ID, ServerBoundBlockMorphPacket::new, false);
 		MorphUtils.registerPacket(ServerBoundConfigUpdatePacket.ID, ServerBoundConfigUpdatePacket::new, false);
+		MorphUtils.registerPacket(ServerBoundSelfNbtRequestPacket.ID, ServerBoundSelfNbtRequestPacket::new, false);
 	}
 
 }

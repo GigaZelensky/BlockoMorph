@@ -63,11 +63,11 @@ public abstract class ClientLevelMixin implements ClientLevelAccessor {
 
     private boolean BErendering;
 
-    public boolean blockEntityRendering() {
+    public boolean specialRenderingMode() {
         return this.BErendering;
     }
 
-    public void setBlockEntityRenderingMode(boolean yes) {
+    public void setSpecialRenderingMode(boolean yes) {
         this.BErendering = yes;
     }
 }

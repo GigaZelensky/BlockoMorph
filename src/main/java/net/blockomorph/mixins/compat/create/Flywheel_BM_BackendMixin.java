@@ -1,7 +1,6 @@
 package net.blockomorph.mixins.compat.create;
 
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Pseudo;
@@ -15,7 +14,7 @@ public class Flywheel_BM_BackendMixin {
 
 	@Inject(method = "supportsVisualization", at = @At("HEAD"), cancellable = true, require = 0, expect = 0)
 	private static void check(LevelAccessor world, CallbackInfoReturnable<Boolean> cir) {
-		if (world instanceof ClientLevelAccessor acc && acc.blockEntityRendering()) {
+		if (world instanceof ClientLevelAccessor acc && acc.specialRenderingMode()) {
 			cir.setReturnValue(false);
 		}
 	}
