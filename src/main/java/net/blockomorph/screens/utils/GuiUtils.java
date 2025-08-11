@@ -3,14 +3,18 @@ package net.blockomorph.screens.utils;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.math.Axis;
 import net.blockomorph.screens.overlay.BlockHeartOverlay;
 import net.blockomorph.screens.overlay.Overlay;
 import net.blockomorph.screens.overlay.PlayerCrackOverlay;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
+import net.fabricmc.fabric.api.util.TriState;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -111,13 +115,13 @@ public class GuiUtils { //Cross-platform wrapper
 	}
 
 
-	public void blit(Function<ResourceLocation, RenderType> res, ResourceLocation texture, int x, int y, float u, float v, int uvMaxX, int uvMaxY, int maxX, int maxY, int color) {
-		this.innerBlit(res, texture, x, x + uvMaxX, y, y + uvMaxY, (u + 0.0F) / (float)maxX, (u + (float)uvMaxX) / (float)maxX, (v + 0.0F) / (float)maxY, (v + (float)uvMaxY) / (float)maxY, color);
+	public void blit(ResourceLocation texture, int x, int y, float u, float v, int uvMaxX, int uvMaxY, int maxX, int maxY, int color) {
+		this.innerBlit(texture, x, x + uvMaxX, y, y + uvMaxY, (u + 0.0F) / (float)maxX, (u + (float)uvMaxX) / (float)maxX, (v + 0.0F) / (float)maxY, (v + (float)uvMaxY) / (float)maxY, color);
 	}
 	
 
-	private void innerBlit(Function<ResourceLocation, RenderType> res, ResourceLocation p_283254_, int x, int xEnd, int y, int yEnd, float u, float uEnd, float v, float vEnd, int color) {
-		RenderType rendertype = res.apply(p_283254_);
+	private void innerBlit(ResourceLocation p_283254_, int x, int xEnd, int y, int yEnd, float u, float uEnd, float v, float vEnd, int color) {
+		RenderType rendertype = RenderType.gui();
 		Matrix4f matrix4f = GUI.pose().last().pose();
 		VertexConsumer vertexconsumer = bufferSource.getBuffer(rendertype);
 		vertexconsumer.addVertex(matrix4f, (float)x, (float)y, 0.0F).setUv(u, v).setColor(color);
@@ -125,6 +129,12 @@ public class GuiUtils { //Cross-platform wrapper
 		vertexconsumer.addVertex(matrix4f, (float)xEnd, (float)yEnd, 0.0F).setUv(uEnd, vEnd).setColor(color);
 		vertexconsumer.addVertex(matrix4f, (float)xEnd, (float)y, 0.0F).setUv(uEnd, v).setColor(color);
 	}
+
+	private static final Function<ResourceLocation, RenderType> GUI_TEXTURED = Util.memoize((p_359222_) -> RenderType.create(
+			"gui_textured",
+			DefaultVertexFormat.POSITION_TEX_COLOR,
+			VertexFormat.Mode.QUADS, 786432, RenderType.CompositeState.builder().setTextureState(
+					new RenderStateShard.TextureStateShard(p_359222_, false, false)).setShaderState(RenderStateShard.POSITION_TEXTURE_COLOR_SHADER).setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY).setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST).createCompositeState(false)));
 	
 	/* HINT:
 		X - up left corner
@@ -137,7 +147,8 @@ public class GuiUtils { //Cross-platform wrapper
 		max Y - height /   - size on screen
 	*/
 	public void blit(ResourceLocation resourceLocation, int x, int y, float u, float v, int uvMaxX, int uvMaxY, int maxX, int maxY) {
-		GUI.blit(resourceLocation, x, y, u, v, uvMaxX, uvMaxY, maxX, maxY);
+		//GUI.blit(resourceLocation, x, y, u, v, uvMaxX, uvMaxY, maxX, maxY);
+		this.blit(resourceLocation, x, y, u, v, uvMaxX, uvMaxY, maxX, maxY, -1);
 	}
 
 	public void blitMonoImage(ResourceLocation resourceLocation, int x, int y, int maxSizeX, int maxSizeY) {
