@@ -44,7 +44,13 @@ public class Config {
 	}
 
 	public static void loadExternal(Config cfg) {
-		INSTANCE = cfg;
+		if (INSTANCE == null) INSTANCE = new Config();
+		for (ConfigInstance<?> instance : cfg.OPTIONS) {
+			ConfigInstance<?> realInstance = INSTANCE.getOption(instance.getName());
+			if (!realInstance.trySetValue(instance)) {
+				MorphUtils.LOGGER.error("Option with name: {} throw error then setting value: {}", instance.getName(), instance.value);
+			}
+		}
 	}
 
 	public static MinecraftServer getServer() {

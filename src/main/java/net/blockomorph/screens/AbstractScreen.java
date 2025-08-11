@@ -1,5 +1,6 @@
 package net.blockomorph.screens;
 
+import net.blockomorph.screens.config.ConfigRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.navigation.ScreenPosition;

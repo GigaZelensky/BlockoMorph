@@ -58,6 +58,17 @@ public abstract class ConfigInstance<T> {
 		this.value = value;
 		return this.value;
 	}
+
+	@SuppressWarnings("unchecked")
+	public boolean trySetValue(ConfigInstance<?> instance) {
+		try {
+			this.value = (T) instance.value;
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
 	public T getValue() {
 		return this.value;
 	}

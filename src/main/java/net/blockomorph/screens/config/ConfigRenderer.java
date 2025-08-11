@@ -14,6 +14,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public interface ConfigRenderer<T extends ConfigInstance<?>> {
 	String LOCAL_KEY = "blockomorph.config_option.";
@@ -24,9 +26,9 @@ public interface ConfigRenderer<T extends ConfigInstance<?>> {
 
 	void render(GuiUtils gui, T configInstance, Rect2i box);
 
-	boolean mouseClicked(T configInstance, double mouseX, double mouseY, Rect2i box, Screen parentScreen);
+	boolean mouseClicked(T configInstance, double mouseX, double mouseY, Rect2i box, ConfigRenderingContext context);
 
-	boolean mouseScrolled(T configInstance, double mouseX, double mouseY, double yOffsetWheel, Rect2i box, Screen parentScreen);
+	boolean mouseScrolled(T configInstance, double mouseX, double mouseY, double yOffsetWheel, Rect2i box, ConfigRenderingContext context);
 
 	default void renderOptionName(GuiUtils gui, T configInstance, Rect2i box) {
 		MutableComponent name = Component.translatable(LOCAL_KEY + configInstance.getName());
@@ -69,4 +71,6 @@ public interface ConfigRenderer<T extends ConfigInstance<?>> {
 	default void endClick() {}
 
 	default void init() {}
+
+	record ConfigRenderingContext(Screen parentScreen, BiConsumer<String, String> onValueChanged, Consumer<Screen> onNewScreenRequested) {}
 }

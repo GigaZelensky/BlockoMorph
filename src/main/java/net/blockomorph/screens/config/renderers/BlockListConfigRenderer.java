@@ -4,7 +4,6 @@ import net.blockomorph.screens.config.ConfigRenderer;
 import net.blockomorph.screens.config.ListOptionEditingMorphScreen;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.config.BlockListConfig;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.resources.ResourceLocation;
 
@@ -25,19 +24,19 @@ public class BlockListConfigRenderer implements ConfigRenderer<BlockListConfig> 
 	public void render(GuiUtils gui, BlockListConfig configInstance, Rect2i box) {}
 
 	@Override
-	public boolean mouseClicked(BlockListConfig configInstance, double mouseX, double mouseY, Rect2i box, Screen parentScreen) {
+	public boolean mouseClicked(BlockListConfig configInstance, double mouseX, double mouseY, Rect2i box, ConfigRenderingContext context) {
 		int buttonX = box.getX() + 125;
 		int buttonY = box.getY() + 2;
 		if (this.isButtonHovered(buttonX, buttonY, mouseX, mouseY)) {
 			GuiUtils.playClickSound();
-			GuiUtils.MC.setScreen(new ListOptionEditingMorphScreen(configInstance, parentScreen));
+			GuiUtils.MC.setScreen(new ListOptionEditingMorphScreen(configInstance, context));
 			return true;
 		}
 		return false;
 	}
 
 	@Override
-	public boolean mouseScrolled(BlockListConfig configInstance, double mouseX, double mouseY, double yOffsetWheel, Rect2i box, Screen parentScreen) {
+	public boolean mouseScrolled(BlockListConfig configInstance, double mouseX, double mouseY, double yOffsetWheel, Rect2i box, ConfigRenderingContext context) {
 		return false;
 	}
 
