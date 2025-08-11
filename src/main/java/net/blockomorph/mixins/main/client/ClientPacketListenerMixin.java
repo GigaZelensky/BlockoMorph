@@ -1,5 +1,7 @@
 package net.blockomorph.mixins.main.client;
 
+import net.blockomorph.screens.morph.MorphScreen;
+import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.PlayerAccessor;
 import net.minecraft.client.GameNarrator;
 import net.minecraft.client.Minecraft;

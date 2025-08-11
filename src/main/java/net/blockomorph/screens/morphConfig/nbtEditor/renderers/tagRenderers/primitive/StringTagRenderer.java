@@ -8,7 +8,7 @@ public class StringTagRenderer extends PrimitiveTagRenderer<StringTag> {
 
 	public StringTagRenderer(String tagName, StringTag tag, TagRendererContext<StringTag> ctx) {
 		super(tagName, tag, ctx);
-		this.valueBox.setValue(tag.value());
+		this.valueBox.setValue(tag.getAsString());
 		this.valueBox.setTextColor(ARGB.color(43, 55, 224));
 	}
 

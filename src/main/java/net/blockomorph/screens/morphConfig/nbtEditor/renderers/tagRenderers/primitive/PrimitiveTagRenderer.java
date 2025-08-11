@@ -4,14 +4,14 @@ import net.blockomorph.screens.morphConfig.nbtEditor.renderers.TagRendererContex
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers.TagRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ListenerEditBox;
-import net.minecraft.nbt.PrimitiveTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.util.FormattedCharSequence;
 
 import java.util.function.BiFunction;
 
-public abstract class PrimitiveTagRenderer<T extends PrimitiveTag> extends TagRenderer<T> {
+public abstract class PrimitiveTagRenderer<T extends Tag> extends TagRenderer<T> {
 	private static final BiFunction<String, Integer, FormattedCharSequence> SHADOW_DISABLE = (value, cursorPos) -> {
 		return FormattedCharSequence.forward(value, Style.EMPTY.withShadowColor(0));
 	};

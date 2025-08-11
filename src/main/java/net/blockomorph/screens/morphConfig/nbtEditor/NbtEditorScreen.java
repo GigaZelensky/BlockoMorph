@@ -300,7 +300,7 @@ public abstract class NbtEditorScreen extends AbstractScreen {
 		if (this.editingTag == null) return;
 		if (!value.equals(this.editingTag.toString())) {
 			try {
-				this.editingTag = TagParser.parseCompoundFully(value);
+				this.editingTag = TagParser.parseTag(value);
 				this.setEditorLocked(false);
 				this.onTagEdited(this.editingTag.copy());
 				this.parseError = null;

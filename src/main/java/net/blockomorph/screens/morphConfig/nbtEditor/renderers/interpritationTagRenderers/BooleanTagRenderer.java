@@ -12,7 +12,7 @@ public class BooleanTagRenderer extends AbstractInterpritationTagRenderer<ByteTa
 
 	@Override
 	public void renderMain(GuiUtils gui) {
-		if (this.getTag().value() != 0) {
+		if (this.getTag().getAsByte() != 0) {
 			gui.blit(TAGS_SPRITE, this.box.getX() + 95, this.box.getY() + 3, PLATE_LENGTH, 32, 24, 14, PLATE_SPRITE_LENGTH, PLATE_SPRITE_HEIGTH);
 		}
 	}
@@ -20,7 +20,7 @@ public class BooleanTagRenderer extends AbstractInterpritationTagRenderer<ByteTa
 	@Override
 	public boolean mouseClick(double mouseX, double mouseY) {
 		if (GuiUtils.isInBounds(this.box, mouseX, mouseY)) {
-			ByteTag tag = ByteTag.valueOf((byte) (this.getTag().value() != 0 ? 0 : 1));
+			ByteTag tag = ByteTag.valueOf((byte) (this.getTag().getAsByte() != 0 ? 0 : 1));
 			this.changeThis(tag);
 			GuiUtils.playClickSound();
 			return true;

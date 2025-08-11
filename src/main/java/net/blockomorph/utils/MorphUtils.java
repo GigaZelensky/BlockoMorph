@@ -138,9 +138,12 @@ public class MorphUtils {
 		BlockmorphCommand.register(event.getDispatcher(), event.getBuildContext(), event.getCommandSelection());
 	}
 
-	@SubscribeEvent
-	public static void registerKeys(RegisterKeyMappingsEvent event) {
-		KeyMappings.registerKeyMappings(event::register);
+	@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD)
+	public static class ModBus {
+		@SubscribeEvent
+		public static void registerKeys(RegisterKeyMappingsEvent event) {
+			KeyMappings.registerKeyMappings(event::register);
+		}
 	}
 
 	@SubscribeEvent

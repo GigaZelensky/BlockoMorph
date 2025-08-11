@@ -2,17 +2,22 @@ package net.blockomorph.mixins.main.client.graphic;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import net.blockomorph.utils.accessors.ClientLevelAccessor;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockAndTintGetter;
 import net.minecraft.world.level.block.state.BlockState;
+import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.ModifyVariable;
 
 import java.util.concurrent.atomic.AtomicReference;
 
 @Mixin(value = ModelBlockRenderer.class, priority = 30000)
+@Debug(export = true)
 public class BlockModelRendererMixin {
 
 	@WrapOperation(method = {
@@ -23,5 +28,25 @@ public class BlockModelRendererMixin {
 		AtomicReference<BlockState> state = new AtomicReference<>(original.call(instance, blockPos));
 		InPlayerBlockPos.check(blockPos, (pl, realPos) -> state.set(pl.getBlockState(realPos)), null, true);
 		return state.get();
+	}
+
+	@ModifyVariable(ordinal = 3, method = {
+			"tesselateWithoutAO(Lnet/minecraft/world/level/BlockAndTintGetter;Lnet/minecraft/client/resources/model/BakedModel;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/BlockPos;Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;ZLnet/minecraft/util/RandomSource;JILnet/neoforged/neoforge/client/model/data/ModelData;Lnet/minecraft/client/renderer/RenderType;)V",
+	}, at = @At("STORE"))
+	private int changeLight(int i, BlockAndTintGetter level) {
+		if (level instanceof ClientLevelAccessor acc && acc.specialRenderingMode()) {
+			return LightTexture.pack(15, 15);
+		}
+		return i;
+	}
+
+	@ModifyVariable(ordinal = 0, method = {
+			"renderModelFaceFlat",
+	}, at = @At("STORE"))
+	private int changeLight2(int i, BlockAndTintGetter level) {
+		if (level instanceof ClientLevelAccessor acc && acc.specialRenderingMode()) {
+			return LightTexture.pack(15, 15);
+		}
+		return i;
 	}
 }

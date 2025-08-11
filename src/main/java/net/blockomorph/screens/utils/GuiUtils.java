@@ -11,7 +11,6 @@ import net.blockomorph.screens.overlay.Overlay;
 import net.blockomorph.screens.overlay.PlayerCrackOverlay;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
-import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -52,7 +51,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 public class GuiUtils { //Cross-platform wrapper
 	public static final BlockPos AIR = new BlockPos(0, 500, 0);
@@ -187,7 +185,7 @@ public class GuiUtils { //Cross-platform wrapper
 		PoseStack pose = GUI.pose();
 		pose.pushPose();
 
-		MC.getItemModelResolver().updateForTopItem(this.scratchItemStackRenderState, item, ItemDisplayContext.GUI, MC.level, MC.player, 0);
+		MC.getItemModelResolver().updateForTopItem(this.scratchItemStackRenderState, item, ItemDisplayContext.GUI, false, MC.level, MC.player, 0);
 		pose.translate(x + 8, y + 8, 150 + zDepth);
 		pose.scale(scale, -scale, scale);
 
@@ -239,30 +237,24 @@ public class GuiUtils { //Cross-platform wrapper
 		stack.mulPose(Axis.XP.rotationDegrees(30.0F));
 		stack.mulPose(Axis.YP.rotationDegrees(-135F));
 
-		this.renderBlock(stack, blockState);
+		this.renderBlock(stack, blockState, blockEntity != null ? blockEntity.getBlockPos(): AIR);
 		RenderSystem.setShaderLights(DIFFUSE_LIGHT_START, DIFFUSE_LIGHT_END);
 		this.renderBlockEntity(stack, blockEntity);
 
 		stack.popPose();
 	}
 
-	private void renderBlock(PoseStack stack, BlockState blockState) {
-		RandomSource random = RandomSource.create(blockState.getSeed(AIR));
+	private void renderBlock(PoseStack stack, BlockState blockState, BlockPos pos) {
+		RandomSource random = RandomSource.create(blockState.getSeed(pos));
 		if (blockState.getRenderShape() != RenderShape.INVISIBLE) {
 			var model = blockRenderer.getBlockModel(blockState);
-			var modeldata = model.getModelData(MC.level, AIR, blockState, ModelData.EMPTY);
-			for (var renderType : model.getRenderTypes(blockState, random, modeldata)) {
-				VertexConsumer vertex = bufferSource.getBuffer(RenderTypeHelper.getMovingBlockRenderType(renderType));
-				blockRenderer.getModelRenderer().tesselateBlock(MC.level, model, blockState, pos, poseStack, vertex, false, RandomSource.create(), blockState.getSeed(pos), OverlayTexture.NO_OVERLAY, modeldata, renderType);
-			}
-
-			List<BlockModelPart> list = blockRenderer.getBlockModel(blockState).collectParts(MC.level, AIR, blockState, random);
-			Function<RenderType, VertexConsumer> bufferLookup = (renderType) -> {
-				return bufferSource.getBuffer(RenderTypeHelper.getMovingBlockRenderType(renderType));
-			};
+			var modeldata = model.getModelData(MC.level, pos, blockState, ModelData.EMPTY);
 			ClientLevelAccessor acc = ClientLevelAccessor.of(MC.level);
 			acc.setSpecialRenderingMode(true);
-			blockRenderer.getModelRenderer().tesselateBlock(MC.level, list, blockState, AIR, stack, bufferLookup, false, OverlayTexture.NO_OVERLAY);
+			for (var renderType : model.getRenderTypes(blockState, random, modeldata)) {
+				VertexConsumer vertex = bufferSource.getBuffer(RenderTypeHelper.getMovingBlockRenderType(renderType));
+				blockRenderer.getModelRenderer().tesselateBlock(MC.level, model, blockState, pos, stack, vertex, false, RandomSource.create(), blockState.getSeed(pos), OverlayTexture.NO_OVERLAY, modeldata, renderType);
+			}
 			acc.setSpecialRenderingMode(false);
 		}
 	}
@@ -293,9 +285,8 @@ public class GuiUtils { //Cross-platform wrapper
 			if (renderer != null) {
 				ClientLevelAccessor acc = ClientLevelAccessor.of(MC.level);
 				try {
-					Camera cam = Minecraft.getInstance().getBlockEntityRenderDispatcher().camera;
 					acc.setSpecialRenderingMode(true);
-					renderer.render(blockEntity, this.tick, stack, bufferSource, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY, cam.getPosition());//TODO
+					renderer.render(blockEntity, this.tick, stack, bufferSource, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY);
 				} catch (Exception ignored) {
 				} finally {
 					acc.setSpecialRenderingMode(false);

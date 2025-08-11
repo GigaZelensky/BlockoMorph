@@ -56,7 +56,7 @@ public class CompoundTagRenderer extends TagRenderer<CompoundTag> {
 	@Override
 	public List<TagRenderer<?>> getEnteringTags() {
 		List<TagRenderer<?>> renderers = new ArrayList<>();
-		for (String key : this.getTag().keySet()) {
+		for (String key : this.getTag().getAllKeys()) {
 			Tag tag = this.getTag().get(key);
 			if (tag == null) throw new NullPointerException();
 			renderers.add(TagTypes.getRendererForTag(key, tag, this.tagRendererContext.withTagUpdateListener(newTag -> {
@@ -92,7 +92,7 @@ public class CompoundTagRenderer extends TagRenderer<CompoundTag> {
 
 	private void signalChange() {
 		HashMap<String, String> map = new HashMap<>();
-		for (String tagName : this.getTag().keySet()) {
+		for (String tagName : this.getTag().getAllKeys()) {
 			map.put(tagName, tagName);
 		}
 		this.tagRendererContext.onSoftRebuildRequested().accept(map);
@@ -106,7 +106,7 @@ public class CompoundTagRenderer extends TagRenderer<CompoundTag> {
 			if (self.contains("Properties") && self.size() == 2) {
 				return this.getBlockStateRenderer(onInterpretationBrake);
 			} else {
-				if (MorphUtils.blockPredicate().test(self.getStringOr("Name", "")) && self.size() == 1) {
+				if (MorphUtils.blockPredicate().test(self.getString("Name")) && self.size() == 1) {
 					return this.getBlockStateRenderer(onInterpretationBrake);
 				}
 			}

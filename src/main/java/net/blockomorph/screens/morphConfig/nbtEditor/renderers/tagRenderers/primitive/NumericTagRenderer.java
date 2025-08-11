@@ -27,7 +27,7 @@ public abstract class NumericTagRenderer<NUMBER_TAG extends NumericTag> extends 
 		});
 		DEFAULT = defaultValue;
 		this.color = backgroundColor;
-		this.valueBox.setValue(tag.box().toString());
+		this.valueBox.setValue(tag.getAsNumber().toString());
 	}
 
 	@Override
@@ -141,7 +141,7 @@ public abstract class NumericTagRenderer<NUMBER_TAG extends NumericTag> extends 
 
 		@Override
 		public BooleanTagRenderer getInterpretationRenderer(Runnable onInterpretationBrake) {
-			byte value = this.getTag().value();
+			byte value = this.getTag().getAsByte();
 			if (value == 0 || value == 1) {
 				boolean yes = false;
 				String name = this.getName().toLowerCase();

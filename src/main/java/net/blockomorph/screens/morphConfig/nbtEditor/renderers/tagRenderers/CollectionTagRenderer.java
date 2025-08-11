@@ -8,15 +8,12 @@ import net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers.prim
 import net.blockomorph.screens.utils.GuiUtils;
 import net.minecraft.nbt.*;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.ARGB;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
-public class CollectionTagRenderer<LIST extends CollectionTag> extends TagRenderer<LIST> {
+public class CollectionTagRenderer<LIST extends CollectionTag<? extends Tag>> extends TagRenderer<LIST> {
 	private static final int BUTTON_SIZE = 16;
 	private final TagType<?>[] allowedTypes;
 	private static final List<Component> HINT = Stream.of(Component.translatable("blockomorph.gui.nbtEditor.addOverlay.hint.collectionTag").getString().split("\n")).map(word -> {
