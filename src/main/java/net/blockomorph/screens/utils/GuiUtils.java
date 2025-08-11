@@ -236,21 +236,21 @@ public class GuiUtils { //Cross-platform wrapper
 		stack.mulPose(Axis.XP.rotationDegrees(30.0F));
 		stack.mulPose(Axis.YP.rotationDegrees(-135F));
 
-		this.renderBlock(stack, blockState);
+		this.renderBlock(stack, blockState, blockEntity != null ? blockEntity.getBlockPos() : AIR);
 		RenderSystem.setShaderLights(DIFFUSE_LIGHT_START, DIFFUSE_LIGHT_END);
 		this.renderBlockEntity(stack, blockEntity);
 
 		stack.popPose();
 	}
 
-	private void renderBlock(PoseStack stack, BlockState blockState) {
-		RandomSource random = RandomSource.create(blockState.getSeed(AIR));
+	private void renderBlock(PoseStack stack, BlockState blockState, BlockPos pos) {
+		RandomSource random = RandomSource.create(blockState.getSeed(pos));
 		if (blockState.getRenderShape() != RenderShape.INVISIBLE) {
 			List<BlockModelPart> list = blockRenderer.getBlockModel(blockState).collectParts(random);
 			var renderType = ItemBlockRenderTypes.getMovingBlockRenderType(blockState);
 			ClientLevelAccessor acc = ClientLevelAccessor.of(MC.level);
 			acc.setSpecialRenderingMode(true);
-			blockRenderer.getModelRenderer().tesselateBlock(MC.level, list, blockState, AIR, stack, bufferSource.getBuffer(renderType), false, OverlayTexture.NO_OVERLAY);
+			blockRenderer.getModelRenderer().tesselateBlock(MC.level, list, blockState, pos, stack, bufferSource.getBuffer(renderType), false, OverlayTexture.NO_OVERLAY);
 			acc.setSpecialRenderingMode(false);
 		}
 	}
