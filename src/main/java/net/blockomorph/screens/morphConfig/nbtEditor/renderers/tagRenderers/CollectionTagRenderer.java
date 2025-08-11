@@ -15,17 +15,15 @@ import java.util.stream.Stream;
 
 public class CollectionTagRenderer<LIST extends CollectionTag<? extends Tag>> extends TagRenderer<LIST> {
 	private static final int BUTTON_SIZE = 16;
-	private final TagType<?>[] allowedTypes;
 	private static final List<Component> HINT = Stream.of(Component.translatable("blockomorph.gui.nbtEditor.addOverlay.hint.collectionTag").getString().split("\n")).map(word -> {
 		return Component.translationArg(Component.literal(word));
 	}).toList();
 	private boolean hovered;
 	private final int color;
 	
-	protected CollectionTagRenderer(String tagName, LIST tag, TagRendererContext<LIST> ctx, int color, TagType<?>... allowedTypes) {
+	protected CollectionTagRenderer(String tagName, LIST tag, TagRendererContext<LIST> ctx, int color) {
 		super(tagName, tag, ctx);
 		this.color = color;
-		this.allowedTypes = allowedTypes;
 	}
 
 	@Override
@@ -101,6 +99,12 @@ public class CollectionTagRenderer<LIST extends CollectionTag<? extends Tag>> ex
 
 	@Override
 	public TagEditingOverlay getTagAddOverlay() {
+		TagType<?>[] tags;
+		if (this.getTag().getElementType() == 0) {
+			tags = TagTypes.getRegisteredTags();
+		} else {
+			tags = new TagType[]{net.minecraft.nbt.TagTypes.getType(this.getTag().getElementType())};
+		}
 		return new TagAddingOverlay<>(name -> {
 			if (name.isEmpty()) return true;
 			try {
@@ -117,7 +121,7 @@ public class CollectionTagRenderer<LIST extends CollectionTag<? extends Tag>> ex
 			this.signalChange(() -> {
 				this.getTag().addTag(index, tag);
 			}, false, index + 1);
-		}, this::getAddOverlayHint, HINT, true, this.allowedTypes);
+		}, this::getAddOverlayHint, HINT, true, tags);
 	}
 
 	private String getAddOverlayHint() {
@@ -170,25 +174,25 @@ public class CollectionTagRenderer<LIST extends CollectionTag<? extends Tag>> ex
 
 	public static final class ListTagRenderer extends CollectionTagRenderer<ListTag> {
 		public ListTagRenderer(String tagName, ListTag tag, TagRendererContext<ListTag> ctx) {
-			super(tagName, tag, ctx, FastColor.ARGB32.color(255, 245, 172, 47), TagTypes.getRegisteredTags());
+			super(tagName, tag, ctx, FastColor.ARGB32.color(255, 245, 172, 47));
 		}
 	}
 
 	public static final class IntArrayTagRenderer extends CollectionTagRenderer<IntArrayTag> {
 		public IntArrayTagRenderer(String tagName, IntArrayTag tag, TagRendererContext<IntArrayTag> ctx) {
-			super(tagName, tag, ctx, NumericTagRenderer.INT_COLOR, IntTag.TYPE);
+			super(tagName, tag, ctx, NumericTagRenderer.INT_COLOR);
 		}
 	}
 
 	public static final class LongArrayTagRenderer extends CollectionTagRenderer<LongArrayTag> {
 		public LongArrayTagRenderer(String tagName, LongArrayTag tag, TagRendererContext<LongArrayTag> ctx) {
-			super(tagName, tag, ctx, NumericTagRenderer.LONG_COLOR, LongTag.TYPE);
+			super(tagName, tag, ctx, NumericTagRenderer.LONG_COLOR);
 		}
 	}
 
 	public static final class ByteArrayTagRenderer extends CollectionTagRenderer<ByteArrayTag> {
 		public ByteArrayTagRenderer(String tagName, ByteArrayTag tag, TagRendererContext<ByteArrayTag> ctx) {
-			super(tagName, tag, ctx, NumericTagRenderer.BYTE_COLOR, ByteTag.TYPE);
+			super(tagName, tag, ctx, NumericTagRenderer.BYTE_COLOR);
 		}
 	}
 }

@@ -4,6 +4,7 @@ import net.blockomorph.screens.morphConfig.nbtEditor.renderers.TagRendererContex
 import net.blockomorph.screens.morphConfig.nbtEditor.renderers.tagRenderers.TagRenderer;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ListenerEditBox;
+import net.blockomorph.screens.utils.NoShadowFormattedCharSequence;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -12,12 +13,16 @@ import net.minecraft.util.FormattedCharSequence;
 import java.util.function.BiFunction;
 
 public abstract class PrimitiveTagRenderer<T extends Tag> extends TagRenderer<T> {
+	private BiFunction<String, Integer, FormattedCharSequence> NO_SHADOW_STYLE = (value, pos) -> {
+		return new NoShadowFormattedCharSequence(FormattedCharSequence.forward(value, Style.EMPTY));
+	};
 	protected final ListenerEditBox valueBox;
 
 	public PrimitiveTagRenderer(String tagName, T tag, TagRendererContext<T> ctx) {
 		super(tagName, tag, ctx);
-		this.valueBox = new ListenerEditBox(GuiUtils.MC.font, 0, 0, 79, 11, Component.literal(tag.getType().getName() + " tag value"), this::onValueEntered, null, false);
+		this.valueBox = new ListenerEditBox(GuiUtils.MC.font, 0, 0, 79, 11, Component.literal(tag.getType().getName() + " tag value"), this::onValueEntered, null);
 		this.valueBox.setMaxLength(8166);
+		this.valueBox.setFormatter(NO_SHADOW_STYLE);
 	}
 
 	@Override

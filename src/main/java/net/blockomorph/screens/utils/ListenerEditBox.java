@@ -19,24 +19,14 @@ public class ListenerEditBox extends EditBox {
 	private final Consumer<String> action;
 	protected boolean editable = true;
 	private final boolean borderLock;
-	private final boolean shadow;
 
-	public ListenerEditBox(Font font, int x, int y, int length, int height, Component name, Consumer<String> action, @Nullable ResourceLocation border, boolean shadow) {
+	public ListenerEditBox(Font font, int x, int y, int length, int height, Component name, Consumer<String> action, @Nullable ResourceLocation border) {
 		super(font, x, y, length, height, name);
 		this.action = action;
 		this.font = font;
 		this.borderTexture = border;
 		this.setBordered(border != null);
 		this.borderLock = true;
-		this.shadow = shadow;
-	}
-
-	public ListenerEditBox(Font font, int x, int y, int length, int height, Component name, Consumer<String> action, @Nullable ResourceLocation border) {
-		this(font, x, y, length, height, name, action, border, true);
-	}
-
-	public boolean shadowDisabled() {
-		return !this.shadow;
 	}
 
 	@Override
