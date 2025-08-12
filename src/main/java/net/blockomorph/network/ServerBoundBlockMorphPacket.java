@@ -1,13 +1,18 @@
 package net.blockomorph.network;
 
+import net.blockomorph.utils.BannedBlock;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
+import net.blockomorph.utils.config.Config;
+import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.state.BlockState;
+import org.jetbrains.annotations.Nullable;
 
 public class ServerBoundBlockMorphPacket implements BlockMorphPacket {
 	public static final String ID = "server_bound_block_morph_packet";
@@ -17,7 +22,7 @@ public class ServerBoundBlockMorphPacket implements BlockMorphPacket {
 	}
 
 	public ServerBoundBlockMorphPacket(FriendlyByteBuf buf) {
-		this.tag = buf.readAnySizeNbt();
+		this.tag = buf.readNbt();
 	}
 
 	@Override
@@ -33,25 +38,39 @@ public class ServerBoundBlockMorphPacket implements BlockMorphPacket {
 	@Override
 	public void handle(Player player) {
 		if (player instanceof PlayerAccessor mob) {
-			if (tag == null) throw new IllegalArgumentException("Nbt is null!");
-			if (tag.contains("fuse", 1)) {
+			if (tag == null) throw new IllegalArgumentException("Payload is null!");
+			if (tag.contains("fuse")) {
 				mob.setTnt();
 				return;
 			}
-			if (mob.getTnt() != null) throw new IllegalArgumentException("Attempt to morph, while your morphed into burned TNT.");
 			BlockState blockstate = NbtUtils.readBlockState(player.level().holderLookup(Registries.BLOCK), tag.getCompound("BlockState"));
-			CompoundTag nbt = tag.getCompound("Tags");
-			MorphUtils.BannedBlock reason = mob.applyBlockMorph(blockstate, nbt);
-			if (reason != null && reason != MorphUtils.BannedBlock.SAME) {
-				throw new IllegalArgumentException(reason.reason());
-			}
+			CompoundTag nbt = tag.contains("Tags", 10) ? tag.getCompound("Tags") : null;
+			this.doMorph(mob, blockstate, nbt);
 		}
 	}
 
-	public static ServerBoundBlockMorphPacket create(BlockState state, CompoundTag tagMorph) {
+	private void doMorph(PlayerAccessor player, BlockState state, CompoundTag nbt) {
+		Config.ScreenAccess access = MorphUtils.getScreenAccess(player.player());
+		if (!access.morph) {
+			if (!player.getBlockState(InPlayerBlockPos.ZERO).is(state.getBlock())) {
+				throw new IllegalArgumentException("You not have access to change your blockstate.");
+			}
+		}
+		if (!access.config) {
+			if (nbt != null || !state.getBlock().defaultBlockState().equals(state)) {
+				throw new IllegalArgumentException("You not have access to config your block.");
+			}
+		}
+		BannedBlock reason = player.applyBlockMorph(state, nbt, BannedBlock.Source.NETWORK);
+		if (reason != null && reason != BannedBlock.ALREADY_MORPHED) {
+			throw new IllegalArgumentException(reason.reason());
+		}
+	}
+
+	public static ServerBoundBlockMorphPacket create(BlockState state, @Nullable CompoundTag tagMorph) {
 		CompoundTag tag = new CompoundTag();
 		tag.put("BlockState", NbtUtils.writeBlockState(state));
-		tag.put("Tags", tagMorph);
+		if (tagMorph != null) tag.put("Tags", tagMorph);
 		return new ServerBoundBlockMorphPacket(tag);
 	}
 

@@ -1,10 +1,8 @@
 package net.blockomorph.mixins.main;
 
-import net.blockomorph.BlockomorphServer;
 import net.blockomorph.network.ClientBoundApplyBlockMorphPacket;
 import net.blockomorph.network.ClientBoundMorphUpdatePacket;
 import net.blockomorph.network.ClientBoundServerBlockEntityTagPacket;
-import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.utils.*;
 import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
@@ -82,9 +80,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		}
 		HITBOX_HANDLER.recalculatePositions();
 		this.refreshDimensions();
-
-		if (this.level().isClientSide && pos.equals(InPlayerBlockPos.ZERO))
-			this.clientUpdate();
 		return true;
 	}
 
@@ -101,8 +96,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	public CompoundTag getTag(InPlayerBlockPos pos) {
 		BlockInPlayer2 ent = this.blocksData.get(pos);
 		if (ent != null && ent.getBlockEntity() != null) {
-			if (this.level().isClientSide)
-				return ent.getServerTag();
 			return ent.getBlockEntity().saveWithoutMetadata();
 		}
 		return new CompoundTag();
@@ -134,7 +127,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	}
 
 	public void breakingModeStart(boolean yes) {
-		if ((Boolean) Config.getInstance().getValue("playerDieAfterDestroy") || !yes)
+		if (Config.getInstance().getValue("playerDieAfterDestroy", Boolean.class) || !yes)
 			this.breakingMode = yes;
 	}
 
@@ -166,7 +159,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 				CompoundTag tags = tg.getCompound("BlockEntityTag");
 				BlockInPlayer2 block = new BlockInPlayer2(this, pos, state, (blockInPlayer) -> this.blocksData.put(pos, blockInPlayer));
 				if (client != null) {
-					block.setServerTag(tg.getCompound("ServerTag"));
 					block.handleClientTag(tags, client);
 				} else {
 					block.loadNBT(tags);
@@ -196,7 +188,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 				tg.put("BlockEntityTag", blockTag);
 				blocks.put(pos.string(), tg);
 			} catch (Exception e) {
-				BlockomorphServer.LOGGER.error("An error occurred while saving morphed player data on pos: " + pos + " for block: " + data.getBlockState() + " on player: " + this.getName().getString(), e);
+				MorphUtils.LOGGER.error("An error occurred while saving morphed player data on pos: " + pos + " for block: " + data.getBlockState() + " on player: " + this.getName().getString(), e);
 			}
 		});
 		return blocks;
@@ -282,9 +274,8 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 			try {
 				if (ent.getUpdatePacket() != null)
 					this.sendNearby(ent.getUpdatePacket());
-				MorphUtils.sendPlayer(new ClientBoundServerBlockEntityTagPacket(block.getOffset(), ent.saveWithoutMetadata()), (ServerPlayer) this.player());
 			} catch (Exception e) {
-				BlockomorphServer.LOGGER.error("An error occurred while sending morphed player data on pos: " + block.getOffset() + " for block: " + block.getBlockState() + " on player: " + this.getName().getString(), e);
+				MorphUtils.LOGGER.error("An error occurred while sending morphed player data on pos: " + block.getOffset() + " for block: " + block.getBlockState() + " on player: " + this.getName().getString(), e);
 			}
 		}
 	}
@@ -335,15 +326,15 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	}
 
 	@Nullable
-	public MorphUtils.BannedBlock applyBlockMorph(BlockState state, CompoundTag tag) {
-		MorphUtils.BannedBlock mess = MorphUtils.isBannedBlock(state, null);
+	public BannedBlock applyBlockMorph(BlockState state, CompoundTag tag, BannedBlock.Source source) {
+		BannedBlock mess = BannedBlock.isBannedBlock(state, this, source);
 		if (mess != null) {
 			return mess;
 		}
 		BlockState old = this.getBlockState(InPlayerBlockPos.ZERO);
 		boolean flag = state.equals(old);
-		if ((tag == null || tag.isEmpty()) && flag)
-			return MorphUtils.BannedBlock.SAME;
+		if (tag == null && flag)
+			return BannedBlock.ALREADY_MORPHED;
 		MorphUtils.sendPlayer(new ClientBoundApplyBlockMorphPacket(state, this), (ServerPlayer) this.player());
 		this.onLoadingBlocks = true;
 		for (InPlayerBlockPos pos : this.blocksData.keySet()) {
@@ -354,8 +345,18 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		}
 		this.setBlockState(InPlayerBlockPos.ZERO, state, false);
 		BlockInPlayer2 block = this.blocksData.get(InPlayerBlockPos.ZERO);
-		if (block != null && tag != null && !tag.isEmpty())
-			block.loadNBT(tag);
+		if (block != null && tag != null) {
+			Throwable e = block.loadNBT(tag);
+			ServerPlayer serverPlayer = (ServerPlayer) this.player();
+			if (e != null) {
+				MorphUtils.sendPlayer(ClientBoundServerBlockEntityTagPacket.createForError(Objects.requireNonNullElse(e.getMessage(), e.getClass().getName()), true), serverPlayer);
+			} else {
+				CompoundTag newTag = this.getTag(InPlayerBlockPos.ZERO);
+				if (!newTag.equals(tag)) {
+					MorphUtils.sendPlayer(ClientBoundServerBlockEntityTagPacket.createForError("", false), serverPlayer);
+				}
+			}
+		}
 		BlockPos pos = InPlayerBlockPos.ZERO.boundedBlockPos(this.player());
 		if (pos != null) {
 			state.getBlock().setPlacedBy(this.level(), pos, state, this, new ItemStack(state.getBlock().asItem(), 1));
@@ -399,9 +400,12 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 
 	public int getBiggestProgress() {
 		if (this.blocksData != null) {
-			BlockInPlayer2 main = this.blocksData.get(InPlayerBlockPos.ZERO);
-			if (main != null)
-				return MorphedPlayerRenderer.getBrakeProgress(main.getPos());
+			int progress = -1;
+			for (BlockInPlayer2 block : this.blocksData.values()) {
+				int k = MorphedPlayerRenderer.getBrakeProgress(block.getPos());
+				if (k > progress) progress = k;
+			}
+			return progress;
 		}
 		return -1;
 	}
@@ -418,12 +422,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		if (this.isActive()) {
 			cir.setReturnValue(HITBOX_HANDLER.calculateDimensions());
 		}
-	}
-
-	@Environment(EnvType.CLIENT)
-	public void clientUpdate() {
-		if (Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc && Minecraft.getInstance().player == (PlayerAccessor)this)
-			sc.morphUpdate(this.getBlockState(InPlayerBlockPos.ZERO));
 	}
 
 	public VoxelShape getShape(InPlayerBlockPos offset, @Nullable Vec3 realPos) {

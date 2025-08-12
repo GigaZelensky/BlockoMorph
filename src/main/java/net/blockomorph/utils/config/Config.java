@@ -3,135 +3,142 @@ package net.blockomorph.utils.config;
 import com.google.gson.*;
 import net.blockomorph.network.ClientBoundConfigUpdatePacket;
 import net.blockomorph.utils.MorphUtils;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.server.MinecraftServer;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Config {
-	private static final String configDir = FabricLoader.getInstance().getGameDir() + "\\config\\blockomorph.json";
-	public final List<ConfigInstance<?>> options = List.of(
-			new EnumConfig<>("listMode", Mode.NONE),
-			new BooleanConfig("solidBlocksOnly", false),
-			new ListConfig("allowedBlocks", new ArrayList<>()),
-			new ListConfig("bannedBlocks", new ArrayList<>()),
-			new BooleanConfig("playerDieAfterDestroy", true),
-			new EnumConfig<>("useMode", UseMode.ALL),
-			new EnumConfig<>("placeMode", PlaceMode.OUT),
-			new BooleanConfig("canOperatorModifyConfig", true)
-	);
-	static Config INSTANCE;
-	static MinecraftServer server;
+	private static final Gson WRITER = new GsonBuilder().setPrettyPrinting().create();
+	private static final File CONFIG_FILE = MorphUtils.getGameDir().resolve("config").resolve("blockomorph.json").toFile();
+	private static Config INSTANCE;
+	private static MinecraftServer SERVER;
 
-	private Config() {
+	public final List<ConfigInstance<?>> OPTIONS = List.of(
+			new EnumConfig<>("listMode", Mode.NONE, true, null),
+			new BooleanConfig("solidBlocksOnly", false, true, null),
+			new BooleanConfig("offUnbreakableBlocks", false, true, null),
+			new BlockListConfig("allowedBlocks", new ArrayList<>(), true, null, new BlockListConfig.ListOptionContext(MorphUtils.res("textures/screens/sel_good.png"), MorphUtils.blockPredicate(), MorphUtils.blockPredicate(), true)),
+			new BlockListConfig("bannedBlocks", new ArrayList<>(), true, null, new BlockListConfig.ListOptionContext(MorphUtils.res("textures/screens/sel_bad.png"), MorphUtils.blockPredicate(), MorphUtils.blockPredicate(), true)),
+			new BooleanConfig("playerDieAfterDestroy", true, true, null),
+			new EnumConfig<>("useMode", UseMode.ALL, true, null),
+			new EnumConfig<>("placeMode", PlaceMode.OUT, true, null),
+			new BooleanConfig("canOperatorModifyConfig", true, false, null),
+			new EnumConfig<>("screenAccess", ScreenAccess.ALL, true, null)
+	);
+
+	private Config() {}
+
+	public static Config getInstance() {
+		if (INSTANCE == null) 
+			throw new IllegalAccessError("Config not loaded!");
+		return INSTANCE;
+	}
+
+	public static void loadExternal(Config cfg) {
+		if (INSTANCE == null) INSTANCE = new Config();
+		for (ConfigInstance<?> instance : cfg.OPTIONS) {
+			ConfigInstance<?> realInstance = INSTANCE.getOption(instance.getName());
+			if (!realInstance.trySetValue(instance)) {
+				MorphUtils.LOGGER.error("Option with name: {} throw error then setting value: {}", instance.getName(), instance.value);
+			}
+		}
 	}
 
 	public static MinecraftServer getServer() {
-		return server;
+		return SERVER;
+	}
+	
+	public static void setServer(MinecraftServer sv) {
+		SERVER = sv;
 	}
 
-	public <T> T getValue(String option) {
-		return (T) this.getOption(option).getValue();
-	}
-
-	public <T> ConfigInstance<T> getOption(String option) {
-		for (ConfigInstance<?> con : this.options) {
-			if (con.getName().equals(option)) {
-				return (ConfigInstance<T>) con;
-			}
-		}
-		throw new IllegalArgumentException("Option not found: " + option);
-	}
-
-	public void makeDirty() {
-		write();
+	public void writeAndSend() {
+		this.write();
 		MorphUtils.sendAll(new ClientBoundConfigUpdatePacket(this));
 	}
 
-	public void parse(String op, String val, boolean isPacket) {
-		for (ConfigInstance<?> con : this.options) {
-			if (con.getName().equals(op) && !con.getName().equals("canOperatorModifyConfig")) {
-				con.parse(val);
-				this.makeDirty();
-				return;
+	public static void load() {
+		INSTANCE = new Config();
+		if (!Files.exists(CONFIG_FILE.toPath())) {
+			INSTANCE.write();
+			return;
+		}
+		try (BufferedReader reader = new BufferedReader(new FileReader(CONFIG_FILE))) {
+			JsonObject jsonObject = JsonParser.parseReader(reader).getAsJsonObject();
+			for (ConfigInstance<?> option : INSTANCE.OPTIONS) {
+				JsonElement property = jsonObject.get(option.getName());
+				if (property != null) option.readFromStorage(property);
 			}
-		}
-		if (isPacket)
-			throw new IllegalStateException("Invalid option name: " + op);
-	}
-
-	public void writeInBufer(FriendlyByteBuf buf) {
-		for (ConfigInstance<?> con : this.options) {
-			con.writeBufer(buf);
+		} catch (Exception e) {
+			MorphUtils.LOGGER.error("Cannot read Blockomorph config: ", e);
 		}
 	}
 
-	public static Config readFromBufer(FriendlyByteBuf buf) {
+	protected void write() {
+		JsonObject jsonObject = new JsonObject();
+		for (ConfigInstance<?> option : OPTIONS) {
+			jsonObject.add(option.getName(), option.getDataForStorage());
+		}
+
+		try (FileWriter writer = new FileWriter(CONFIG_FILE)) {
+			WRITER.toJson(jsonObject, writer);
+		} catch (IOException e) {
+			MorphUtils.LOGGER.error("Cannot write Blockomorph config, changes lost: ", e);
+		}
+	}
+
+	public void writeInBuffer(FriendlyByteBuf buf) {
+		for (ConfigInstance<?> con : OPTIONS) {
+			con.writeToNetwork(buf);
+		}
+	}
+
+	public static Config readFromBuffer(FriendlyByteBuf buf) {
 		Config cfg = new Config();
-		for (ConfigInstance<?> con : cfg.options) {
-			con.readBufer(buf);
+		for (ConfigInstance<?> con : cfg.OPTIONS) {
+			con.readFromNetwork(buf);
 		}
 		return cfg;
 	}
 
-	public static Config getInstance() {
-		return INSTANCE;
-	}
-
-	public static void setServer(MinecraftServer s) {
-		server = s;
-	}
-
-	public static void load(Config cfg) {
-		INSTANCE = cfg;
-	}
-
-	public static Config load() {
-		Path path = Path.of(configDir);
-		INSTANCE = new Config();
-		if (!Files.exists(path)) {
-			INSTANCE.write();
-			return INSTANCE;
+	public void parse(String optionName, String value, boolean fromNetwork) {
+		ConfigInstance<?> option = this.getOption(optionName);
+		if (option.getName().equals(optionName) && option.canEditedByOperators()) {
+			option.parseFromUser(value);
+			this.writeAndSend();
+			return;
 		}
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-		try (BufferedReader reader = new BufferedReader(new FileReader(configDir))) {
-			JsonObject jsonObject = JsonParser.parseReader(reader).getAsJsonObject();
-			for (ConfigInstance<?> option : INSTANCE.options) {
-				JsonElement element = jsonObject.get(option.getName());
-				if (element != null) {
-					if (option instanceof ListConfig e) {
-						e.deserialize(element.getAsJsonArray());
-					} else option.parse(element.getAsString());
-				}
+		if (fromNetwork)
+			throw new IllegalStateException("Invalid option name: " + optionName);
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> T getValue(String optionName, Class<T> valueType) {
+		Object value = this.getOption(optionName).getValue();
+		if (valueType.isAssignableFrom(value.getClass())) {
+			return (T) value;
+		}
+		throw new IllegalArgumentException("Irregular value type: " + valueType.getTypeName() + " for option: " + optionName);
+	}
+
+	private ConfigInstance<?> getOption(String name) {
+		for (ConfigInstance<?> option : OPTIONS) {
+			if (option.getName().equals(name)) {
+				return option;
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
-		return INSTANCE;
+		throw new IllegalArgumentException("Option not found: " + name);
 	}
 
-	protected void write() {
-		Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
-		JsonObject jsonObject = new JsonObject();
-		for (ConfigInstance<?> option : this.options) {
-			jsonObject.add(option.getName(), option.serialize());
-		}
 
-		try (FileWriter writer = new FileWriter(configDir)) {
-			gson.toJson(jsonObject, writer);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
+
+
+
 
 	public enum Mode {
 		NONE,
@@ -149,5 +156,20 @@ public class Config {
 		DISABLED,
 		IN,
 		OUT
+	}
+
+	public enum ScreenAccess {
+		NONE(false, false),
+		MORPH_SCREEN(true, false),
+		CONFIG_MORPH_SCREEN(false, true),
+		ALL(true, true);
+
+		public final boolean morph;
+		public final boolean config;
+
+		ScreenAccess(boolean morph, boolean config) {
+			this.morph = morph;
+			this.config = config;
+		}
 	}
 }

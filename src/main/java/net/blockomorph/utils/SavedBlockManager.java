@@ -5,22 +5,23 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
 public class SavedBlockManager {
-	private final File gameDir;
+	private final Path gameDir;
 	private boolean init;
 	private final HashMap<String, SavedBlock> blocks = new HashMap<>();
 
-	public SavedBlockManager(File gameDir) {
-		this.gameDir = new File(gameDir, "saved_blocks.bmdat");
+	public SavedBlockManager(Path gameDir) {
+		this.gameDir = gameDir.resolve("saved_blocks.bmdat");
 	}
 
 	public void load() {
 		if (!init)
 			try {
-				CompoundTag tag = NbtIo.read(this.gameDir);
+				CompoundTag tag = NbtIo.read(this.gameDir.toFile());
 				if (tag != null) {
 					for (String key : tag.getAllKeys()) {
 						this.blocks.put(key, SavedBlock.fromTag(tag.getCompound(key), key));
@@ -28,7 +29,7 @@ public class SavedBlockManager {
 				}
 				init = true;
 			} catch (Exception e) {
-				BlockomorphServer.LOGGER.error("An error occurred while loading saved blocks", e);
+				MorphUtils.LOGGER.error("An error occurred while loading saved blocks", e);
 			}
 	}
 
@@ -62,9 +63,9 @@ public class SavedBlockManager {
 			for (Map.Entry<String, SavedBlock> entry : this.blocks.entrySet()) {
 				tag.put(entry.getKey(), entry.getValue().toNbt());
 			}
-			NbtIo.write(tag, this.gameDir);
+			NbtIo.write(tag, this.gameDir.toFile());
 		} catch (Exception e) {
-			BlockomorphServer.LOGGER.error("An error occurred while saving favourite blocks", e);
+			MorphUtils.LOGGER.error("An error occurred while saving favourite blocks", e);
 		}
 	}
 }

@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
-import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
 import net.blockomorph.utils.accessors.LevelRendererAccessor;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
@@ -16,7 +15,6 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.block.ModelBlockRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
@@ -75,9 +73,7 @@ public class MorphedPlayerRenderer {
 		EntityRenderer<? super PrimedTnt> rend = entityDispatcher.getRenderer(pl.getTnt());
 		try {
 			rend.render(tnt, anim, partialticks, posestack, buffer, light);
-		} catch (Exception e) {
-			if (player == Minecraft.getInstance().player && Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc)
-				sc.tagException = e.getMessage();
+		} catch (Exception ignored) {
 		}
 	}
 
@@ -155,13 +151,11 @@ public class MorphedPlayerRenderer {
 						};
 					}
 					ClientLevelAccessor acc = ClientLevelAccessor.of(blockEntity.getLevel());
-					acc.setBlockEntityRenderingMode(true);
+					acc.setSpecialRenderingMode(true);
 					renderer.render(blockEntity, partialticks, posestack, src, light, OverlayTexture.NO_OVERLAY);
-					acc.setBlockEntityRenderingMode(false);
+					acc.setSpecialRenderingMode(false);
 				}
-			} catch (Exception e) {
-				if (player == Minecraft.getInstance().player && Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc)
-					sc.tagException = e.getMessage() == null ? e.getClass().toString() : e.getMessage();
+			} catch (Exception ignored) {
 			} finally {
 				posestack.popPose();
 			}
