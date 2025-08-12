@@ -39,6 +39,7 @@
   "blockomorph.bannedBlock.solid": "Вы не можете превратиться в этот блок, так как неполные блоки не разрешены.",
   "blockomorph.bannedBlock.whitelist": "Вы не можете превратиться в этот блок, так как его нет в белом списке.",
   "blockomorph.bannedBlock.blacklist": "Вы не можете превратиться в этот блок, так как он в черном списке.",
+  "blockomorph.bannedBlock.configured": "Вы не можете превратиться в этот блок, так как он настроен.",
 
   "blockomorph.key.morph_menu": "Меню превращение в блок",
   "blockomorph.key.morph_config_menu": "Меню настройки маскировки",

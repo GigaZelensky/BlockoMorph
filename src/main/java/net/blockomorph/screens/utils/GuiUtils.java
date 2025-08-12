@@ -160,7 +160,7 @@ public class GuiUtils { //Cross-platform wrapper
 	}
 
 	public void renderFromSpriteClass(TextureAtlasSprite sprite, int x, int y, int maxSizeX, int maxSizeY) {
-		GUI.blit(x, y, maxSizeX, 0, maxSizeY, sprite);
+		GUI.blit(x, y, 0, maxSizeX, maxSizeY, sprite);
 	}
 
 	public void drawString(Component text, int x, int y, int color, boolean useShadow) {
