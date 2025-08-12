@@ -6,6 +6,7 @@ import net.blockomorph.screens.utils.SpriteImageButton;
 import net.blockomorph.utils.BannedBlock;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.SavedBlock;
+import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
@@ -65,6 +66,9 @@ public class MorphScreen extends AbstractMorphScreen {
 
 	@Nullable
 	private BannedBlock isBannedBlock(SavedBlock block) {
+		if (!MorphUtils.getScreenAccess(this.player.player()).config && (block.getTag() != null || !block.getState().getBlock().defaultBlockState().equals(block.getState())))
+			return new BannedBlock("You cannot morph into configured block!",
+				Component.translatable("blockomorph.bannedBlock.configured"));
 		return BannedBlock.isBannedBlock(block.getState(), this.player, BannedBlock.Source.NETWORK);
 	}
 
