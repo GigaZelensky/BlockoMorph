@@ -28,7 +28,7 @@ public class SavedBlockManager {
 				}
 				init = true;
 			} catch (Exception e) {
-				Blockomorph.LOGGER.error("An error occurred while loading saved blocks", e);
+				MorphUtils.LOGGER.error("An error occurred while loading saved blocks", e);
 			}
 	}
 
@@ -64,7 +64,7 @@ public class SavedBlockManager {
 			}
 			NbtIo.write(tag, this.gameDir);
 		} catch (Exception e) {
-			Blockomorph.LOGGER.error("An error occurred while saving favourite blocks", e);
+			MorphUtils.LOGGER.error("An error occurred while saving favourite blocks", e);
 		}
 	}
 }

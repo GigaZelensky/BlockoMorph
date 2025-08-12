@@ -7,24 +7,25 @@ import net.minecraft.commands.Commands;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import net.minecraft.commands.CommandSourceStack;
-import net.neoforged.neoforge.event.RegisterCommandsEvent;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
+import net.minecraft.commands.CommandBuildContext;
+import com.mojang.brigadier.CommandDispatcher;
 
-@EventBusSubscriber
 public class BlockmorphconfigCommand {
-	@SubscribeEvent
-	public static void registerCommand(RegisterCommandsEvent event) {
-	  Config.load();
-	  LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("blockmorphconfig").requires((p) -> {
-         return p.hasPermission(2) && (boolean)Config.getInstance().getValue("canOperatorModifyConfig");
-      });
-      
-      for (ConfigInstance<?> op : Config.getInstance().options) {
-      	 if (!op.getName().equals("canOperatorModifyConfig"))
-            builder = builder.then(op.work(Commands.literal(op.getName()), event.getBuildContext()));
-      }
-      
-      event.getDispatcher().register(builder);
+
+	public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext commandBuildContext, Commands.CommandSelection environment) {
+		Config.load();
+		LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("blockmorphconfig").requires((p) -> {
+			return p.hasPermission(2) && Config.getInstance().getValue("canOperatorModifyConfig", Boolean.class);
+		});
+
+		for (ConfigInstance<?> option : Config.getInstance().OPTIONS) {
+			if (option.canEditedByOperators()) {
+				LiteralArgumentBuilder<CommandSourceStack> optionName = Commands.literal(option.getName());
+				optionName = optionName.executes(option.buildGetter());
+				builder = builder.then(option.buildArgument(optionName, commandBuildContext, environment));
+			}
+		}
+
+		dispatcher.register(builder);
 	}
 }

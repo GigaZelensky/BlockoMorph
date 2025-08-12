@@ -1,5 +1,7 @@
 package net.blockomorph.mixins.main.client;
 
+import net.blockomorph.screens.morph.MorphScreen;
+import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.PlayerAccessor;
 import net.minecraft.client.GameNarrator;
 import net.minecraft.client.Minecraft;
@@ -7,6 +9,7 @@ import net.minecraft.client.gui.Gui;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.game.ClientboundEntityEventPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerCombatKillPacket;
 import net.minecraft.world.entity.Entity;
 import org.spongepowered.asm.mixin.Mixin;
@@ -14,19 +17,27 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 @Mixin(ClientPacketListener.class)
 public abstract class ClientPacketListenerMixin {
 
-   @Inject(method = "handlePlayerCombatKill", at = @At("HEAD"), cancellable = true)
-   public void autoRespawn(ClientboundPlayerCombatKillPacket packet, CallbackInfo ci) {
-   	  LocalPlayer player = Minecraft.getInstance().player;
-   	  Entity entity = player.level().getEntity(packet.playerId());
-   	  if (entity == player && PlayerAccessor.of(player).isActive()) {
-   	  	  ci.cancel();
-          player.respawn();
-      }
-   }
+    @Inject(method = "handlePlayerCombatKill", at = @At("HEAD"), cancellable = true)
+    public void autoRespawn(ClientboundPlayerCombatKillPacket packet, CallbackInfo ci) {
+        LocalPlayer player = Minecraft.getInstance().player;
+        Entity entity = player.level().getEntity(packet.playerId());
+        if (entity == player && PlayerAccessor.of(player).isActive()) {
+            ci.cancel();
+            player.respawn();
+        }
+    }
+
+    @Inject(method = "handleEntityEvent", at = @At("TAIL"), locals = LocalCapture.CAPTURE_FAILHARD)
+    private void onOpUpdate(ClientboundEntityEventPacket clientboundEntityEventPacket, CallbackInfo ci, Entity entity) {
+        if (entity == GuiUtils.MC.player && GuiUtils.MC.screen instanceof MorphScreen sc) {
+            sc.onConfigSynced();
+        }
+    }
 
     @Redirect(method = "handleSetEntityPassengersPacket(Lnet/minecraft/network/protocol/game/ClientboundSetPassengersPacket;)V", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/Gui;setOverlayMessage(Lnet/minecraft/network/chat/Component;Z)V"))
     private void redirectSetOverlayMessage(Gui instance, Component component, boolean bl) {
@@ -43,11 +54,11 @@ public abstract class ClientPacketListenerMixin {
     }
 
     private boolean needEjectMessage() {
-       LocalPlayer pl = Minecraft.getInstance().player;
-       if (pl != null && pl.getVehicle() instanceof PlayerAccessor playerAccessor) {
-           return !playerAccessor.isFullActive();
-       }
-       return true;
+        LocalPlayer pl = Minecraft.getInstance().player;
+        if (pl != null && pl.getVehicle() instanceof PlayerAccessor playerAccessor) {
+            return !playerAccessor.isFullActive();
+        }
+        return true;
     }
-   
+
 }
