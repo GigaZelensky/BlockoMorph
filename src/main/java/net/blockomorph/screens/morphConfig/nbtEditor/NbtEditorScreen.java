@@ -90,7 +90,8 @@ public abstract class NbtEditorScreen extends AbstractScreen {
 			this.editingTag = tag.copy();
 			this.tagBox.setValue(this.editingTag.toString());
 			if (!this.editorLocked) {
-				if (this.getTagByPath() == null) {
+				TagRenderer<?> renderer = this.getTagByPath();
+				if (renderer == null || !renderer.canEnterInTag()) {
 					this.path = new NbtPath.RootNbtPath();
 				}
 				this.initList(false);
