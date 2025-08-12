@@ -349,7 +349,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 			Throwable e = block.loadNBT(tag);
 			ServerPlayer serverPlayer = (ServerPlayer) this.player();
 			if (e != null) {
-				MorphUtils.sendPlayer(ClientBoundServerBlockEntityTagPacket.createForError(e.getMessage(), true), serverPlayer);
+				MorphUtils.sendPlayer(ClientBoundServerBlockEntityTagPacket.createForError(Objects.requireNonNullElse(e.getMessage(), e.getClass().getName()), true), serverPlayer);
 			} else {
 				CompoundTag newTag = this.getTag(InPlayerBlockPos.ZERO);
 				if (!newTag.equals(tag)) {
