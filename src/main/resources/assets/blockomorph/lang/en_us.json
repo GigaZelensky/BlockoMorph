@@ -39,6 +39,7 @@
   "blockomorph.bannedBlock.solid": "You do not have permission to turn into this block because not solid block not allowed.",
   "blockomorph.bannedBlock.whitelist": "You do not have permission to turn into this block because it is not in the white list.",
   "blockomorph.bannedBlock.blacklist": "You do not have permission to turn into this block because it is blacklisted.",
+  "blockomorph.bannedBlock.configured": "You do not have permissions to turn into configured block.",
 
   "blockomorph.key.morph_menu": "Block Morph GUI",
   "blockomorph.key.morph_config_menu": "Block Morph Config GUI",
