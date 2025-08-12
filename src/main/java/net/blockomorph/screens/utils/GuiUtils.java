@@ -270,7 +270,7 @@ public class GuiUtils { //Cross-platform wrapper
 			var modeldata = model.getModelData(MC.level, pos, blockState, ModelData.EMPTY);
 			for (var renderType : model.getRenderTypes(blockState, random, modeldata)) {
 				VertexConsumer vertex = bufferSource.getBuffer(RenderTypeHelper.getMovingBlockRenderType(renderType));
-				blockRenderer.getModelRenderer().tesselateBlock(MC.level, model, blockState, pos, stack, vertex, false, RandomSource.create(), blockState.getSeed(pos), OverlayTexture.NO_OVERLAY, modeldata, renderType);
+				blockRenderer.getModelRenderer().tesselateBlock(MC.level, model, blockState, pos, stack, vertex, false, random, blockState.getSeed(pos), OverlayTexture.NO_OVERLAY, modeldata, renderType);
 			}
 			acc.setSpecialRenderingMode(false);
 		}
