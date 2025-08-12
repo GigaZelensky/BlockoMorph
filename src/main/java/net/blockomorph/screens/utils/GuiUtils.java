@@ -42,6 +42,8 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraftforge.client.RenderTypeHelper;
+import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
@@ -265,8 +267,11 @@ public class GuiUtils { //Cross-platform wrapper
 			ClientLevelAccessor acc = ClientLevelAccessor.of(MC.level);
 			acc.setSpecialRenderingMode(true);
 			var model = blockRenderer.getBlockModel(blockState);
-			var renderType = ItemBlockRenderTypes.getMovingBlockRenderType(blockState);
-			blockRenderer.getModelRenderer().tesselateBlock(MC.level, model, blockState, pos, stack, bufferSource.getBuffer(renderType), false, random, blockState.getSeed(pos), OverlayTexture.NO_OVERLAY);
+			var modeldata = model.getModelData(MC.level, pos, blockState, ModelData.EMPTY);
+			for (RenderType renderType : model.getRenderTypes(blockState, random, modeldata)) {
+				VertexConsumer vertex = bufferSource.getBuffer(RenderTypeHelper.getMovingBlockRenderType(renderType));
+				blockRenderer.getModelRenderer().tesselateBlock(MC.level, model, blockState, pos, stack, vertex, false, random, blockState.getSeed(pos), OverlayTexture.NO_OVERLAY, modeldata, renderType);
+			}
 			acc.setSpecialRenderingMode(false);
 		}
 	}
