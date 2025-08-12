@@ -1,6 +1,5 @@
 package net.blockomorph.mixins.main.client.graphic;
 
-import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.utils.PlayerAccessor;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
@@ -12,11 +11,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Gui.class)
 public class GuiMixin {
-
-	@Inject(method = "render", at = @At("TAIL"))
-	private void render(GuiGraphics guiGraphics, float delta, CallbackInfo ci) {
-		GuiUtils.renderOverlay(guiGraphics, delta);
-	}
 
 	@Inject(method = "renderHearts", at = @At("HEAD"), cancellable = true)
 	private void renderHearts(GuiGraphics guiGraphics, Player player, int i, int j, int k, int l, float f, int m, int n, int o, boolean bl, CallbackInfo ci) {

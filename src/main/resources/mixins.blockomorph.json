@@ -62,6 +62,7 @@
     "main.client.graphic.DebugScreenMixin",
     "main.client.graphic.EditBoxMixin",
     "main.client.graphic.FontMixin",
+    "main.client.graphic.ForgeGuiMixin",
     "main.client.graphic.GuiFireRenderMixin",
     "main.client.graphic.GuiMixin",
     "main.client.graphic.LevelRenderMixin",
