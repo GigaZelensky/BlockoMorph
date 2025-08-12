@@ -15,7 +15,7 @@ public class BlockHeartOverlay implements Overlay {
 			int progress = player.getBiggestProgress();
 			int x = screenWidth/2 - 90;
 			int y = screenHeight - 38;
-			//gui.blit(BAR_IMAGE, x - 1, y - 1, 0, progress == 9 ? 9 : 0, 81, 9, 81, 18);
+			gui.blit(BAR_IMAGE, x - 1, y - 1, 0, progress == 9 ? 9 : 0, 81, 9, 81, 18);
 			TextureAtlasSprite sprite = GuiUtils.blockRenderer.getBlockModel(player.getBlockState(InPlayerBlockPos.ZERO)).getParticleIcon();
 			for (int i = 0; i < 10; i++) {
 				if (i < 9 - progress) {
