@@ -13,7 +13,7 @@ import net.minecraft.util.FormattedCharSequence;
 import java.util.function.BiFunction;
 
 public abstract class PrimitiveTagRenderer<T extends Tag> extends TagRenderer<T> {
-	private BiFunction<String, Integer, FormattedCharSequence> NO_SHADOW_STYLE = (value, pos) -> {
+	private static final BiFunction<String, Integer, FormattedCharSequence> NO_SHADOW_STYLE = (value, pos) -> {
 		return new NoShadowFormattedCharSequence(FormattedCharSequence.forward(value, Style.EMPTY));
 	};
 	protected final ListenerEditBox valueBox;
