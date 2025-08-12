@@ -1,6 +1,6 @@
 package net.blockomorph.network;
 
-import net.blockomorph.screens.MorphScreen;
+import net.blockomorph.screens.morph.ConfigSyncListener;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;

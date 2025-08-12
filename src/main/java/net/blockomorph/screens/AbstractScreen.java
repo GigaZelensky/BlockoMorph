@@ -32,16 +32,13 @@ public class AbstractScreen extends Screen {
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
 		this.gui.setGuiGraphics(guiGraphics, this.font, mouseX, mouseY, tick);
+		this.renderBackground(guiGraphics);
 		super.render(guiGraphics, mouseX, mouseY, tick);
 	}
 
 	@Override
-	public final boolean mouseScrolled(double mouseX, double mouseY, double xScrollOffset, double yScrollOffset) {
-		return this.mouseScrolled(mouseX, mouseY, yScrollOffset);
-	}
-
 	public boolean mouseScrolled(double mouseX, double mouseY, double yScrollOffset) {
-		return super.mouseScrolled(mouseX, mouseY, 0, yScrollOffset);
+		return super.mouseScrolled(mouseX, mouseY, yScrollOffset);
 	}
 
 	@Override
@@ -50,8 +47,8 @@ public class AbstractScreen extends Screen {
 	}
 
 	@Override
-	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float tick) {
-		super.renderBackground(guiGraphics, mouseX, mouseY, tick);
+	public void renderBackground(GuiGraphics guiGraphics) {
+		super.renderBackground(guiGraphics);
 		this.renderMenu();
 	}
 

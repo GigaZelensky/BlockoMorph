@@ -44,5 +44,7 @@ public class MixinConfig implements IMixinConfigPlugin {
 	@Override
 	public void preApply(String s, ClassNode classNode, String s1, IMixinInfo iMixinInfo) {}
 	@Override
-	public void postApply(String s, ClassNode classNode, String s1, IMixinInfo iMixinInfo) {}
+	public void postApply(String s, ClassNode classNode, String s1, IMixinInfo iMixinInfo) {
+		System.out.println(s);
+	}
 }

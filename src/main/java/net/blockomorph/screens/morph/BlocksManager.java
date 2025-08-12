@@ -61,7 +61,9 @@ public class BlocksManager {
 					if (blockEntity != null) {
 						blockEntity.setLevel(GuiUtils.MC.level);
 						if (block.getTag() != null) {
-							blockEntity.load(block.getTag());
+							try {
+								blockEntity.load(block.getTag());
+							} catch (Exception ignored) {}
 						}
 					}
 					gui.renderBlockInGui(block.getState(), blockEntity, parentScreen.getLeftPos() + 42 + x * size, parentScreen.getTopPos() + 42 + y * size, 20);
