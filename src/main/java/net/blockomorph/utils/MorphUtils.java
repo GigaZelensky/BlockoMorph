@@ -1,6 +1,5 @@
 package net.blockomorph.utils;
 
-import com.mojang.blaze3d.platform.Window;
 import com.mojang.serialization.DataResult;
 import net.blockomorph.Blockomorph;
 import net.blockomorph.command.BlockmorphCommand;
@@ -11,15 +10,9 @@ import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.coords.BlockPosBounds;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.block.BlockRenderDispatcher;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.*;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -38,16 +31,12 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.*;
-import net.minecraft.world.level.block.piston.MovingPistonBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
-import net.minecraftforge.client.event.RenderBlockScreenEffectEvent;
-import net.minecraftforge.client.event.RenderGuiOverlayEvent;
-import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDrownEvent;
@@ -251,7 +240,7 @@ public class MorphUtils {
     public static boolean needRejectUse(Level lv, BlockHitResult block) {
         if (InPlayerBlockPos.isMorphedPlayerX(block.getBlockPos().getX())) {
             BlockState state = lv.getBlockState(block.getBlockPos());
-            Config.UseMode mode = Config.getInstance().getValue("useMode");
+            Config.UseMode mode = Config.getInstance().getValue("useMode", Config.UseMode.class);
             switch (mode) {
                 case DISABLED -> {
                     return true;
@@ -267,7 +256,7 @@ public class MorphUtils {
 
     public static UseOnContext checkOnRealIfOut(UseOnContext ctx, ItemStack stack) {
         if (stack.getItem() instanceof BlockItem && InPlayerBlockPos.isMorphedPlayerX(ctx.getClickedPos().getX())) {
-            Config.PlaceMode mode = Config.getInstance().getValue("placeMode");
+            Config.PlaceMode mode = Config.getInstance().getValue("placeMode", Config.PlaceMode.class);
             if (mode == Config.PlaceMode.OUT) {
                 Vec3 realHit = InPlayerBlockPos.checkOnReal(ctx.getClickLocation());
                 realHit = toDirection(realHit, ctx.getClickedFace());
@@ -301,7 +290,7 @@ public class MorphUtils {
     @SubscribeEvent
     public static void onRightClick(PlayerInteractEvent.RightClickBlock event) {
         if (event.getEntity().getItemInHand(event.getHand()).getItem() instanceof BlockItem) {
-            Config.PlaceMode mode = Config.getInstance().getValue("placeMode");
+            Config.PlaceMode mode = Config.getInstance().getValue("placeMode", Config.PlaceMode.class);
             if (mode == Config.PlaceMode.DISABLED && InPlayerBlockPos.isMorphedPlayerX(event.getHitVec().getBlockPos().getX())) {
                 event.setUseItem(Event.Result.DENY);
             }

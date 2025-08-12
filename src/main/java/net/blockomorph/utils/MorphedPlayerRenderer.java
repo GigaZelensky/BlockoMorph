@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
-import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
 import net.blockomorph.utils.accessors.LevelRendererAccessor;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
@@ -75,9 +74,7 @@ public class MorphedPlayerRenderer {
         EntityRenderer<? super PrimedTnt> rend = entityDispatcher.getRenderer(pl.getTnt());
         try {
             rend.render(tnt, anim, partialticks, posestack, buffer, light);
-        } catch (Exception e) {
-            if (player == Minecraft.getInstance().player && Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc)
-                sc.tagException = e.getMessage();
+        } catch (Exception ignored) {
         }
     }
 
@@ -161,9 +158,7 @@ public class MorphedPlayerRenderer {
                     renderer.render(blockEntity, partialticks, posestack, src, light, OverlayTexture.NO_OVERLAY);
                     acc.setSpecialRenderingMode(false);
                 }
-            } catch (Exception e) {
-                if (player == Minecraft.getInstance().player && Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc)
-                    sc.tagException = e.getMessage() == null ? e.getClass().toString() : e.getMessage();
+            } catch (Exception ignored) {
             } finally {
                 posestack.popPose();
             }

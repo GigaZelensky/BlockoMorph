@@ -5,7 +5,7 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
-version = '1.0.8'
+version = '1.0.9'
 group = 'blockomorph'
 archivesBaseName = 'blockomorph-1.20.1-forge'
 

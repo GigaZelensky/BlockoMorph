@@ -26,7 +26,6 @@ public class BlockInPlayer2 {
     private BlockEntityTicker blockEntityTicker;
     //client only \/
     private ModelData data = ModelData.EMPTY;
-    private CompoundTag serverTag = new CompoundTag(); //temp
 
     public BlockInPlayer2(PlayerAccessor pl, InPlayerBlockPos pos, BlockState state, Consumer<BlockInPlayer2> preInit) {
         this.offset = pos;
@@ -87,7 +86,7 @@ public class BlockInPlayer2 {
             try {
                 old.onRemove(this.player.level(), this.pos, state, update);
             } catch (Exception e) {
-                Blockomorph.LOGGER.error("An error occurred while removing block in morphed player on pos: " + this.offset + " for block: " + old + " on player: " + this.player.getName().getString(), e);
+				MorphUtils.LOGGER.error("An error occurred while removing block in morphed player on pos: {} for block: {} on player: {}", this.offset, old, this.player.getName().getString(), e);
             } finally {
                 if (this.needRemoveBlockEntity(old, state))
                     this.clearBlockEntity();
@@ -110,7 +109,6 @@ public class BlockInPlayer2 {
     public void clearBlockEntity() {
         this.blockEntity = null;
         this.blockEntityTicker = null;
-        this.serverTag = new CompoundTag();
     }
 
     private void initBlockEntity() {
@@ -137,16 +135,6 @@ public class BlockInPlayer2 {
         return this.data;
     }
 
-    public CompoundTag getServerTag() {
-        return this.serverTag;
-    }
-
-    public BlockInPlayer2 setServerTag(CompoundTag serverTag) {
-        if (this.blockEntity != null && this.player.level().isClientSide)
-            this.serverTag = Objects.requireNonNullElse(serverTag, new CompoundTag());
-        return this;
-    }
-
     public void tick() {
         if (this.blockEntity != null) {
             if (this.blockEntityTicker != null) {
@@ -154,7 +142,7 @@ public class BlockInPlayer2 {
                     blockEntityTicker.tick(this.player.level(), this.pos, this.blockState, this.blockEntity);
                 } catch (Exception e) {
                     this.blockEntityTicker = null;
-                    Blockomorph.LOGGER.error(
+                    MorphUtils.LOGGER.error(
                             "An unexpected exception occurred while ticking a block entity in a transformed player with username " +
                                     this.player.getName().getString() +
                                     ": ", e
