@@ -1,6 +1,5 @@
 package net.blockomorph.utils;
 
-import net.blockomorph.Blockomorph;
 import net.blockomorph.network.ClientBoundMorphUpdatePacket;
 import net.blockomorph.utils.coords.BlockPosBounds;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
