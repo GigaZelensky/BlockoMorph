@@ -18,7 +18,6 @@ import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
@@ -545,9 +544,9 @@ public class BlockMorphConfigScreen extends Screen {
 					if (renderer != null) {
 						posestack.pushPose();
 						ClientLevelAccessor acc = ClientLevelAccessor.of(world);
-						acc.setBlockEntityRenderingMode(true);
+						acc.setSpecialRenderingMode(true);
 						renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY);
-						acc.setBlockEntityRenderingMode(false);
+						acc.setSpecialRenderingMode(false);
 						posestack.popPose();
 					}
 				} catch (Exception e) {

@@ -386,9 +386,9 @@ public class MorphScreen extends Screen {
 					posestack.pushPose();
 					try {
 						ClientLevelAccessor acc = ClientLevelAccessor.of(world);
-						acc.setBlockEntityRenderingMode(true);
+						acc.setSpecialRenderingMode(true);
 						renderer.render(blockEntity, partialticks, posestack, buffer, LightTexture.pack(15, 15), OverlayTexture.NO_OVERLAY);
-						acc.setBlockEntityRenderingMode(false);
+						acc.setSpecialRenderingMode(false);
 					} catch (Exception e) {
 
 					}

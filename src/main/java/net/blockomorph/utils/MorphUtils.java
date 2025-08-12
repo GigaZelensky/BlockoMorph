@@ -1,7 +1,11 @@
 package net.blockomorph.utils;
 
 import com.mojang.blaze3d.platform.Window;
+import com.mojang.serialization.DataResult;
 import net.blockomorph.Blockomorph;
+import net.blockomorph.command.BlockmorphCommand;
+import net.blockomorph.command.BlockmorphconfigCommand;
+import net.blockomorph.core.KeyMappings;
 import net.blockomorph.network.*;
 import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.coords.BlockPosBounds;
@@ -12,6 +16,7 @@ import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.core.*;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -39,9 +44,11 @@ import net.minecraft.world.level.block.state.pattern.BlockInWorld;
 import net.minecraft.world.phys.*;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.client.event.RenderBlockScreenEffectEvent;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.living.LivingAttackEvent;
 import net.minecraftforge.event.entity.living.LivingDrownEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -53,22 +60,35 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.loading.FMLPaths;
 import net.minecraftforge.network.PacketDistributor;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.DoubleConsumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 @Mod.EventBusSubscriber
 public class MorphUtils {
-    public static final ResourceKey<DamageType> PLAYER_DESTROYED = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation("blockomorph:player_destroyed"));
-    public static final ResourceKey<DamageType> PLAYER_DESTROYED_NULL = ResourceKey.create(Registries.DAMAGE_TYPE, new ResourceLocation("blockomorph:player_destroyed_null"));
-    public static final SavedBlockManager bmanager = getSavedManager();
-
-    private static SavedBlockManager getSavedManager() {
-        return new SavedBlockManager(FMLPaths.GAMEDIR.get().toFile());
+    public static final ResourceKey<DamageType> PLAYER_DESTROYED = ResourceKey.create(Registries.DAMAGE_TYPE, res("player_destroyed"));
+    public static final ResourceKey<DamageType> PLAYER_DESTROYED_NULL = ResourceKey.create(Registries.DAMAGE_TYPE, res("player_destroyed_null"));
+    public static final Logger LOGGER = LoggerFactory.getLogger(Blockomorph.MODID);
+    public static Path getGameDir() {
+        return FMLPaths.GAMEDIR.get();
     }
 
+    public static ResourceLocation res(String path) {
+        return new ResourceLocation(Blockomorph.MODID, path);
+    }
+
+    public static ResourceLocation vanillaRes(String path) {
+        return new ResourceLocation(ResourceLocation.DEFAULT_NAMESPACE, path);
+    }
+
+
+    /****************************PACKET SYSTEM************************************/
     private static final HashMap<ResourceLocation, PacketInfo> handlers = new HashMap<>();
 
     public static PacketInfo getHandler(ResourceLocation id) {
@@ -88,20 +108,48 @@ public class MorphUtils {
     }
 
     public static void registerPacket(String id, Function<FriendlyByteBuf, BlockMorphPacket> bl, boolean client) {
-        ResourceLocation res = new ResourceLocation(Blockomorph.MODID, id);
+        ResourceLocation res = res(id);
         if (handlers.containsKey(res)) {
             throw new IllegalArgumentException("Packet with Id: " + id + " alredy registered!");
         }
-        handlers.put(new ResourceLocation(Blockomorph.MODID, id), new PacketInfo(bl, client));
+        handlers.put(res, new PacketInfo(bl, client));
     }
 
     public record PacketInfo(Function<FriendlyByteBuf, BlockMorphPacket> packet, boolean isClient) {}
+
+    /****************************PACKET SYSTEM************************************/
+
+
+    public static Predicate<String> blockPredicate() {
+        return value -> {
+            DataResult<ResourceLocation> result = ResourceLocation.read(value);
+            if (result.result().isPresent()) {
+                return ForgeRegistries.BLOCKS.containsKey(result.result().get());
+            }
+            return false;
+        };
+    }
 
     @SubscribeEvent
     public static void run(ServerStartingEvent event) {
         Config.setServer(event.getServer());
         BlockPosBounds.load();
     }
+
+    @SubscribeEvent
+    public static void commandRegister(RegisterCommandsEvent event) {
+        BlockmorphconfigCommand.register(event.getDispatcher(), event.getBuildContext(), event.getCommandSelection());
+        BlockmorphCommand.register(event.getDispatcher(), event.getBuildContext(), event.getCommandSelection());
+    }
+
+    @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
+    public static class ModBus {
+        @SubscribeEvent
+        public static void registerKeys(RegisterKeyMappingsEvent event) {
+            KeyMappings.registerKeyMappings(event::register);
+        }
+    }
+
 
     @SubscribeEvent
     public static void onJoin(PlayerEvent.PlayerLoggedInEvent event) {
@@ -200,32 +248,6 @@ public class MorphUtils {
         }
     }
 
-    @Nullable
-    public static BannedBlock isBannedBlock(BlockState state, @Nullable Player pl) {
-        if (state.getBlock() instanceof LiquidBlock) {
-            return new BannedBlock("Morphing in liquids in development!", Component.translatable("commands.blockmorph.liquid"));
-        }
-        String name = ForgeRegistries.BLOCKS.getKey(state.getBlock()).toString();
-        Config.Mode mode = Config.getInstance().getValue("listMode");
-        if ((!state.isSolid() || state.getBlock() instanceof BarrierBlock || state.getBlock() instanceof MovingPistonBlock) && (state.getBlock() != Blocks.AIR) && (boolean) Config.getInstance().getValue("solidBlocksOnly")) {
-            return new BannedBlock("Block " + name + " not allowed because is solid!", Component.translatable("commands.blockmorph.solid"));
-        } else if (pl != null && PlayerAccessor.of(pl).getTnt() != null) {
-            return new BannedBlock("Block " + name + " not allowed because player-tnt caught fire!", Component.translatable("commands.blockmorph.tnt"));
-        } else if (mode == Config.Mode.WHITELIST) {
-            if (!((List<String>) Config.getInstance().getValue("allowedBlocks")).contains(name))
-                return new BannedBlock("Block " + name + " not allowed because it not in whitelist!", Component.translatable("commands.blockmorph.whitelist"));
-        } else if (mode == Config.Mode.BLACKLIST) {
-            if (((List<String>) Config.getInstance().getValue("bannedBlocks")).contains(name))
-                return new BannedBlock("Block " + name + " not allowed because it in blacklist!", Component.translatable("commands.blockmorph.blacklist"));
-        }
-        return null;
-    }
-
-    public record BannedBlock(String reason, Component text) {
-        public static final BannedBlock SAME = new BannedBlock("You have already been turned into this block.",
-                Component.translatable("commands.blockomorph.blockSame"));
-    }
-
     public static boolean needRejectUse(Level lv, BlockHitResult block) {
         if (InPlayerBlockPos.isMorphedPlayerX(block.getBlockPos().getX())) {
             BlockState state = lv.getBlockState(block.getBlockPos());
@@ -297,68 +319,14 @@ public class MorphUtils {
     }
 
     @OnlyIn(Dist.CLIENT)
-    @SubscribeEvent
-    public static void onRenderFire(RenderBlockScreenEffectEvent event) {
-        if (PlayerAccessor.of(event.getPlayer()).isActive()) {
-            if (event.getOverlayType() == RenderBlockScreenEffectEvent.OverlayType.FIRE) event.setCanceled(true);
-        }
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    @SubscribeEvent
-    public static void onHudRender(RenderGuiOverlayEvent.Pre event) {
+    public static boolean canOpenConfig() {
         Minecraft mc = Minecraft.getInstance();
-        Entity player = mc.getCameraEntity();
-        ResourceLocation overlayId = event.getOverlay().id();
-        boolean flag = mc.gameMode.canHurtPlayer();
-
-        if (player instanceof PlayerAccessor pl && pl.isActive()) {
-            if (flag && overlayId.equals(new ResourceLocation("minecraft", "player_health"))) {
-                Window w = event.getWindow();
-                int width = w.getGuiScaledWidth();
-                int height = w.getGuiScaledHeight();
-                renderBlockHeart(event.getGuiGraphics(), pl, width, height);
-                ((ForgeGui) mc.gui).leftHeight += 10;
-                event.setCanceled(true);
-            }
-            if (overlayId.equals(new ResourceLocation("minecraft", "air_level")))
-                event.setCanceled(true);
-        }
+        return mc.player != null && mc.player.hasPermissions(2) && Config.getInstance().getValue("canOperatorModifyConfig", Boolean.class);
     }
 
-    @OnlyIn(Dist.CLIENT)
-    private static void renderBlockHeart(GuiGraphics gui, PlayerAccessor pl, int width, int height) {
-        int maxHearts = 10;
-        int progress = pl.getBiggestProgress();
-
-        BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
-        BakedModel model = dispatcher.getBlockModel(pl.getBlockState(InPlayerBlockPos.ZERO));
-        TextureAtlasSprite sprite = model.getParticleIcon();
-
-
-        int x = width / 2 - 91;
-        int y = height - 39;
-
-        renderBar(gui, x, y, progress);
-
-        for (int i = 0; i < maxHearts; i++) {
-            int xPos = x + i * 8;
-            int yPos = y;
-
-
-            if (i < 9 - progress) {
-                gui.blit(xPos + 1, yPos + 1, 0, 7, 7, sprite);
-            }
-        }
-    }
-
-    @OnlyIn(Dist.CLIENT)
-    private static void renderBar(GuiGraphics graphics, int x, int y, int progress) {
-        if (progress == 9) {
-            graphics.blit(new ResourceLocation("blockomorph:textures/screens/icons.png"), x, y, 0, 10, 81, 9, 81, 19);
-        } else {
-            graphics.blit(new ResourceLocation("blockomorph:textures/screens/icons.png"), x, y, 0, 0, 81, 9, 81, 19);
-        }
+    public static Config.ScreenAccess getScreenAccess(Player player) {
+        if (player != null && player.hasPermissions(2)) return Config.ScreenAccess.ALL;
+        return Config.getInstance().getValue("screenAccess", Config.ScreenAccess.class);
     }
 
     public static void destroy(PlayerAccessor mob_pl, @Nullable Entity attacker) {
