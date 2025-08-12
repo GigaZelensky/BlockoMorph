@@ -75,7 +75,7 @@ public class ConfigRenderableList extends AbstractWidget {
 	}
 
 	@Override
-	public boolean mouseScrolled(double x, double y, double xScrolled, double yScrolled) {
+	public boolean mouseScrolled(double x, double y, double yScrolled) {
 		for (RenderableConfigInstance<?> instance : this.renderables) {
 			if (instance.mouseScrolled(x, y, yScrolled)) {
 				return true;

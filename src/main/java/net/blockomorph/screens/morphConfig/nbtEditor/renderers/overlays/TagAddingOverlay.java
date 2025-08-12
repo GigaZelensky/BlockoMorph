@@ -57,7 +57,7 @@ public class TagAddingOverlay<T extends Tag> extends TagEditingOverlay {
 		this.onTagCreated = onTagCreated;
 		this.listDisabled = filtered.size() == 1;
 		this.filter = nameFilter;
-		this.first = filtered.getFirst();
+		this.first = filtered.get(0);
 		this.nameSuggestion = nameSuggestion;
 		this.hint = hint;
 	}
@@ -92,7 +92,7 @@ public class TagAddingOverlay<T extends Tag> extends TagEditingOverlay {
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double xWheelOffset, double yWheelOffset) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double yWheelOffset) {
 		return this.selector.mouseScrolled(mouseX, mouseY, yWheelOffset);
 	}
 

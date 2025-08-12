@@ -4,23 +4,20 @@ import com.google.common.collect.ImmutableList;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.ScrollerManager;
 import net.blockomorph.utils.BannedBlock;
-import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.SavedBlock;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.flag.FeatureFlagSet;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.BlockItemStateProperties;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -64,7 +61,7 @@ public class BlocksManager {
 					if (blockEntity != null) {
 						blockEntity.setLevel(GuiUtils.MC.level);
 						if (block.getTag() != null) {
-							blockEntity.loadWithComponents(block.getTag(), parentScreen.getPlayer().player().registryAccess());
+							blockEntity.load(block.getTag());
 						}
 					}
 					gui.renderBlockInGui(block.getState(), blockEntity, parentScreen.getLeftPos() + 42 + x * size, parentScreen.getTopPos() + 42 + y * size, 20);
@@ -181,17 +178,15 @@ public class BlocksManager {
 
 	@Nullable
 	private CompoundTag getTagForBlockEntity(ItemStack stack) {
-		CustomData customData = stack.getOrDefault(DataComponents.BLOCK_ENTITY_DATA, CustomData.EMPTY);
-		if (!customData.isEmpty()) {
-			return customData.copyTag();
-		}
-		return null;
+		return BlockItem.getBlockEntityData(stack);
 	}
 
 	private BlockState prepareBlockStateTag(BlockState blockState, ItemStack item) {
-		BlockItemStateProperties properties = item.getOrDefault(DataComponents.BLOCK_STATE, BlockItemStateProperties.EMPTY);
-		if (!properties.isEmpty()) {
-			return properties.apply(blockState);
+		if (item.getTag() != null) {
+			CompoundTag properties = item.getTag().getCompound("BlockStateTag");
+			CompoundTag blockstate = NbtUtils.writeBlockState(blockState);
+			blockstate.put("Properties", properties);
+			return NbtUtils.readBlockState(GuiUtils.MC.level.registryAccess().lookupOrThrow(Registries.BLOCK), blockstate);
 		}
 		return blockState;
 	}

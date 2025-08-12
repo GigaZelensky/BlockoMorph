@@ -55,8 +55,7 @@ public class ListenerEditBox extends EditBox {
 		this.editable = yes;
 	}
 
-	@Override
-	public boolean isBordered() {
+	public boolean vanillaBorder() {
 		return this.borderTexture == VANILLA;
 	}
 

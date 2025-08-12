@@ -4,12 +4,10 @@ import net.blockomorph.Blockomorph;
 import net.blockomorph.network.ClientBoundApplyBlockMorphPacket;
 import net.blockomorph.network.ClientBoundMorphUpdatePacket;
 import net.blockomorph.network.ClientBoundServerBlockEntityTagPacket;
-import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.utils.*;
 import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.blockomorph.utils.tnt.TntHandler;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -39,11 +37,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import org.jetbrains.annotations.NotNull;
 import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -131,7 +125,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 	}
 
 	public void breakingModeStart(boolean yes) {
-		if ((Boolean) Config.getInstance().getValue("playerDieAfterDestroy") || !yes)
+		if (Config.getInstance().getValue("playerDieAfterDestroy", Boolean.class) || !yes)
 			this.breakingMode = yes;
 	}
 
@@ -189,7 +183,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 				tg.put("BlockEntityTag", blockTag);
 				blocks.put(pos.string(), tg);
 			} catch (Exception e) {
-				Blockomorph.LOGGER.error("An error occurred while saving morphed player data on pos: " + pos + " for block: " + data.getBlockState() + " on player: " + this.getName().getString(), e);
+				MorphUtils.LOGGER.error("An error occurred while saving morphed player data on pos: {} for block: {} on player: {}", pos, data.getBlockState(), this.getName().getString(), e);
 			}
 		});
 		return blocks;
@@ -274,9 +268,8 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 			try {
 				if (ent.getUpdatePacket() != null)
 					this.sendNearby(ent.getUpdatePacket());
-				MorphUtils.sendPlayer(new ClientBoundServerBlockEntityTagPacket(block.getOffset(), ent.saveWithoutMetadata()), (ServerPlayer) this.player());
 			} catch (Exception e) {
-				Blockomorph.LOGGER.error("An error occurred while sending morphed player data on pos: " + block.getOffset() + " for block: " + block.getBlockState() + " on player: " + this.getName().getString(), e);
+				MorphUtils.LOGGER.error("An error occurred while sending morphed player data on pos: " + block.getOffset() + " for block: " + block.getBlockState() + " on player: " + this.getName().getString(), e);
 			}
 		}
 	}

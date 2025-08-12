@@ -60,6 +60,7 @@
     "main.client.graphic.BlockModelRendererMixin",
     "main.client.graphic.BlockTintCacheMixin",
     "main.client.graphic.DebugScreenMixin",
+    "main.client.graphic.EditBoxMixin",
     "main.client.graphic.FontMixin",
     "main.client.graphic.GuiFireRenderMixin",
     "main.client.graphic.GuiMixin",

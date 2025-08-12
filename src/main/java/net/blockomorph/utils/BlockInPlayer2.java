@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.data.ModelData;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -56,13 +57,16 @@ public class BlockInPlayer2 {
         return offset;
     }
 
-    public BlockInPlayer2 loadNBT(CompoundTag tg) {
+    @Nullable
+    public Throwable loadNBT(CompoundTag tg) {
         if (this.blockEntity != null) {
             try {
-				this.blockEntity.load(tg);
-            } catch (Exception ignored) {}
+                this.blockEntity.load(tg);
+            } catch (Throwable e) {
+                return e;
+            }
         }
-        return this;
+        return null;
     }
 
 	public BlockInPlayer2 handleClientTag(CompoundTag tg, ClientBoundMorphUpdatePacket pkt) {

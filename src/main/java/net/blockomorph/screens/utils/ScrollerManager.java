@@ -1,5 +1,6 @@
 package net.blockomorph.screens.utils;
 
+import net.blockomorph.utils.MorphUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.Nullable;
@@ -8,8 +9,7 @@ import java.util.List;
 import java.util.function.IntSupplier;
 
 public class ScrollerManager<T> {
-	private static final ResourceLocation SCROLLER_SPRITE = GuiUtils.vanillaRes("container/creative_inventory/scroller");
-	private static final ResourceLocation SCROLLER_DISABLED_SPRITE = GuiUtils.vanillaRes("container/creative_inventory/scroller_disabled");
+	private static final ResourceLocation SPRITE_WITH_SCROLLER = GuiUtils.vanillaRes("textures/gui/container/creative_inventory/tabs.png");
 	private static final CustomBarData VANILLA_SCROLLBAR = new CustomBarData(null, 12, 15);
 	@Nullable private List<T> list;
 	private final IntSupplier barX;
@@ -39,7 +39,7 @@ public class ScrollerManager<T> {
 
 	public void renderScroller(GuiUtils gui) {
 		if (data == VANILLA_SCROLLBAR) {
-			gui.renderSprite(this.canScroll() ? SCROLLER_SPRITE : SCROLLER_DISABLED_SPRITE, this.barX.getAsInt(), this.barY.getAsInt() + (int) ((float) (this.barHeight - 15) * this.scrollOffset), 12, 15);
+			gui.blit(SPRITE_WITH_SCROLLER, this.barX.getAsInt(), this.barY.getAsInt() + (int) ((float) (this.barHeight - 15) * this.scrollOffset), 232 + (this.canScroll() ? 0 : 12), 0, 12, 15, 256, 256);
 		} else {
 			gui.blit(
 					this.data.barSprite(),

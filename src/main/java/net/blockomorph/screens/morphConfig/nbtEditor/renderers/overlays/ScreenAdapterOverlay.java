@@ -44,8 +44,8 @@ public class ScreenAdapterOverlay<SC extends Screen> extends TagEditingOverlay {
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double xWheelOffset, double yWheelOffset) {
-		return this.screen.mouseScrolled(mouseX, mouseY, xWheelOffset, yWheelOffset);
+	public boolean mouseScrolled(double mouseX, double mouseY, double yWheelOffset) {
+		return this.screen.mouseScrolled(mouseX, mouseY, yWheelOffset);
 	}
 
 	@Override

@@ -71,7 +71,7 @@ public class BlockStateSelectorOverlay extends TagEditingOverlay {
 	}
 
 	@Override
-	public boolean mouseScrolled(double mouseX, double mouseY, double xWheelOffset, double yWheelOffset) {
+	public boolean mouseScrolled(double mouseX, double mouseY, double yWheelOffset) {
 		return this.propsRenderer.mouseScrolled(mouseX, mouseY, yWheelOffset);
 	}
 

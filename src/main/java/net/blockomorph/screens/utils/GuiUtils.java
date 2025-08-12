@@ -1,5 +1,6 @@
 package net.blockomorph.screens.utils;
 
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -24,7 +25,8 @@ import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
@@ -34,14 +36,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.BlockItemStateProperties;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraftforge.client.RenderTypeHelper;
 import net.minecraftforge.client.model.data.ModelData;
 import org.jetbrains.annotations.Nullable;
@@ -51,7 +51,6 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -59,9 +58,22 @@ public class GuiUtils { //Cross-platform wrapper
 	private static final Function<ResourceLocation, RenderType> GUI_TEXTURE_WITH_ALPHA = Util.memoize(texture -> RenderType.create(
 			"gui_texture_with_alpha", //alpha rendering fix for textures on this game version, because it's not fixed in vanilla
 			DefaultVertexFormat.POSITION_TEX,
-			VertexFormat.Mode.QUADS, 786432, RenderType.CompositeState.builder().setTextureState(
-					new RenderStateShard.TextureStateShard(texture, false, false)
-			).setShaderState(RenderType.POSITION_TEX_SHADER).setTransparencyState(RenderStateShard.TRANSLUCENT_TRANSPARENCY).setDepthTestState(RenderStateShard.LEQUAL_DEPTH_TEST).createCompositeState(false)));
+			VertexFormat.Mode.QUADS, 786432, false, false,
+			RenderType.CompositeState.builder()
+					.setTextureState(new RenderStateShard.TextureStateShard(texture, false, false))
+					.setShaderState(new RenderStateShard.ShaderStateShard(GameRenderer::getPositionTexShader))
+					.setTransparencyState(new RenderStateShard.TransparencyStateShard("translucent_gui_texture", GuiUtils::enableTextureRender, GuiUtils::disableTextureRender))
+					.setDepthTestState(new RenderStateShard.DepthTestStateShard("<=", 515))
+					.createCompositeState(false))
+	);
+	private static void enableTextureRender() {
+		RenderSystem.enableBlend();
+		RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+	}
+	private static void disableTextureRender() {
+		RenderSystem.disableBlend();
+		RenderSystem.defaultBlendFunc();
+	}
 	private static final HashMap<Block, Boolean> BE_WITH_RENDERERS = new HashMap<>();
 	public static final BlockPos AIR = new BlockPos(0, 500, 0);
 	public static final Minecraft MC = Minecraft.getInstance();
@@ -142,10 +154,10 @@ public class GuiUtils { //Cross-platform wrapper
 	private void drawPreparedTexture(ResourceLocation texture, int x, int xEnd, int y, int yEnd, float u, float uEnd, float v, float vEnd) {
 		Matrix4f matrix4f = GUI.pose().last().pose();
 		VertexConsumer vertexconsumer = bufferSource.getBuffer(GUI_TEXTURE_WITH_ALPHA.apply(texture));
-		vertexconsumer.addVertex(matrix4f, (float)x, (float)y, 0).setUv(u, v);
-		vertexconsumer.addVertex(matrix4f, (float)x, (float)yEnd, 0).setUv(u, vEnd);
-		vertexconsumer.addVertex(matrix4f, (float)xEnd, (float)yEnd, 0).setUv(uEnd, vEnd);
-		vertexconsumer.addVertex(matrix4f, (float)xEnd, (float)y, 0).setUv(uEnd, v);
+		vertexconsumer.vertex(matrix4f, (float)x, (float)y, 0).uv(u, v).endVertex();
+		vertexconsumer.vertex(matrix4f, (float)x, (float)yEnd, 0).uv(u, vEnd).endVertex();
+		vertexconsumer.vertex(matrix4f, (float)xEnd, (float)yEnd, 0).uv(uEnd, vEnd).endVertex();
+		vertexconsumer.vertex(matrix4f, (float)xEnd, (float)y, 0).uv(uEnd, v).endVertex();
 		GUI.flush();
 	}
 
@@ -155,10 +167,6 @@ public class GuiUtils { //Cross-platform wrapper
 
 	public void renderTooltip(List<Component> texts, int mouseX, int mouseY) {
 		GUI.renderComponentTooltip(this.font, texts, mouseX, mouseY);
-	}
-
-	public void renderSprite(ResourceLocation resourceLocation, int x, int y, int maxSizeX, int maxSizeY) {
-		GUI.blitSprite(resourceLocation, x, y, maxSizeX, maxSizeY);
 	}
 
 	public void renderFromSpriteClass(TextureAtlasSprite sprite, int x, int y, int maxSizeX, int maxSizeY) {
@@ -299,11 +307,11 @@ public class GuiUtils { //Cross-platform wrapper
 			}
 			if (item != null) {
 				ItemStack itemStack = new ItemStack(item);
-				Map<String, String> map = new HashMap<>();
-				for (Property<?> property : blockState.getProperties()) {
-					map.put(property.getName(), blockState.getValue(property).toString());
-				}
-				itemStack.set(DataComponents.BLOCK_STATE, new BlockItemStateProperties(map));
+
+				CompoundTag blockstate = NbtUtils.writeBlockState(blockState);
+				CompoundTag properties = blockstate.getCompound("Properties");
+				itemStack.addTagElement("BlockStateTag", properties);
+
 				this.renderItem(itemStack, x, y, scale, 100);
 			}
 		}

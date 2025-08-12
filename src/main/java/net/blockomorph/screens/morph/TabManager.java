@@ -5,11 +5,9 @@ import net.blockomorph.screens.utils.ListenerEditBox;
 import net.blockomorph.screens.utils.ScrollerManager;
 import net.blockomorph.utils.BannedBlock;
 import net.blockomorph.utils.SavedBlock;
-import net.blockomorph.utils.config.Config;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.multiplayer.SessionSearchTrees;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -24,7 +22,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 public class TabManager {
 	protected static final CreativeModeTab ALLOWED_TAB = CreativeModeTab.builder(CreativeModeTab.Row.TOP, 0).title(Component.translatable("blockomorph.gui.morphScreen.allowed_tab")).icon(() -> new ItemStack(Items.NETHER_STAR)).build();
@@ -125,16 +122,10 @@ public class TabManager {
 
 	private void initTabs() {
 		LocalPlayer player = ((LocalPlayer)parentScreen.getPlayer());
-		if (CreativeModeTabs.tryRebuildTabContents(
+		CreativeModeTabs.tryRebuildTabContents(
 				player.connection.enabledFeatures(),
 				true,
-				player.level().registryAccess())
-		) {
-			SessionSearchTrees sessionSearchTrees = player.connection.searchTrees();
-			List<ItemStack> list = List.copyOf(CreativeModeTabs.searchTab().getDisplayItems());
-			sessionSearchTrees.updateCreativeTooltips(player.level().registryAccess(), list);
-			sessionSearchTrees.updateCreativeTags(list);
-		}
+				player.level().registryAccess());
 	}
 
 	private void setPage(boolean up) {

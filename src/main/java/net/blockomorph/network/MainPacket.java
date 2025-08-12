@@ -45,7 +45,7 @@ public class MainPacket {
             message.packet.handle(context.getSender());
         }).exceptionally(e -> {
             context.getNetworkManager().disconnect(Component.literal("Broken BlockMorphPacket with ID " + message.id + ": "+ e.getMessage()));
-            Blockomorph.LOGGER.error("Error while handle packet from player - " + context.getSender() + ":", e);
+            MorphUtils.LOGGER.error("Error while handle packet from player - " + context.getSender() + ":", e);
             return null;
         });
         context.setPacketHandled(true);

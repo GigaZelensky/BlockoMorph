@@ -227,7 +227,7 @@ public abstract class NbtEditorScreen extends AbstractScreen {
 	public boolean mouseScrolled(double mouseX, double mouseY, double yWheelOffset) {
 		if (this.editingTag == null) return false;
 		if (this.overlay != null) {
-			return this.overlay.mouseScrolled(mouseX, mouseY, 0, yWheelOffset);
+			return this.overlay.mouseScrolled(mouseX, mouseY, yWheelOffset);
 		} else if (this.forEachTag(renderer -> renderer.mouseScrolled(mouseX, mouseY, yWheelOffset))) {
 			return true;
 		}

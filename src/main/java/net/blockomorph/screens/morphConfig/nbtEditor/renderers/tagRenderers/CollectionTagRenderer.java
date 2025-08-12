@@ -15,9 +15,7 @@ import java.util.stream.Stream;
 
 public class CollectionTagRenderer<LIST extends CollectionTag<? extends Tag>> extends TagRenderer<LIST> {
 	private static final int BUTTON_SIZE = 16;
-	private static final List<Component> HINT = Stream.of(Component.translatable("blockomorph.gui.nbtEditor.addOverlay.hint.collectionTag").getString().split("\n")).map(word -> {
-		return Component.translationArg(Component.literal(word));
-	}).toList();
+	private static final List<Component> HINT = Stream.of(Component.translatable("blockomorph.gui.nbtEditor.addOverlay.hint.collectionTag").getString().split("\n")).map(Component::nullToEmpty).toList();
 	private boolean hovered;
 	private final int color;
 	

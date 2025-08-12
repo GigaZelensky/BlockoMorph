@@ -59,7 +59,7 @@ public class MorphConfigScreen extends AbstractScreen {
 
 	private CompoundTag getTag() {
 		CompoundTag tag = new CompoundTag();
-		if (this.getBE() != null) tag = this.getBE().saveCustomOnly(this.player.player().registryAccess());
+		if (this.getBE() != null) tag = this.getBE().saveWithoutMetadata();
 		return tag;
 	}
 
