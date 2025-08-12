@@ -9,17 +9,17 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class MovementCalculator {
     private final Player player;
-    private final PlayerAccessor pl;
     private final Level level;
     private final Direction lookDirection;
+    private final AABB aabb;
     private final boolean error;
 
     public MovementCalculator(PlayerAccessor playerAccessor) {
-        this.player = (Player) playerAccessor;
+        this.player = playerAccessor.player();
         this.level = player.level();
         this.lookDirection = player.getDirection();
+        this.aabb = player.getBoundingBox();
         this.error = this.lookDirection == Direction.DOWN || this.lookDirection == Direction.UP;
-        this.pl = playerAccessor;
     }
 
     public void calculateEnterCorrection(Vec3 originalMovement) {
@@ -32,17 +32,17 @@ public class MovementCalculator {
                 0,
                 d0 * (lookDirection.getStepZ())
         );
-        for (VoxelShape shp : level.getCollisions(player, player.getBoundingBox().move(movement))) {
+        for (VoxelShape shp : level.getCollisions(player, this.aabb.move(movement))) {
             for (AABB aabb : shp.toAabbs()) {
-                if (this.player.getBoundingBox().move(movement).intersects(aabb) && (main == null || this.isCloser(aabb, main, originalMovement))) {
+                if (this.aabb.move(movement).intersects(aabb) && (main == null || this.isCloser(aabb, main, originalMovement))) {
                     main = aabb;
                 }
             }
         }
         if (main == null) return;
         Vec3 offset = this.getHitBoxOffset(main, originalMovement);
-        if (level.noCollision(player.getBoundingBox().move(offset).move(movement))) {
-            if (this.isGoodPath(main, originalMovement)) {//broken
+        if (level.noCollision(player, aabb.move(offset).move(movement))) {
+            if (this.isGoodPath(main, originalMovement)) {
                 player.setPos(offset.x + player.getX(), player.getY(), offset.z + player.getZ());
             }
         }
@@ -50,7 +50,7 @@ public class MovementCalculator {
 
     private boolean isGoodPath(AABB b, Vec3 m) {
         Direction dir = this.lookDirection;
-        AABB playerBox = this.player.getBoundingBox();
+        AABB playerBox = this.aabb;
         if (dir == Direction.NORTH) {
             if (m.x > 0)
                 return playerBox.minX + m.x > b.maxX;
@@ -92,7 +92,7 @@ public class MovementCalculator {
 
     private Vec3 getHitBoxOffset(AABB main, Vec3 m) {
         Direction dir = this.lookDirection;
-        AABB playerBox = this.player.getBoundingBox();
+        AABB playerBox = this.aabb;
         if (dir == Direction.NORTH) {
             if (m.x > 0) return new Vec3(main.maxX - playerBox.minX, 0, 0);
             return new Vec3(main.minX - playerBox.maxX, 0, 0);

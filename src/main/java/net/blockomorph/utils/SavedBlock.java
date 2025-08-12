@@ -39,12 +39,6 @@ public class SavedBlock {
    	   return tag;
    }
 
-   public static HashMap<BlockPos, SavedBlock> getSetBlockMap(BlockPos bp, BlockState st) {
-       HashMap<BlockPos, SavedBlock> map = new HashMap<>();
-       map.put(bp, new SavedBlock(st, new CompoundTag(), ""));
-       return map;
-   }
-
    public static SavedBlock fromTag(CompoundTag tag, String k) {
    	   CompoundTag nbt = tag.getCompound("Tag");
    	   BlockState state = NbtUtils.readBlockState(Minecraft.getInstance().level.holderLookup(Registries.BLOCK), tag.getCompound("BlockState"));

@@ -1,13 +1,10 @@
 package net.blockomorph.utils.tnt;
 
 import net.blockomorph.Blockomorph;
-import net.blockomorph.utils.BlockInPlayer;
-import net.blockomorph.utils.MorphUtils;
-import net.blockomorph.utils.PlayerAccessor;
-import net.blockomorph.utils.SavedBlock;
+import net.blockomorph.utils.*;
 import net.blockomorph.utils.accessors.EntityAccessor;
-import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
+import net.blockomorph.utils.config.Config;
+import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvents;
@@ -25,19 +22,18 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.TntBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.GameEvent;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.HashMap;
+import javax.annotation.Nullable;
 
 public class TntHandler {
     private final SynchedEntityData entityData;
-    private final EntityDataAccessor<CompoundTag> BRAKE_PROGRESS;
+    private final EntityDataAccessor<Integer> BRAKE_PROGRESS;
     private PrimedTnt tnt;
     private final Player player;
     private final PlayerAccessor pl;
 
-    public TntHandler(PlayerAccessor owner, SynchedEntityData entityData, EntityDataAccessor<CompoundTag> br) {
+    public TntHandler(PlayerAccessor owner, SynchedEntityData entityData, EntityDataAccessor<Integer> br) {
         this.player = (Player) owner;
         this.pl = owner;
         this.BRAKE_PROGRESS = br;
@@ -65,116 +61,113 @@ public class TntHandler {
                 if (!this.player.level().isClientSide) {
                     this.setFuse(tnt.getFuse());
                     if (!tnt.isAlive()) {
-                        //tnt = null;
-                        MorphUtils.destroy(this.pl, null);
+                        if ((boolean) Config.getInstance().getOption("playerDieAfterDestroy").getValue()) {
+                            MorphUtils.destroy(this.pl, null);
+                        } else {
+                            this.deMorph();
+                        }
                         tnt = null;
                         this.setFuse(-1);
                     }
                 }
             } catch (Exception e) {
                 Blockomorph.LOGGER.error("Error while ticking TNT in morphed player " + this.player.getDisplayName().getString(), e);
-                if (!this.player.level().isClientSide) this.pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), new CompoundTag());
+                this.deMorph();
             }
         }
-        //if (this.level().getBlockState(this.blockPosition()).getBlock() instanceof BaseFireBlock && !this.level().isClientSide) this.setTnt();
         if (this.player.getRemainingFireTicks() > 0 && !this.player.level().isClientSide) {
-            this.setTnt();
+            this.runTnt();
         }
+    }
+
+    private void deMorph() {
+        if (!this.player.level().isClientSide) this.pl.applyBlockMorph(Blocks.AIR.defaultBlockState(), null);
     }
 
     public void setFuse(int i) {
-        CompoundTag progress = this.entityData.get(BRAKE_PROGRESS);
-        progress = progress.copy();
-        progress.putInt("fuse", i);
-        this.entityData.set(BRAKE_PROGRESS, progress);
+        this.entityData.set(BRAKE_PROGRESS, i);
     }
 
-    public void setTnt() {
-        this.setTnt((BlockHitResult) null);
-    }
-
-    public void setTnt(BlockHitResult res) {
-        BlockState state = null;
-        BlockInPlayer spawn = null;
-        if (res == null || this.pl.getBlocksData().size() == 1) {
-            state = this.pl.getBlockState();
-        } else {
-            BlockInPlayer br = this.pl.getBlocksData().get(res.getBlockPos());
-            if (br != null) state = br.getBlockState();
-            spawn = br;
-        }
-        if (state != null && state.getBlock() instanceof TntBlock tnt && this.tnt == null) {
-            TntSpawnLevel lv = new TntSpawnLevel(this.player.level(), false, state);
-            PrimedTnt TNT;
-            try {
-                tnt.onCaughtFire(state, lv, this.player.blockPosition(), null, this.player);
-            } catch (Exception e) {
-                TNT = lv.extractTnt();
-                if (TNT == null) {
-                    Blockomorph.LOGGER.error("Error while init TNT in morphed player " + this.player.getDisplayName().getString(), e);
-                    return;
+    public boolean runTnt() {
+        if (this.pl.getBlocksData2().size() == 1 && this.pl.getBlocksData2().containsKey(InPlayerBlockPos.ZERO)) {
+            BlockInPlayer2 block = this.pl.getBlocksData2().get(InPlayerBlockPos.ZERO);
+            if (block != null) {
+                BlockState state = this.pl.getBlockState(InPlayerBlockPos.ZERO);
+                if (state != null && state.getBlock() instanceof TntBlock tntBlock && this.tnt == null) {
+                    TntSpawnLevel lv = new TntSpawnLevel(this.player.level(), state);
+                    PrimedTnt TNT;
+                    try {
+                        tntBlock.onCaughtFire(state, lv, block.getPos(), null, this.player);
+                    } catch (Exception e) {
+                        TNT = lv.extractTnt();
+                        if (TNT == null) {
+                            Blockomorph.LOGGER.error("Error while init TNT in morphed player " + this.player.getDisplayName().getString(), e);
+                            return false;
+                        }
+                    }
+                    TNT = lv.extractTnt();
+                    Vec3 ps = MorphUtils.getRealBlockPos(this.pl, block.getOffset());
+                    if (TNT == null) {
+                        PrimedTnt primedtnt = new PrimedTnt(this.player.level(), ps.x + 0.5D, ps.y, ps.z + 0.5D, null);
+                        this.player.level().playSound(null, primedtnt.getX(), primedtnt.getY(), primedtnt.getZ(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
+                        this.player.level().gameEvent(null, GameEvent.PRIME_FUSE, ps);
+                        this.tnt = primedtnt;
+                    } else {
+                        TNT.setPos(ps);
+                        this.tnt = TNT;
+                    }
+                    ((EntityAccessor)this.tnt).forceLevelChange(this.player.level());
+                    this.tnt.setNoGravity(true);
+                    if (this.player.level().isClientSide()) {
+                        double d0 = this.player.level().random.nextDouble() * (double) ((float) Math.PI * 2F);
+                        this.player.setDeltaMovement(new Vec3(-Math.sin(d0) * 0.02D, 0.3F, -Math.cos(d0) * 0.02D));
+                    }
+                    return true;
                 }
             }
-            TNT = lv.extractTnt();
-            if (TNT == null) {
-                BlockPos ps = this.player.blockPosition();
-                PrimedTnt primedtnt = new PrimedTnt(this.player.level(), (double)ps.getX() + 0.5D, ps.getY(), (double)ps.getZ() + 0.5D, null);
-                this.player.level().playSound((Player) null, primedtnt.getX(), primedtnt.getY(), primedtnt.getZ(), SoundEvents.TNT_PRIMED, SoundSource.BLOCKS, 1.0F, 1.0F);
-                this.player.level().gameEvent(null, GameEvent.PRIME_FUSE, ps);
-                this.tnt = primedtnt;
-            } else
-                this.tnt = TNT;
-            ((EntityAccessor)this.tnt).forceLevelChange(this.player.level());
-            if (spawn == null) {
-                this.tnt.setNoGravity(true);
-                if (this.player.level().isClientSide()) {
-                    double d0 = this.player.level().random.nextDouble() * (double) ((float) Math.PI * 2F);
-                    this.player.setDeltaMovement(new Vec3(-Math.sin(d0) * 0.02D, (double) 0.2F, -Math.cos(d0) * 0.02D));
-                }
+        }
+        return false;
+    }
+
+    @Nullable
+    public InteractionResult clickTnt(Player clicker, InteractionHand hand, InPlayerBlockPos realPos) {
+        BlockState state = pl.getBlockState(realPos);
+        if (realPos.equals(InPlayerBlockPos.ZERO) && state != null && state.getBlock() instanceof TntBlock) {
+            ItemStack itemstack = clicker.getItemInHand(hand);
+            if (!itemstack.is(Items.FLINT_AND_STEEL) && !itemstack.is(Items.FIRE_CHARGE)) {
+                return null;
             } else {
-                PrimedTnt tntOut = this.tnt;
-                this.tnt = null;
-                if (!this.player.level().isClientSide) {
-                    Vec3 posToExit = spawn.getUseController().getRealPos().add(0, -0.5, 0);
-                    tntOut.setPosRaw(posToExit.x, posToExit.y, posToExit.z);
-                    this.player.level().addFreshEntity(tntOut);
-                    this.pl.enableBlockOverrides(SavedBlock.getSetBlockMap(res.getBlockPos(), Blocks.AIR.defaultBlockState()));
+                if (!clicker.level().isClientSide) {
+                    if (!this.runTnt()) {
+                        return InteractionResult.FAIL;
+                    }
                 }
+                Item item = itemstack.getItem();
+                if (!clicker.isCreative()) {
+                    if (itemstack.is(Items.FLINT_AND_STEEL)) {
+                        itemstack.hurtAndBreak(1, clicker, (pla) -> {
+                            pla.broadcastBreakEvent(hand);
+                        });
+                    } else {
+                        itemstack.shrink(1);
+                    }
+                }
+
+                clicker.awardStat(Stats.ITEM_USED.get(item));
+                return InteractionResult.sidedSuccess(clicker.level().isClientSide);
             }
         }
+        return null;
     }
 
-    public InteractionResult clckTnt(Player clicker, BlockHitResult hiter, InteractionHand hand) {
-        ItemStack itemstack = clicker.getItemInHand(hand);
-        if (!itemstack.is(Items.FLINT_AND_STEEL) && !itemstack.is(Items.FIRE_CHARGE)) {
-            return InteractionResult.PASS;
-        } else {
-            if (!clicker.level().isClientSide)
-                this.setTnt(hiter);
-            Item item = itemstack.getItem();
-            if (!clicker.isCreative()) {
-                if (itemstack.is(Items.FLINT_AND_STEEL)) {
-                    itemstack.hurtAndBreak(1, clicker, (pl) -> {
-                        pl.broadcastBreakEvent(hand);
-                    });
-                } else {
-                    itemstack.shrink(1);
-                }
-            }
-
-            clicker.awardStat(Stats.ITEM_USED.get(item));
-            return InteractionResult.sidedSuccess(clicker.level().isClientSide);
-        }
-    }
-
-    public void onClientUpdater() {
-        if (this.player.level().isClientSide()) {
-            int i = this.entityData.get(BRAKE_PROGRESS).getInt("fuse");
+    public void onClientUpdater(EntityDataAccessor<?> data) {
+        if (data.equals(BRAKE_PROGRESS) && this.player.level().isClientSide()) {
+            int i = this.entityData.get(BRAKE_PROGRESS);
             if (i < 0) {
                 this.tnt = null;
             } else {
                 if (this.tnt == null) {
-                    this.setTnt();
+                    this.runTnt();
                 }
                 if (this.tnt != null) {
                     this.tnt.setFuse(i);
@@ -183,11 +176,12 @@ public class TntHandler {
         }
     }
 
-    public PrimedTnt getTnt() {
-        return this.tnt;
+    public void stopRunning() {
+        this.tnt = null;
+        this.setFuse(-1);
     }
 
-    public void setTnt(PrimedTnt tnt) {
-        this.tnt = tnt;
+    public PrimedTnt getTnt() {
+        return this.tnt;
     }
 }

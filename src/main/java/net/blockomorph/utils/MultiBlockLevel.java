@@ -1,6 +1,5 @@
 package net.blockomorph.utils;
 
-import net.blockomorph.utils.accessors.BlockPosAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
@@ -54,14 +53,8 @@ public class MultiBlockLevel extends Level {
 
     @Override
     public BlockState getBlockState(BlockPos pos) {
-        BlockState st = blocks.get(pos);
-        if (st == null) {
-            if (BlockPosAccessor.of(pos).getController() != null) {
-                return BlockPosAccessor.of(pos).getController().getBlockState();
-            }
-            return Blocks.AIR.defaultBlockState();
-        }
-        return st;
+        BlockState state = this.blocks.get(pos);
+        return state != null ? state : Blocks.AIR.defaultBlockState();
     }
 
     public HashMap<BlockPos, BlockState> getBlocks() {
@@ -110,6 +103,7 @@ public class MultiBlockLevel extends Level {
         return realLevel.getEntity(var1);
     }
 
+    @Nullable
     protected LevelEntityGetter<Entity> getEntities() {
         return null;
     }

@@ -1,29 +1,24 @@
 package net.blockomorph.utils;
 
-import net.minecraft.core.BlockPos;
+import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.world.entity.EntityDimensions;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.HashMap;
 
 public class HitBoxCalculator {
-    private BlockPos minPos = new BlockPos(0, 0, 0);
-    private BlockPos maxPos = new BlockPos(0, 0, 0);
+    private InPlayerBlockPos minPos = InPlayerBlockPos.get(0, 0, 0);
+    private InPlayerBlockPos maxPos = InPlayerBlockPos.get(0, 0, 0);
     private final PlayerAccessor pl;
 
     public HitBoxCalculator(PlayerAccessor owner) {
         this.pl = owner;
     }
 
-    public BlockPos getMinPos() {
+    public InPlayerBlockPos getMinPos() {
         return this.minPos;
     }
 
-    public BlockPos getMaxPos() {
+    public InPlayerBlockPos getMaxPos() {
         return this.maxPos;
     }
 
@@ -47,15 +42,13 @@ public class HitBoxCalculator {
         );
     }
 
-    private BlockPos findMinPos() {
-        if (this.pl.getBlocks().isEmpty())
-            return new BlockPos(0, 0, 0);
+    private InPlayerBlockPos findMinPos() {
+        if (this.pl.getBlocksData2().isEmpty())
+            return InPlayerBlockPos.ZERO;
         int minX = Integer.MAX_VALUE;
         int minY = Integer.MAX_VALUE;
         int minZ = Integer.MAX_VALUE;
-        HashMap<BlockPos, BlockState> blocks = new HashMap<>(this.pl.getBlocks());
-        blocks.put(new BlockPos(0, 0, 0), this.pl.getBlockState());
-        for (BlockPos pos : blocks.keySet()) {
+        for (InPlayerBlockPos pos : this.pl.getBlocksData2().keySet()) {
             if (pos.getX() < minX) {
                 minX = pos.getX();
             }
@@ -66,18 +59,16 @@ public class HitBoxCalculator {
                 minZ = pos.getZ();
             }
         }
-        return new BlockPos(minX, minY, minZ);
+        return InPlayerBlockPos.get(minX, minY, minZ);
     }
 
-    private BlockPos findMaxPos() {
-        if (this.pl.getBlocks().isEmpty())
-            return new BlockPos(1, 1, 1);
+    private InPlayerBlockPos findMaxPos() {
+        if (this.pl.getBlocksData2().isEmpty())
+            return InPlayerBlockPos.get(1, 1, 1);
         int maxX = Integer.MIN_VALUE;
         int maxY = Integer.MIN_VALUE;
         int maxZ = Integer.MIN_VALUE;
-        HashMap<BlockPos, BlockState> blocks = new HashMap<>(this.pl.getBlocks());
-        blocks.put(new BlockPos(0, 0, 0), this.pl.getBlockState());
-        for (BlockPos pos : blocks.keySet()) {
+        for (InPlayerBlockPos pos : this.pl.getBlocksData2().keySet()) {
             if (pos.getX() > maxX) {
                 maxX = pos.getX();
             }
@@ -88,12 +79,12 @@ public class HitBoxCalculator {
                 maxZ = pos.getZ();
             }
         }
-        return new BlockPos(maxX, maxY, maxZ).offset(1, 1, 1);
+        return InPlayerBlockPos.get(maxX, maxY, maxZ).offset(1, 1, 1);
     }
 
     public EntityDimensions calculateDimensions() {
         return new EntityDimensions(0, 0, false) {
-            public @NotNull AABB makeBoundingBox(double d, double e, double f) {
+            public AABB makeBoundingBox(double d, double e, double f) {
                 Vec3 vec3 = new Vec3(d, e, f);
                 AABB ab = new AABB(
                         vec3.x + minPos.getX(),
@@ -108,6 +99,6 @@ public class HitBoxCalculator {
     }
 
     public float getEyeHeight() {
-        return (this.maxPos.getY() - 1) + 0.83300006f;
+        return (this.maxPos.getY() - 1) + 0.83300006f + (pl.player().isCrouching() ? -0.125F : 0);
     }
 }

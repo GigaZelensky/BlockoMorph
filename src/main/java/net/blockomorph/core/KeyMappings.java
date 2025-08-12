@@ -3,12 +3,9 @@ package net.blockomorph.core;
 import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.screens.ConfigScreen;
 import net.blockomorph.screens.MorphScreen;
-import net.blockomorph.utils.BlockPosBounds;
 import net.blockomorph.utils.config.Config;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -36,25 +33,38 @@ public class KeyMappings {
 		}
 	});
 
-	public static final KeyMapping db = new HandlerKeymapping("key.blockomorph.config_menu2", GLFW.GLFW_KEY_I, () -> {
-		//MorphUtils.sendServer(new DebugPacket(BlockHitResult.miss(Vec3.ZERO, Direction.DOWN, BlockPos.ZERO)));
-		//MorphUtils.test = true;
+	/*public static final KeyMapping db = new HandlerKeymapping("key.blockomorph.debug", GLFW.GLFW_KEY_I, () -> {
+		if (mc.hitResult instanceof MorphedPlayerHitResult hit) {
+			hit.getPlayer().getBlocksData2().forEach(((inPlayerBlockPos, blockInPlayer2) -> {
+				System.out.println(inPlayerBlockPos + "   " + blockInPlayer2.getBlockState());
+			}));
+		}
 	});
 
-	public static final KeyMapping db2 = new HandlerKeymapping("key.blockomorph.config_menu22", GLFW.GLFW_KEY_J, () -> {
-		//System.out.println(BlockPosBounds.getChunkPosForPlayer(mc.player));
+	public static final KeyMapping db2 = new HandlerKeymapping("key.blockomorph.debug2", GLFW.GLFW_KEY_J, () -> {
+		BlockPos pos = InPlayerBlockPos.get(0, 0, 0).boundedBlockPos(mc.player);
+		System.out.println("setblock " + pos.getX() + " " + pos.getY() + " " + pos.getZ() + " ");
+		BlockPosBounds.CACHE.forEach(((chunkPos, player) -> {
+			System.out.println(chunkPos);
+		}));
+		BlockPosBounds.CLIENT_CACHE.forEach(((chunkPos, player) -> {
+			System.out.println(chunkPos);
+		}));
 		for (Entity ent2 : mc.level.entitiesForRendering()) {
 			if (ent2 instanceof Player a)
 				System.out.println(ent2.getName() + "  :  " + BlockPosBounds.getChunkPosForPlayer(a));
 		}
+		PlayerAccessor.of(mc.player).getBlocksData2().forEach(((inPlayerBlockPos, blockInPlayer2) -> {
+			System.out.println(inPlayerBlockPos + "    " + blockInPlayer2.getBlockState());
+		}));
 	});
 
-	public static final KeyMapping db3 = new HandlerKeymapping("key.blockomorph.config_menu223", GLFW.GLFW_KEY_V, () -> {
+	public static final KeyMapping db3 = new HandlerKeymapping("key.blockomorph.debug3", GLFW.GLFW_KEY_V, () -> {
 		//if (Minecraft.getInstance().hitResult instanceof EntityHitResult ent) {
         //    MorphUtils.sendServer(new DebugPacket2(ent.getEntity().getId()));
-		//MorphUtils.sendServer(new DebugPacket2(-1));
+		MorphUtils.sendServer(new DebugPacket2(-1));
         //}
-	});
+	});*/
 
 	@SubscribeEvent
 	public static void registerKeyMappings(RegisterKeyMappingsEvent event) {

@@ -20,12 +20,13 @@ import java.util.List;
 public class Config {
     private static final String configDir = FMLPaths.GAMEDIR.get() + "\\config\\blockomorph.json";
     public final List<ConfigInstance<?>> options = List.of(
-            new EnumConfig("listMode", Mode.NONE),
+            new EnumConfig<>("listMode", Mode.NONE),
             new BooleanConfig("solidBlocksOnly", false),
             new ListConfig("allowedBlocks", new ArrayList<>()),
             new ListConfig("bannedBlocks", new ArrayList<>()),
             new BooleanConfig("playerDieAfterDestroy", true),
-            new BooleanConfig("advancedMode", true, Component.translatable("gui.blockomorph.advTooltip")),
+            new EnumConfig<>("useMode", UseMode.ALL),
+            new EnumConfig<>("placeMode", PlaceMode.OUT),
             new BooleanConfig("canOperatorModifyConfig", true)
     );
     static Config INSTANCE;
@@ -137,5 +138,17 @@ public class Config {
         NONE,
         BLACKLIST,
         WHITELIST
+    }
+
+    public enum UseMode {
+        DISABLED,
+        VANILLA,
+        ALL
+    }
+
+    public enum PlaceMode {
+        DISABLED,
+        IN,
+        OUT
     }
 }

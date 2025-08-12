@@ -1,44 +1,47 @@
 package net.blockomorph.utils.hit;
 
+import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.blockomorph.utils.PlayerAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class MorphedPlayerHitResult extends BlockHitResult {
     private final PlayerAccessor player;
-    private final Vec3 inBlockOffset;
+    private final InPlayerBlockPos offset;
+    private final Vec3 realLocation;
 
-    protected MorphedPlayerHitResult(PlayerAccessor player, Vec3 location, Vec3 inBlockOffset, BlockPos offset, Direction direction, boolean inside) {
-        super(location, direction, offset, inside);
+    private MorphedPlayerHitResult(PlayerAccessor player, InPlayerBlockPos offset, BlockPos offsetIn, Vec3 inBlockOffset, Direction direction, boolean inside, Vec3 realLoc) {
+        super(inBlockOffset.add(offsetIn.getX(), offsetIn.getY(), offsetIn.getZ()), direction, offsetIn, inside);
+        this.offset = offset;
         this.player = player;
-        this.inBlockOffset = inBlockOffset;
+        this.realLocation = realLoc;
+    }
+
+    @Nullable
+    protected static MorphedPlayerHitResult of(PlayerAccessor player, InPlayerBlockPos offset, Direction direction, boolean inside, Vec3 inBlockOffset, Vec3 realLoc) {
+        BlockPos offsetIn = offset.boundedBlockPos(player.player());
+        if (offsetIn == null)
+            return null;
+        return new MorphedPlayerHitResult(player, offset, offsetIn, inBlockOffset, direction, inside, realLoc);
     }
 
     @Override
-    public @NotNull Type getType() {
+    public Type getType() {
         return Type.BLOCK;
     }
 
     public PlayerAccessor getPlayer() {
-        return player;
+        return this.player;
     }
 
-    public Vec3 getInBlockOffset() {
-        return inBlockOffset;
+    public InPlayerBlockPos getOffset() {
+        return this.offset;
     }
 
-    public BlockPos getOffset() {
-        return this.getBlockPos();
-    }
-
-    public MorphedPlayerHitResult boundBlockPos() {
-        return new MorphedPlayerHitResult(this.player, this.getLocation(), this.inBlockOffset, player.getUseControllers().get(this.getOffset()).getOffset(), this.getDirection(), this.isInside());
+    public Vec3 getRealLocation() {
+        return this.realLocation;
     }
 }

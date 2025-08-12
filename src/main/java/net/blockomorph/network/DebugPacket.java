@@ -50,7 +50,7 @@ public class DebugPacket implements BlockMorphPacket {
 
     @Override
     public void handle(Player player) {
-        if (true) return;
+        if (DebugPacket2.checkDisabled()) return;
         if (!pos.getBlockPos().equals(BlockPos.ZERO)) {
             handleAlternative(this.pos, player);
             return;

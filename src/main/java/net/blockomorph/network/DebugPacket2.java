@@ -1,24 +1,13 @@
 package net.blockomorph.network;
 
 import net.blockomorph.utils.PlayerAccessor;
-import net.blockomorph.utils.SavedBlock;
-import net.blockomorph.utils.use.UseServerLevel;
-import net.blockomorph.utils.use.fix.BedController;
+import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.protocol.game.ClientboundSetPassengersPacket;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.entity.BlockEntity;
-
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.OptionalInt;
+import net.minecraft.world.phys.Vec3;
 
 /************************************************************************************************************************
  Temporary package, does not carry any functions, created exclusively for testing, it will be removed in the next update!
@@ -45,6 +34,8 @@ public class DebugPacket2 implements BlockMorphPacket {
 
     @Override
     public void handle(Player player) {
+        if (checkDisabled())
+            return;
         //Entity ent = player.level().getEntity(this.id);
         //if (ent != null) {
             //player.startRiding(ent, true);
@@ -55,12 +46,22 @@ public class DebugPacket2 implements BlockMorphPacket {
         blocks.put(new BlockPos(1, 0, 0), new SavedBlock(Blocks.CHEST.defaultBlockState(), new CompoundTag(), ""));
         //blocks.put(BlockPos.ZERO, new SavedBlock(Blocks.COBBLESTONE.defaultBlockState(), new CompoundTag(), ""));
         ((PlayerAccessor)player).enableBlockOverrides(blocks);
-        //player.setPose(Pose.SLEEPING);*/
+        //player.setPose(Pose.SLEEPING);
         if (player instanceof PlayerAccessor pl) {
             BlockEntity bl = pl.getUseControllers().get(BlockPos.ZERO).getBlockEntity();
             if (bl != null&&bl.getLevel() instanceof UseServerLevel LV2) {
                 //LV2.sendBlockUpdated(bl.getBlockPos(), null, null, 0);
             }
+        }*/
+        //PlayerAccessor.of(player).loadBlockData(new CompoundTag());
+        if (player instanceof ServerPlayer pl) {
+            BlockPos pos = InPlayerBlockPos.ZERO.boundedBlockPos(pl);
+            Vec3 vec = pos.getCenter();
+            //pl.connection.teleport(vec.x + 10, vec.y + 1, vec.z, pl.getYRot(), pl.getXRot());
         }
+    }
+
+    protected static boolean checkDisabled() {
+        return true;
     }
 }

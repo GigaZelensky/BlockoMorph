@@ -22,11 +22,15 @@
   "death.attack.player_destroyed.player": "%1$s сломался пока убегал от %2$s",
   "death.attack.player_destroyed_null.player": "%1$s сломался пока убегал от %2$s",
   "key.blockomorph.morph_menu": "Меню превращений в блок",
-  "commands.blockmorph.many": "%s игроков были упешно превращены в %s.",
+  "commands.blockmorph.many": "%s игроков были успешно превращены в %s.",
   "death.attack.player_destroyed_null": "%1$s был разрушен",
   "death.attack.player_destroyed_null.item": "%1$s был разрушен %2$s используя %3$s",
   "commands.blockmorph.whitelist": "Вы не можете превратиться в этот блок так как его нет в белом списке.",
   "commands.blockmorph.single": "Игрок %s был успешно превращен в %s.",
   "commands.blockmorph.solid": "Вы не можете превратиться в этот блок так как неполные блоки запрещены.",
-  "gui.blockomorph.advTooltip": "Расширенный режим - Разрешает: превращение в мультиблок"
+  "gui.blockomorph.advTooltip": "Расширенный режим - Разрешает: превращение в мультиблок",
+  "commands.blockomorph.blockSame": "Вы уже превращены в этот блок.",
+  "gui.blockomorph.useMode": "ПКМ по игроку",
+  "gui.blockomorph.placeMode": "Размещение на игроках",
+  "commands.blockmorph.liquid": "Превращение в жидкости в разработке!"
 }
