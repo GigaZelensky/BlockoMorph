@@ -70,6 +70,7 @@
     "main.client.graphic.GuiMixin",
     "main.client.graphic.GuiRenderMixin",
     "main.client.graphic.LevelRenderMixin",
+    "main.client.graphic.LightningMixin",
     "main.client.graphic.ModelRendererMixin",
     "main.client.graphic.ParticleEngineMixin",
     "main.client.graphic.entity.EntityRendererMixin",

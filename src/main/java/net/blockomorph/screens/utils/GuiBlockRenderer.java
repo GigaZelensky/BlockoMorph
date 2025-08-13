@@ -1,10 +1,10 @@
 package net.blockomorph.screens.utils;
 
-import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
+import net.blockomorph.utils.accessors.LightningSetter;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.render.pip.PictureInPictureRenderer;
@@ -23,7 +23,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.List;
 
-import static net.blockomorph.screens.utils.GuiUtils.MC;
+import static net.blockomorph.screens.utils.GuiUtils.*;
 
 public class GuiBlockRenderer extends PictureInPictureRenderer<GuiBlockRenderState> {
 	public GuiBlockRenderer(MultiBufferSource.BufferSource bufferSource) {
@@ -37,15 +37,21 @@ public class GuiBlockRenderer extends PictureInPictureRenderer<GuiBlockRenderSta
 
 	@Override
 	protected void renderToTexture(GuiBlockRenderState guiState, PoseStack stack) {
-		Minecraft.getInstance().gameRenderer.getLighting().setupFor(Lighting.Entry.ENTITY_IN_UI);
-		stack.mulPose(Axis.XP.rotationDegrees(30.0F));
-		stack.mulPose(Axis.YP.rotationDegrees(-45.0F));
-		stack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+		LightningSetter.renderWithLight(() -> {
+			stack.mulPose(Axis.XP.rotationDegrees(30.0F));
+			stack.mulPose(Axis.YP.rotationDegrees(-45.0F));
+			stack.mulPose(Axis.ZP.rotationDegrees(180.0F));
 
+			BlockEntity blockEntity = guiState.getBlockEntity();
+			this.renderBlock(stack, guiState.getState(), blockEntity != null ? blockEntity.getBlockPos() : GuiUtils.AIR);
+			this.renderBlockEntity(guiState.getDeltaTick(), stack, blockEntity);
+		}, DIFFUSE_LIGHT_START, DIFFUSE_LIGHT_END);
+	}
 
-		BlockEntity blockEntity = guiState.getBlockEntity();
-		this.renderBlock(stack, guiState.getState(), blockEntity != null ? blockEntity.getBlockPos() : GuiUtils.AIR);
-		this.renderBlockEntity(guiState.getDeltaTick(), stack, blockEntity);
+	@Override
+	protected void blitTexture(GuiBlockRenderState pictureInPictureRenderState, GuiRenderState guiRenderState) {
+		super.blitTexture(pictureInPictureRenderState, guiRenderState);
+		LightningSetter.disableLigth();
 	}
 
 	private void renderBlock(PoseStack stack, BlockState blockState, BlockPos pos) {

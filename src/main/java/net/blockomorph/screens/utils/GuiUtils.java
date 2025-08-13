@@ -50,8 +50,8 @@ public class GuiUtils { //Cross-platform wrapper
 	public static final List<Overlay> OVERLAYS = new ArrayList<>();
 	public static final BlockRenderDispatcher blockRenderer = MC.getBlockRenderer();
 	public static final BlockEntityRenderDispatcher blockEntityRenderer = MC.getBlockEntityRenderDispatcher();
-	private static final Vector3f DIFFUSE_LIGHT_START;
-	private static final Vector3f DIFFUSE_LIGHT_END;
+	public static final Vector3f DIFFUSE_LIGHT_START;
+	public static final Vector3f DIFFUSE_LIGHT_END;
 	private GuiGraphics GUI;
 	private int mouseX;
 	private int mouseY;
@@ -173,6 +173,7 @@ public class GuiUtils { //Cross-platform wrapper
 
 	//HINT:   XY - upper left corner of item
 	public void renderItem(ItemStack item, float x, float y, float scale, float ignored) {
+		if (true) return;
 		if (scale == 1) scale = 16f;
 		float finaSize = scale * MC.getWindow().getGuiScale();
 
@@ -186,6 +187,11 @@ public class GuiUtils { //Cross-platform wrapper
 				stack.scale(finaSize, -finaSize, finaSize);
 				super.render(stack, multiBufferSource, i, j);
 				stack.pushPose();
+			}
+
+			@Override
+			public boolean isOversizedInGui() {
+				return true;
 			}
 		};
 
