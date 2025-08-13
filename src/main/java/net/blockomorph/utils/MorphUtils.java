@@ -1,6 +1,6 @@
 package net.blockomorph.utils;
 
-import com.mojang.blaze3d.pipeline.RenderPipeline;
+import com.mojang.serialization.DataResult;
 import net.blockomorph.BlockomorphServer;
 import net.blockomorph.network.*;
 import net.blockomorph.utils.config.*;
@@ -50,27 +50,45 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.world.item.ItemStack;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.world.level.block.piston.MovingPistonBlock;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.renderer.RenderType;
 
 import java.util.HashMap;
 import net.minecraft.core.BlockPos;
 
 import java.util.function.DoubleConsumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 public class MorphUtils {
-	public static final ResourceKey<DamageType> PLAYER_DESTROYED = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("blockomorph", "player_destroyed"));
-	public static final ResourceKey<DamageType> PLAYER_DESTROYED_NULL = ResourceKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("blockomorph", "player_destroyed_null"));
-	public static final SavedBlockManager bmanager = getSavedManager();
+	public static final ResourceKey<DamageType> PLAYER_DESTROYED = ResourceKey.create(Registries.DAMAGE_TYPE, res("player_destroyed"));
+	public static final ResourceKey<DamageType> PLAYER_DESTROYED_NULL = ResourceKey.create(Registries.DAMAGE_TYPE, res("player_destroyed_null"));
+	public static final Logger LOGGER = LoggerFactory.getLogger(BlockomorphServer.MOD_ID);
+	public static Path getGameDir() {
+		return FabricLoader.getInstance().getGameDir();
+	}
+
+
+	public static ResourceLocation res(String path) {
+		return ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, path);
+	}
+
+	public static ResourceLocation vanillaRes(String path) {
+		return ResourceLocation.withDefaultNamespace(path);
+	}
+
+
+	/****************************PACKET SYSTEM************************************/
 
 	private static final HashMap<ResourceLocation, PacketInfo> handlers = new HashMap<>();
 	public static PacketInfo getHandler(ResourceLocation id) {
@@ -92,43 +110,26 @@ public class MorphUtils {
 	}
 
 	public static void registerPacket(String id, Function<FriendlyByteBuf, BlockMorphPacket> bl, boolean client) {
-		ResourceLocation res = ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, id);
+		ResourceLocation res = res(id);
 		if (handlers.containsKey(res)) {
 			throw new IllegalArgumentException("Packet with Id: " + id + " alredy registered!");
 		}
-		handlers.put(ResourceLocation.fromNamespaceAndPath(BlockomorphServer.MOD_ID, id), new PacketInfo(bl, client));
+		handlers.put(res, new PacketInfo(bl, client));
 	}
 
 	public record PacketInfo(Function<FriendlyByteBuf, BlockMorphPacket> packet, boolean isClient) {}
 
-	private static SavedBlockManager getSavedManager() {
-		return new SavedBlockManager(FabricLoader.getInstance().getGameDir());
-	}
+	/****************************PACKET SYSTEM************************************/
 
-	@Nullable
-	public static BannedBlock isBannedBlock(BlockState state, @Nullable Player pl) {
-		if (state.getBlock() instanceof LiquidBlock) {
-			return new BannedBlock("Morphing in liquids in development!", Component.translatable("commands.blockmorph.liquid"));
-		}
-		String name = BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString();
-		Config.Mode mode = Config.getInstance().getValue("listMode");
-		if ((!state.isSolid() || state.getBlock() instanceof BarrierBlock || state.getBlock() instanceof MovingPistonBlock) && (state.getBlock() != Blocks.AIR) && (boolean)Config.getInstance().getValue("solidBlocksOnly")) {
-			return new BannedBlock("Block " + name + " not allowed because is solid!", Component.translatable("commands.blockmorph.solid"));
-		} else if (pl != null && ((PlayerAccessor)pl).getTnt() != null) {
-			return new BannedBlock("Block " + name + " not allowed because player-tnt caught fire!", Component.translatable("commands.blockmorph.tnt"));
-		} else if (mode == Config.Mode.WHITELIST) {
-			if (!((List<String>)Config.getInstance().getValue("allowedBlocks")).contains(name))
-				return new BannedBlock("Block " + name + " not allowed because it not in whitelist!", Component.translatable("commands.blockmorph.whitelist"));
-		} else if (mode == Config.Mode.BLACKLIST) {
-			if (((List<String>)Config.getInstance().getValue("bannedBlocks")).contains(name))
-				return new BannedBlock("Block " + name + " not allowed because it in blacklist!", Component.translatable("commands.blockmorph.blacklist"));
-		}
-		return null;
-	}
 
-	public record BannedBlock(String reason, Component text) {
-		public static final BannedBlock SAME = new BannedBlock("You have already been turned into this block.",
-				Component.translatable("commands.blockomorph.blockSame"));
+	public static Predicate<String> blockPredicate() {
+		return value -> {
+			DataResult<ResourceLocation> result = ResourceLocation.read(value);
+			if (result.result().isPresent()) {
+				return BuiltInRegistries.BLOCK.containsKey(result.result().get());
+			}
+			return false;
+		};
 	}
 
 	public static Vec3 getRealBlockPos(PlayerAccessor original, InPlayerBlockPos offset) {
@@ -189,7 +190,7 @@ public class MorphUtils {
 	public static boolean needRejectUse(Level lv, BlockHitResult block) {
 		if (InPlayerBlockPos.isMorphedPlayerX(block.getBlockPos().getX())) {
 			BlockState state = lv.getBlockState(block.getBlockPos());
-			Config.UseMode mode = Config.getInstance().getValue("useMode");
+			Config.UseMode mode = Config.getInstance().getValue("useMode", Config.UseMode.class);
 			switch (mode) {
 				case DISABLED -> {
 					return true;
@@ -205,7 +206,7 @@ public class MorphUtils {
 
 	public static UseOnContext checkOnRealIfOut(UseOnContext ctx, ItemStack stack) {
 		if (stack.getItem() instanceof BlockItem && InPlayerBlockPos.isMorphedPlayerX(ctx.getClickedPos().getX())) {
-			Config.PlaceMode mode = Config.getInstance().getValue("placeMode");
+			Config.PlaceMode mode = Config.getInstance().getValue("placeMode", Config.PlaceMode.class);
 			if (mode == Config.PlaceMode.OUT) {
 				Vec3 realHit = InPlayerBlockPos.checkOnReal(ctx.getClickLocation());
 				realHit = toDirection(realHit, ctx.getClickedFace());
@@ -252,9 +253,20 @@ public class MorphUtils {
 		return false;
 	}
 
+	@Environment(EnvType.CLIENT)
+	public static boolean canOpenConfig() {
+		Minecraft mc = Minecraft.getInstance();
+		return mc.player != null && mc.player.hasPermissions(2) && Config.getInstance().getValue("canOperatorModifyConfig", Boolean.class);
+	}
+
+	public static Config.ScreenAccess getScreenAccess(Player player) {
+		if (player != null && player.hasPermissions(2)) return Config.ScreenAccess.ALL;
+		return Config.getInstance().getValue("screenAccess", Config.ScreenAccess.class);
+	}
+
 	public static void onRightClick(Player localPlayer, InteractionHand interactionHand, BlockHitResult blockHitResult, CallbackInfoReturnable<InteractionResult> cir) {
 		if (localPlayer.getItemInHand(interactionHand).getItem() instanceof BlockItem) {
-			Config.PlaceMode mode = Config.getInstance().getValue("placeMode");
+			Config.PlaceMode mode = Config.getInstance().getValue("placeMode", Config.PlaceMode.class);
 			if (mode == Config.PlaceMode.DISABLED && InPlayerBlockPos.isMorphedPlayerX(blockHitResult.getBlockPos().getX())) {
 				cir.setReturnValue(InteractionResult.PASS);
 			}
@@ -281,59 +293,10 @@ public class MorphUtils {
 						tnt.setFuse(tnt.getFuse() / 2);
 					}
 				}
-				if (!(damage.is(PLAYER_DESTROYED) || damage.is(PLAYER_DESTROYED_NULL))) return true;
+				return !(damage.is(PLAYER_DESTROYED) || damage.is(PLAYER_DESTROYED_NULL));
 			}
 		}
 		return false;
-	}
-
-	@Environment(EnvType.CLIENT)
-	public static boolean onHudRender(GuiGraphics GUI) {
-		Minecraft mc = Minecraft.getInstance();
-		Entity player = mc.getCameraEntity();
-
-		if (player instanceof PlayerAccessor pl && pl.isActive()) {
-			int width = mc.getWindow().getGuiScaledWidth();
-			int height = mc.getWindow().getGuiScaledHeight();
-			renderBlockHeart(GUI, pl, width, height);
-			return true;
-		}
-		return false;
-	}
-
-	@Environment(EnvType.CLIENT)
-	private static void renderBlockHeart(GuiGraphics gui, PlayerAccessor pl, int width, int height) {
-		int maxHearts = 10;
-		int progress = pl.getBiggestProgress();
-
-		BlockRenderDispatcher dispatcher = Minecraft.getInstance().getBlockRenderer();
-		BlockStateModel model = dispatcher.getBlockModel(pl.getBlockState(InPlayerBlockPos.ZERO));
-		TextureAtlasSprite sprite = model.particleIcon();
-
-
-		int x = width / 2 - 91;
-		int y = height - 39;
-
-		renderBar(gui, x, y, progress);
-
-		for (int i = 0; i < maxHearts; i++) {
-			int xPos = x + i * 8;
-			int yPos = y;
-
-
-			if (i < 9 - progress) {
-				gui.blitSprite(RenderPipelines.GUI_TEXTURED, sprite, xPos + 1, yPos + 1, 7, 7);
-			}
-		}
-	}
-
-	@Environment(EnvType.CLIENT)
-	private static void renderBar(GuiGraphics graphics, int x, int y, int progress) {
-		if (progress == 9) {
-			graphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 10, 81, 9, 81, 19);
-		} else {
-			graphics.blit(RenderPipelines.GUI_TEXTURED, ResourceLocation.fromNamespaceAndPath("blockomorph", "textures/screens/icons.png"), x, y, 0, 0, 81, 9, 81, 19);
-		}
 	}
 
 	public static void destroy(PlayerAccessor mob_pl, @org.jetbrains.annotations.Nullable Entity attacker) {

@@ -8,6 +8,7 @@
     "compat.vs2.VS2_BM_VsUtilsMixin",
     "main.BlockInputMixin",
     "main.EntityMixin",
+    "main.EnumArgumentRegister",
     "main.LivingEntityMixin",
     "main.PlayerMixin",
     "main.ProjectileUtilMixin",
@@ -65,15 +66,16 @@
     "main.client.graphic.BlockModelRendererMixin",
     "main.client.graphic.BlockTintCacheMixin",
     "main.client.graphic.DebugScreenMixin",
+    "main.client.graphic.GuiFireRenderMixin",
     "main.client.graphic.GuiMixin",
+    "main.client.graphic.GuiRenderMixin",
     "main.client.graphic.LevelRenderMixin",
     "main.client.graphic.ModelRendererMixin",
     "main.client.graphic.ParticleEngineMixin",
     "main.client.graphic.entity.EntityRendererMixin",
     "main.client.graphic.entity.HumanoidModelMixin",
     "main.client.graphic.entity.LivingRendererMixin",
-    "main.client.graphic.entity.RenderStateMixin",
-    "main.client.graphic.GuiRenderMixin"
+    "main.client.graphic.entity.RenderStateMixin"
   ],
   "minVersion": "0.8"
 }
