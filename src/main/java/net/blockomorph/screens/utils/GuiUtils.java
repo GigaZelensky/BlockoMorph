@@ -33,6 +33,7 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix3x2f;
 import org.joml.Matrix4f;
@@ -173,29 +174,9 @@ public class GuiUtils { //Cross-platform wrapper
 
 	//HINT:   XY - upper left corner of item
 	public void renderItem(ItemStack item, float x, float y, float scale, float ignored) {
-		if (true) return;
 		if (scale == 1) scale = 16f;
-		float finaSize = scale * MC.getWindow().getGuiScale();
 
-
-		TrackingItemStackRenderState trackingItemStackRenderState = new TrackingItemStackRenderState() {
-			@Override
-			public void render(PoseStack poseStack, MultiBufferSource multiBufferSource, int i, int j) {
-				PoseStack stack = new PoseStack();
-				stack.pushPose();
-				stack.translate(x + 8, y + 8, 0);
-				stack.scale(finaSize, -finaSize, finaSize);
-				super.render(stack, multiBufferSource, i, j);
-				stack.pushPose();
-			}
-
-			@Override
-			public boolean isOversizedInGui() {
-				return true;
-			}
-		};
-
-
+		TrackingItemStackRenderState trackingItemStackRenderState = new DynamicSizeItemStackRenderState(scale);
 		MC.getItemModelResolver().updateForTopItem(trackingItemStackRenderState, item, ItemDisplayContext.GUI, MC.level, MC.player, 0);
 		GUI.guiRenderState.submitItem(new GuiItemRenderState(item.getItem().getName().toString(), new Matrix3x2f(GUI.pose()), trackingItemStackRenderState, (int)x, (int)y, GUI.scissorStack.peek()));
 	}

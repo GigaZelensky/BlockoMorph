@@ -8,6 +8,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.ARGB;
 import org.jetbrains.annotations.Nullable;
 
 public class ListenerEditBox extends EditBox {
@@ -27,6 +28,23 @@ public class ListenerEditBox extends EditBox {
 		this.borderTexture = border;
 		this.setBordered(border != null);
 		this.borderLock = true;
+	}
+
+	@Override
+	public void setTextColor(int i) {
+		super.setTextColor(this.convertColor(i));
+	}
+
+	@Override
+	public void setTextColorUneditable(int i) {
+		super.setTextColorUneditable(this.convertColor(i));
+	}
+
+	private int convertColor(int color) {
+		if (ARGB.alpha(color) == 0) {
+			color = (255 << 24) | color;
+		}
+		return color;
 	}
 
 	@Override
