@@ -1,7 +1,7 @@
 package net.blockomorph.mixins.main.client.graphic;
 
-import net.blockomorph.screens.GuiBlockRenderState;
-import net.blockomorph.screens.GuiBlockRenderer;
+import net.blockomorph.screens.utils.GuiBlockRenderState;
+import net.blockomorph.screens.utils.GuiBlockRenderer;
 import net.minecraft.client.gui.render.GuiRenderer;
 import net.neoforged.neoforge.client.gui.PictureInPictureRendererRegistration;
 import org.spongepowered.asm.mixin.Mixin;

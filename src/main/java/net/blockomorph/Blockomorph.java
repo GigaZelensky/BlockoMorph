@@ -12,7 +12,6 @@ import net.neoforged.bus.api.IEventBus;
 
 @Mod(Blockomorph.MODID)
 public class Blockomorph {
-	public static final Logger LOGGER = LogManager.getLogger(Blockomorph.class);
 	public static final String MODID = "blockomorph";
 
 	public Blockomorph(IEventBus modEventBus) {
@@ -27,6 +26,7 @@ public class Blockomorph {
 		MorphUtils.registerPacket(ClientBoundApplyBlockMorphPacket.ID, ClientBoundApplyBlockMorphPacket::new, true);
 		MorphUtils.registerPacket(ServerBoundBlockMorphPacket.ID, ServerBoundBlockMorphPacket::new, false);
 		MorphUtils.registerPacket(ServerBoundConfigUpdatePacket.ID, ServerBoundConfigUpdatePacket::new, false);
+		MorphUtils.registerPacket(ServerBoundSelfNbtRequestPacket.ID, ServerBoundSelfNbtRequestPacket::new, false);
 	}
 
 }

@@ -4,7 +4,6 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.SheetedDecalTextureGenerator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
-import net.blockomorph.screens.BlockMorphConfigScreen;
 import net.blockomorph.utils.accessors.ClientLevelAccessor;
 import net.blockomorph.utils.accessors.LevelRendererAccessor;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
@@ -40,14 +39,12 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.client.RenderTypeHelper;
-import net.neoforged.neoforge.model.data.ModelData;
 
 import java.util.List;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 public class MorphedPlayerRenderer {
 	private final Minecraft mc = Minecraft.getInstance();
@@ -83,9 +80,7 @@ public class MorphedPlayerRenderer {
 		EntityRenderState state = rend.createRenderState(tnt, partialticks);
 		try {
 			rend.render(state, posestack, buffer, light);
-		} catch (Exception e) {
-			if (player == Minecraft.getInstance().player && Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc)
-				sc.tagException = e.getMessage();
+		} catch (Exception ignored) {
 		}
 	}
 
@@ -173,14 +168,12 @@ public class MorphedPlayerRenderer {
 						};
 					}
 					ClientLevelAccessor acc = ClientLevelAccessor.of(blockEntity.getLevel());
-					acc.setBlockEntityRenderingMode(true);
+					acc.setSpecialRenderingMode(true);
 					Camera cam = Minecraft.getInstance().getBlockEntityRenderDispatcher().camera;//TODO
 					renderer.render(blockEntity, partialticks, posestack, src, light, OverlayTexture.NO_OVERLAY, cam.getPosition());
-					acc.setBlockEntityRenderingMode(false);
+					acc.setSpecialRenderingMode(false);
 				}
-			} catch (Exception e) {
-				if (player == Minecraft.getInstance().player && Minecraft.getInstance().screen instanceof BlockMorphConfigScreen sc)
-					sc.tagException = e.getMessage() == null ? e.getClass().toString() : e.getMessage();
+			} catch (Exception ignored) {
 			} finally {
 				posestack.popPose();
 			}
