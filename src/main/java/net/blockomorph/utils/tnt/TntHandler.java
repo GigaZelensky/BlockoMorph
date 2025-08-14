@@ -4,6 +4,7 @@ import net.blockomorph.utils.*;
 import net.blockomorph.utils.accessors.EntityAccessor;
 import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
+import net.blockomorph.utils.dataSyncher.IntSyncedData;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.sounds.SoundEvents;
@@ -28,17 +29,15 @@ import net.minecraft.world.phys.Vec3;
 import javax.annotation.Nullable;
 
 public class TntHandler {
-	private final SynchedEntityData entityData;
-	private final EntityDataAccessor<Integer> BRAKE_PROGRESS;
+	private final IntSyncedData BRAKE_PROGRESS;
 	private PrimedTnt tnt;
 	private final Player player;
 	private final PlayerAccessor pl;
 
-	public TntHandler(PlayerAccessor owner, SynchedEntityData entityData, EntityDataAccessor<Integer> br) {
+	public TntHandler(PlayerAccessor owner) {
 		this.player = (Player) owner;
 		this.pl = owner;
-		this.BRAKE_PROGRESS = br;
-		this.entityData = entityData;
+		this.BRAKE_PROGRESS = new IntSyncedData(owner.player(), MorphUtils.res("tnt_progress"), -1, this::onClientUpdater);
 	}
 
 	public void onDimensionChange() {
@@ -86,7 +85,7 @@ public class TntHandler {
 	}
 
 	public void setFuse(int i) {
-		this.entityData.set(BRAKE_PROGRESS, i);
+		BRAKE_PROGRESS.set(i);
 	}
 
 	public boolean runTnt() {
@@ -159,9 +158,9 @@ public class TntHandler {
 		return null;
 	}
 
-	public void onClientUpdater(EntityDataAccessor<?> data) {
-		if (data.equals(BRAKE_PROGRESS) && this.player.level().isClientSide()) {
-			int i = this.entityData.get(BRAKE_PROGRESS);
+	public void onClientUpdater() {
+		if (this.player.level().isClientSide()) {
+			int i = BRAKE_PROGRESS.get();
 			if (i < 0) {
 				this.tnt = null;
 			} else {
