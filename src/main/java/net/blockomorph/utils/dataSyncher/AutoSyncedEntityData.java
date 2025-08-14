@@ -12,18 +12,18 @@ import java.util.Objects;
  * {@link net.minecraft.network.syncher.SynchedEntityData#defineId(Class, EntityDataSerializer)} system
  * in the method, putting a mixin checker there due to ID collisions.
  */
-public abstract class AutoSycnhedEntityData<DATA> {
+public abstract class AutoSyncedEntityData<DATA> {
 	protected DATA data;
 	protected final ResourceLocation id;
 	protected boolean isDirty;
-	private final SynchedEntity entity;
+	private final SyncedEntity entity;
 	private final Runnable onSynced;
 
-	protected AutoSycnhedEntityData(Entity entity, ResourceLocation id, DATA defaultValue, Runnable onSynced) {
-		if (entity instanceof SynchedEntity synchedEntity) {
-			synchedEntity.registerDataSycnher(this);
+	protected AutoSyncedEntityData(Entity entity, ResourceLocation id, DATA defaultValue, Runnable onSynced) {
+		if (entity instanceof SyncedEntity syncedEntity) {
+			syncedEntity.registerDataSyncer(this);
 			this.id = id;
-			this.entity = synchedEntity;
+			this.entity = syncedEntity;
 			this.data = Objects.requireNonNull(defaultValue);
 			this.onSynced = onSynced;
 		} else throw new IllegalStateException("Cannot register entity syncer from blockomorph! Most likely mixin not applied or missing! Class: " + entity.getClass() + " Id: " + id);

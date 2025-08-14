@@ -2,13 +2,11 @@ package net.blockomorph.utils;
 
 import net.blockomorph.utils.accessors.EntityAccessor;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
-import net.blockomorph.utils.dataSyncher.TagSycnhedData;
+import net.blockomorph.utils.dataSyncher.TagSyncedData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.state.BlockState;
@@ -20,13 +18,13 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class ChairController {
 	private final Entity owner;
-	private final TagSycnhedData CHAIR_DATA;
+	private final TagSyncedData CHAIR_DATA;
 	private BlockState chairBlockstate;
 	private InPlayerBlockPos realPos;
 
 	public ChairController(Entity owner) {
 		this.owner = owner;
-		this.CHAIR_DATA = new TagSycnhedData(owner, MorphUtils.res("chair_data"), new CompoundTag(), this::onDataReceived);
+		this.CHAIR_DATA = new TagSyncedData(owner, MorphUtils.res("chair_data"), new CompoundTag(), this::onDataReceived);
 	}
 
 	public CompoundTag getTagData() {

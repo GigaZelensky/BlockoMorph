@@ -6,16 +6,16 @@ import net.minecraft.world.entity.Entity;
 
 import java.util.function.Consumer;
 
-public interface SynchedEntity {
+public interface SyncedEntity {
 
-	void registerDataSycnher(AutoSycnhedEntityData<?> data);
-	AutoSycnhedEntityData<?> getDataById(ResourceLocation id);
-	void checkOrSendImmediatle(Consumer<ClientBoundEntityDataSyncPacket> doing, boolean force);
+	void registerDataSyncer(AutoSyncedEntityData<?> data);
+	AutoSyncedEntityData<?> getDataById(ResourceLocation id);
+	void checkOrSendImmediate(Consumer<ClientBoundEntityDataSyncPacket> doing, boolean force);
 	void setDirty();
 
 
-	static SynchedEntity of(Entity entity) {
-		return (SynchedEntity) entity;
+	static SyncedEntity of(Entity entity) {
+		return (SyncedEntity) entity;
 	}
 
 	default Entity toEntity() {

@@ -1,22 +1,23 @@
 package net.blockomorph.utils.dataSyncher;
 
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 
-public class IntSynchedData extends AutoSycnhedEntityData<Integer> {
+public class TagSyncedData extends AutoSyncedEntityData<CompoundTag> {
 
-	public IntSynchedData(Entity entity, ResourceLocation id, int defaultValue, Runnable onSynced) {
-		super(entity, id, defaultValue, onSynced);
+	public TagSyncedData(Entity entity, ResourceLocation id, CompoundTag defaultValue, Runnable onSynced) {
+		super(entity, id, defaultValue.copy(), onSynced);
 	}
 
 	@Override
 	protected void readFromBuffer(FriendlyByteBuf buffer) {
-		this.data = buffer.readInt();
+		this.data = buffer.readNbt();
 	}
 
 	@Override
 	protected void writeInBuffer(FriendlyByteBuf buffer) {
-		buffer.writeInt(this.data);
+		buffer.writeNbt(this.data);
 	}
 }

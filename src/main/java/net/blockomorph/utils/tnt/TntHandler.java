@@ -4,10 +4,7 @@ import net.blockomorph.utils.*;
 import net.blockomorph.utils.accessors.EntityAccessor;
 import net.blockomorph.utils.config.Config;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
-import net.blockomorph.utils.dataSyncher.IntSynchedData;
-import net.blockomorph.utils.dataSyncher.TagSycnhedData;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.SynchedEntityData;
+import net.blockomorph.utils.dataSyncher.IntSyncedData;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
@@ -30,7 +27,7 @@ import net.minecraft.world.phys.Vec3;
 import javax.annotation.Nullable;
 
 public class TntHandler {
-	private final IntSynchedData BRAKE_PROGRESS;
+	private final IntSyncedData BRAKE_PROGRESS;
 	private PrimedTnt tnt;
 	private final Player player;
 	private final PlayerAccessor pl;
@@ -38,7 +35,7 @@ public class TntHandler {
 	public TntHandler(PlayerAccessor owner) {
 		this.player = (Player) owner;
 		this.pl = owner;
-		this.BRAKE_PROGRESS = new IntSynchedData(owner.player(), MorphUtils.res("tnt_progress"), -1, this::onClientUpdater);
+		this.BRAKE_PROGRESS = new IntSyncedData(owner.player(), MorphUtils.res("tnt_progress"), -1, this::onClientUpdater);
 	}
 
 	public void onDimensionChange() {

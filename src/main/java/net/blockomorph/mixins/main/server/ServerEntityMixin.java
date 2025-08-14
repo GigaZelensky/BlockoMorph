@@ -3,7 +3,7 @@ package net.blockomorph.mixins.main.server;
 import net.blockomorph.network.BlockMorphPacket;
 import net.blockomorph.network.ClientBoundBlockPosBoundPacket;
 import net.blockomorph.network.ClientBoundMorphUpdatePacket;
-import net.blockomorph.utils.dataSyncher.SynchedEntity;
+import net.blockomorph.utils.dataSyncher.SyncedEntity;
 import net.blockomorph.utils.coords.BlockPosBounds;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
@@ -36,7 +36,7 @@ public class ServerEntityMixin {
 
     @Inject(method = "sendChanges", at = @At(value = "INVOKE", target = "Lnet/minecraft/world/entity/Entity;getPassengers()Ljava/util/List;"))
     public void sync(CallbackInfo ci) {
-        SynchedEntity.of(this.entity).checkOrSendImmediatle(this::sendCustomPacket, false);
+        SyncedEntity.of(this.entity).checkOrSendImmediate(this::sendCustomPacket, false);
     }
 
 
@@ -49,7 +49,7 @@ public class ServerEntityMixin {
             }
             MorphUtils.sendPlayer(new ClientBoundMorphUpdatePacket(acc), looker);
         }
-        SynchedEntity.of(this.entity).checkOrSendImmediatle(this::sendCustomPacket, true);
+        SyncedEntity.of(this.entity).checkOrSendImmediate(this::sendCustomPacket, true);
     }
 
     @Inject(method = "removePairing", at = @At(value = "TAIL"))

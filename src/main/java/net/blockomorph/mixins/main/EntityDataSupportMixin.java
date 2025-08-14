@@ -1,8 +1,8 @@
 package net.blockomorph.mixins.main;
 
 import net.blockomorph.network.ClientBoundEntityDataSyncPacket;
-import net.blockomorph.utils.dataSyncher.SynchedEntity;
-import net.blockomorph.utils.dataSyncher.AutoSycnhedEntityData;
+import net.blockomorph.utils.dataSyncher.SyncedEntity;
+import net.blockomorph.utils.dataSyncher.AutoSyncedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;
@@ -14,24 +14,24 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @Mixin(Entity.class)
-public abstract class EntityDataSupportMixin implements SynchedEntity {
+public abstract class EntityDataSupportMixin implements SyncedEntity {
 
 	@Shadow private int id;
-	private final List<AutoSycnhedEntityData<?>> SYNCHERS = new ArrayList<>();
+	private final List<AutoSyncedEntityData<?>> SYNCERS = new ArrayList<>();
 	private boolean dirty;
 
-	public void registerDataSycnher(AutoSycnhedEntityData<?> data) {
+	public void registerDataSyncer(AutoSyncedEntityData<?> data) {
 		if (this.getDataById(data.getId()) != null) throw new IllegalArgumentException("Data with id: " + this.id + " already registered!");
-		SYNCHERS.add(data);
+		SYNCERS.add(data);
 	}
 
 	public void setDirty() {
 		this.dirty = true;
 	}
 
-	public void checkOrSendImmediatle(Consumer<ClientBoundEntityDataSyncPacket> doing, boolean force) {
+	public void checkOrSendImmediate(Consumer<ClientBoundEntityDataSyncPacket> doing, boolean force) {
 		if (!this.dirty && !force) return;
-		for (AutoSycnhedEntityData<?> data : SYNCHERS) {
+		for (AutoSyncedEntityData<?> data : SYNCERS) {
 			if (data.isDirty() || force) {
 				doing.accept(new ClientBoundEntityDataSyncPacket(this, data));
 			}
@@ -40,8 +40,8 @@ public abstract class EntityDataSupportMixin implements SynchedEntity {
 	}
 
 	@Nullable
-	public AutoSycnhedEntityData<?> getDataById(ResourceLocation id) {
-		for (AutoSycnhedEntityData<?> data : SYNCHERS) {
+	public AutoSyncedEntityData<?> getDataById(ResourceLocation id) {
+		for (AutoSyncedEntityData<?> data : SYNCERS) {
 			if (data.getId().equals(id)) return data;
 		}
 		return null;

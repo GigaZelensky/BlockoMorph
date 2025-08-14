@@ -1,6 +1,5 @@
 package net.blockomorph.mixins.main;
 
-import net.blockomorph.Blockomorph;
 import net.blockomorph.network.ClientBoundApplyBlockMorphPacket;
 import net.blockomorph.network.ClientBoundMorphUpdatePacket;
 import net.blockomorph.network.ClientBoundServerBlockEntityTagPacket;
@@ -15,9 +14,6 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundBlockEventPacket;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -82,7 +78,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 		}
 		HITBOX_HANDLER.recalculatePositions();
 		this.refreshDimensions();
-
 		return true;
 	}
 
