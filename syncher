@@ -3,3 +3,4 @@ chaitController
 entity
 playermixin
 EntityDataSupportMixin
+serverEntityMixin
