@@ -2,6 +2,7 @@ package net.blockomorph.utils;
 
 import net.blockomorph.utils.accessors.EntityAccessor;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
+import net.blockomorph.utils.dataSyncher.TagSyncedData;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -19,22 +20,21 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class ChairController {
 	private final Entity owner;
-	private SynchedEntityData entityData;
-	private final EntityDataAccessor<CompoundTag> CHAIR_DATA;
+	private final TagSyncedData CHAIR_DATA;
 	private BlockState chairBlockstate;
 	private InPlayerBlockPos realPos;
 
-	public ChairController(Entity owner, EntityDataAccessor<CompoundTag> data) {
+	public ChairController(Entity owner) {
 		this.owner = owner;
-		this.CHAIR_DATA = data;
+		this.CHAIR_DATA = new TagSyncedData(owner, MorphUtils.res("chair_data"), new CompoundTag(), this::onDataReceived);
 	}
 
-	public void setEntityData(SynchedEntityData data) {
-		this.entityData = data;
+	public CompoundTag getTagData() {
+		return CHAIR_DATA.get();
 	}
 
 	public void tick() {
-		if (!owner.level().isClientSide && owner.getVehicle() instanceof PlayerAccessor pl && !this.entityData.get(CHAIR_DATA).isEmpty()) {
+		if (!owner.level().isClientSide && owner.getVehicle() instanceof PlayerAccessor pl && !CHAIR_DATA.get().isEmpty()) {
 			BlockState state = this.chairBlockstate;
 			if (state != null) {
 				if (!pl.getBlockState(this.realPos).getBlock().equals(state.getBlock())) {
@@ -46,7 +46,7 @@ public class ChairController {
 
 	public void onStopRiding() {
 		if (!owner.level().isClientSide) {
-			if (owner.getVehicle() instanceof PlayerAccessor pl && !this.entityData.get(CHAIR_DATA).isEmpty()) {
+			if (owner.getVehicle() instanceof PlayerAccessor pl && !CHAIR_DATA.get().isEmpty()) {
 				BlockState state = this.chairBlockstate;
 				if (state != null) {
 					BlockState state2 = this.findOccupied(state);
@@ -55,7 +55,7 @@ public class ChairController {
 					}
 				}
 			}
-			this.entityData.set(CHAIR_DATA, new CompoundTag());
+			CHAIR_DATA.set(new CompoundTag());
 		}
 	}
 
@@ -75,7 +75,7 @@ public class ChairController {
 					tg.putDouble("z", pos.z);
 					tg.put("Chair", NbtUtils.writeBlockState(pl.getBlockState(realPos)));
 					tg.putString("RealPos", realPos.string());
-					this.entityData.set(CHAIR_DATA, tg);
+					CHAIR_DATA.set(tg);
 					entity.discard();
 				}, null, this.owner.level());
 			}
@@ -96,16 +96,14 @@ public class ChairController {
 		return state;
 	}
 
-	public void onDataReceived(EntityDataAccessor<?> data) {
-		if (data.equals(CHAIR_DATA)) {
-			CompoundTag tg = this.entityData.get(CHAIR_DATA);
-			if (tg.isEmpty()) {
-				this.chairBlockstate = null;
-				this.realPos = null;
-			} else {
-				this.chairBlockstate = NbtUtils.readBlockState(owner.level().holderLookup(Registries.BLOCK), tg.getCompound("Chair").orElseGet(CompoundTag::new));
-				this.realPos = InPlayerBlockPos.parseBlockPos(tg.getString("RealPos").orElse("0 64 0"));
-			}
+	public void onDataReceived() {
+		CompoundTag tg = CHAIR_DATA.get();
+		if (tg.isEmpty()) {
+			this.chairBlockstate = null;
+			this.realPos = null;
+		} else {
+			this.chairBlockstate = NbtUtils.readBlockState(owner.level().holderLookup(Registries.BLOCK), tg.getCompound("Chair").orElseGet(CompoundTag::new));
+			this.realPos = InPlayerBlockPos.parseBlockPos(tg.getString("RealPos").orElse("0 64 0"));
 		}
 	}
 }
