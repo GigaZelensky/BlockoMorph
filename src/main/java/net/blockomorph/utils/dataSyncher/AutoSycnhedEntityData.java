@@ -29,7 +29,6 @@ public abstract class AutoSycnhedEntityData<DATA> {
 	}
 
 	public final void writeInNetwork(FriendlyByteBuf buffer) {
-		buffer.writeResourceLocation(this.id);
 		this.writeInBuffer(buffer);
 		this.isDirty = false;
 	}

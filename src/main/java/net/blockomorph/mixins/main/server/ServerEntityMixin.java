@@ -1,5 +1,6 @@
 package net.blockomorph.mixins.main.server;
 
+import net.blockomorph.network.BlockMorphPacket;
 import net.blockomorph.network.ClientBoundBlockPosBoundPacket;
 import net.blockomorph.network.ClientBoundMorphUpdatePacket;
 import net.blockomorph.utils.coords.BlockPosBounds;
@@ -10,7 +11,6 @@ import net.minecraft.network.protocol.game.ClientboundSetPassengersPacket;
 import net.minecraft.server.level.ServerEntity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.ChunkPos;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -49,5 +49,9 @@ public class ServerEntityMixin {
                 MorphUtils.sendPlayer(new ClientBoundBlockPosBoundPacket(pos, pl, true), looker);
             }
         }
+    }
+
+    private void sendCustomPacket(BlockMorphPacket packet) {
+
     }
 }
