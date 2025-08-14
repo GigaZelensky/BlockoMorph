@@ -2,3 +2,4 @@ tnthandler
 chaitController
 entity
 playermixin
+EntityDataSupportMixin
