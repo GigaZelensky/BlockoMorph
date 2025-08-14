@@ -42,8 +42,6 @@ public abstract class EntityMixin implements EntityAccessor {
 		return this.fromMorphedPos;
 	}
 
-	EntityDataAccessor opa = SynchedEntityData.defineId(Entity.class, EntityDataSerializers.INT);
-
 	@Nullable
 	public Vec3 getSyncedPos() {
 		CompoundTag tg = CHAIR_CONTROLLER.getTagData();
