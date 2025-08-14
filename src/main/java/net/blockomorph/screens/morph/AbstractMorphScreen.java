@@ -18,6 +18,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 public abstract class AbstractMorphScreen extends AbstractScreen implements ConfigSyncListener {
@@ -170,7 +172,9 @@ public abstract class AbstractMorphScreen extends AbstractScreen implements Conf
 		super.init();
 		this.initAdditional(this::addRenderableWidget);
 		TAB_MANAGER.init(this::addRenderableWidget);
-		if (!TAB_MANAGER.SPECIAL_TABS.contains(TabManager.selectedTab)) {
+		List<CreativeModeTab> tabs = new ArrayList<>(TAB_MANAGER.CONTENT_TABS);
+		tabs.addAll(TAB_MANAGER.SPECIAL_TABS);
+		if (!tabs.contains(TabManager.selectedTab)) {
 			TabManager.selectedTab = CreativeModeTabs.getDefaultTab();
 		}
 		TAB_MANAGER.selectTab(TabManager.getSelectedTab());
