@@ -13,6 +13,7 @@
     "main.LivingEntityMixin",
     "main.PlayerMixin",
     "main.ProjectileUtilMixin",
+    "main.TestChair",
     "main.block.BlockBehaviourMixin",
     "main.block.BlockMixin",
     "main.block.CollectingUpdaterMixin",

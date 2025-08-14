@@ -1,7 +1,6 @@
-package net.blockomorph.utils.accessors;
+package net.blockomorph.utils.dataSyncher;
 
 import net.blockomorph.network.ClientBoundEntityDataSyncPacket;
-import net.blockomorph.utils.dataSyncher.AutoSycnhedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 
@@ -12,6 +11,7 @@ public interface SynchedEntity {
 	void registerDataSycnher(AutoSycnhedEntityData<?> data);
 	AutoSycnhedEntityData<?> getDataById(ResourceLocation id);
 	void checkOrSendImmediatle(Consumer<ClientBoundEntityDataSyncPacket> doing, boolean force);
+	void setDirty();
 
 
 	static SynchedEntity of(Entity entity) {

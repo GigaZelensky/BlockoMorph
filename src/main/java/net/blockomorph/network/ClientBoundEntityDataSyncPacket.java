@@ -1,13 +1,12 @@
 package net.blockomorph.network;
 
 import io.netty.buffer.Unpooled;
-import net.blockomorph.utils.accessors.SynchedEntity;
+import net.blockomorph.utils.dataSyncher.SynchedEntity;
 import net.blockomorph.utils.dataSyncher.AutoSycnhedEntityData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 
 public class ClientBoundEntityDataSyncPacket implements BlockMorphPacket {
 	public static final String ID = "client_bound_entity_data_sync_packet";
@@ -27,8 +26,8 @@ public class ClientBoundEntityDataSyncPacket implements BlockMorphPacket {
 		this.location = data.getId();
 		FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
 		data.writeInNetwork(buffer);
-		buffer.release();
 		this.payload = buffer.array();
+		buffer.release();
 	}
 
 	@Override
@@ -45,12 +44,10 @@ public class ClientBoundEntityDataSyncPacket implements BlockMorphPacket {
 
 	@Override
 	public void handle(Player player) {
-		Level level = Minecraft.getInstance().level;
-		if (level != null) {
-			if (level.getEntity(this.entityId) instanceof SynchedEntity synchedEntity) {
-				AutoSycnhedEntityData<?> data = synchedEntity.getDataById(this.location);
-				data.readFromNetwork(new FriendlyByteBuf(Unpooled.wrappedBuffer(this.payload)));
-			}
+		if (Minecraft.getInstance().level.getEntity(this.entityId) instanceof SynchedEntity synchedEntity) {
+			AutoSycnhedEntityData<?> data = synchedEntity.getDataById(this.location);
+			data.readFromNetwork(new FriendlyByteBuf(Unpooled.wrappedBuffer(this.payload)));
+			data.onReceived();
 		}
 	}
 }

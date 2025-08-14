@@ -1,6 +1,5 @@
 package net.blockomorph.utils.dataSyncher;
 
-import net.blockomorph.utils.accessors.SynchedEntity;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -11,12 +10,16 @@ public abstract class AutoSycnhedEntityData<DATA> {
 	protected DATA data;
 	protected final ResourceLocation id;
 	protected boolean isDirty;
+	private final SynchedEntity entity;
+	private final Runnable onSynced;
 
-	protected AutoSycnhedEntityData(Entity entity, ResourceLocation id, DATA defaultValue) {
+	protected AutoSycnhedEntityData(Entity entity, ResourceLocation id, DATA defaultValue, Runnable onSynced) {
 		if (entity instanceof SynchedEntity synchedEntity) {
 			synchedEntity.registerDataSycnher(this);
 			this.id = id;
+			this.entity = synchedEntity;
 			this.data = Objects.requireNonNull(defaultValue);
+			this.onSynced = onSynced;
 		} else throw new IllegalStateException("Cannot register entity syncer from blockomorph! Most likely mixin not applied or missing! Class: " + entity.getClass() + " Id: " + id);
 	}
 
@@ -41,10 +44,16 @@ public abstract class AutoSycnhedEntityData<DATA> {
 
 	protected abstract void writeInBuffer(FriendlyByteBuf buffer);
 
+	public final void onReceived() {
+		if (this.onSynced != null) this.onSynced.run();
+	}
+
 	public void set(DATA data) {
 		if (!this.data.equals(data)) {
 			this.data = data;
 			this.isDirty = true;
+			this.entity.setDirty();
+			this.onReceived();
 		}
 	}
 
