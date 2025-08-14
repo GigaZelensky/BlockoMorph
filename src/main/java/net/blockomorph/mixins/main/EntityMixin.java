@@ -11,6 +11,7 @@ import net.blockomorph.utils.tnt.TntHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
+import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.*;
@@ -40,6 +41,8 @@ public abstract class EntityMixin implements EntityAccessor {
 	public Vec3 getMorphedPos() {
 		return this.fromMorphedPos;
 	}
+
+	EntityDataAccessor opa = SynchedEntityData.defineId(Entity.class, EntityDataSerializers.INT);
 
 	@Nullable
 	public Vec3 getSyncedPos() {

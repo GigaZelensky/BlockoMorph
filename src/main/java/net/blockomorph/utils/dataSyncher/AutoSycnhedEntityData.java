@@ -1,11 +1,17 @@
 package net.blockomorph.utils.dataSyncher;
 
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.syncher.EntityDataSerializer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 
 import java.util.Objects;
 
+/**
+ * I needed this system because Neoforge for the game version 1.21.8 blocked the ability to use the vanilla
+ * {@link net.minecraft.network.syncher.SynchedEntityData#defineId(Class, EntityDataSerializer)} system
+ * in the method, putting a mixin checker there due to ID collisions.
+ */
 public abstract class AutoSycnhedEntityData<DATA> {
 	protected DATA data;
 	protected final ResourceLocation id;
