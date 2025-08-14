@@ -1,26 +1,16 @@
 package net.blockomorph.mixins.main;
 
-import net.blockomorph.mixins.MixinConfig;
 import net.blockomorph.utils.ChairController;
-import net.blockomorph.utils.accessors.ClipContextAccessor;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.blockomorph.utils.MorphUtils;
 import net.blockomorph.utils.PlayerAccessor;
 import net.blockomorph.utils.accessors.EntityAccessor;
-import net.blockomorph.utils.hit.MorphedPlayerHitResult;
-import net.blockomorph.utils.hit.PlayerHitResult;
-import net.blockomorph.utils.tnt.TntHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
@@ -28,7 +18,6 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import org.spongepowered.asm.mixin.injection.callback.LocalCapture;
 
 import javax.annotation.Nullable;
 import java.util.Optional;
@@ -43,7 +32,7 @@ public abstract class EntityMixin implements EntityAccessor {
 
 	@Shadow private Level level;
 	@Unique private Vec3 fromMorphedPos;
-	private final ChairController CHAIR_CONTROLLER = new ChairController((Entity)(Object) this);
+	private ChairController CHAIR_CONTROLLER;
 
 	public Vec3 getMorphedPos() {
 		return this.fromMorphedPos;
@@ -80,6 +69,11 @@ public abstract class EntityMixin implements EntityAccessor {
 	public void checkAccess(CallbackInfoReturnable<Boolean> cir) {
 		if (this instanceof PlayerAccessor pl && pl.isActive())
 			cir.setReturnValue(false);
+	}
+
+	@Inject(method = "<init>", at = @At(value = "TAIL"))
+	private void init(EntityType<?> p_19870_, Level p_19871_, CallbackInfo ci) {
+		CHAIR_CONTROLLER = new ChairController((Entity)(Object) this);
 	}
 
 	@Unique

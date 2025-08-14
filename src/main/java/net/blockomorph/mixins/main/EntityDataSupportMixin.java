@@ -6,6 +6,7 @@ import net.blockomorph.utils.dataSyncher.AutoSyncedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.Nullable;
+import org.spongepowered.asm.mixin.Debug;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
@@ -13,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-@Mixin(Entity.class)
+@Mixin(value = Entity.class, priority = 1030)
 public abstract class EntityDataSupportMixin implements SyncedEntity {
 
 	@Shadow private int id;
