@@ -14,9 +14,6 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientboundBlockEventPacket;
 import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerChunkCache;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -55,8 +52,7 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 
 	@Shadow public abstract void remove(RemovalReason removalReason);
 
-	private static final EntityDataAccessor<Integer> TNT_PROGRESS = SynchedEntityData.defineId(Player.class, EntityDataSerializers.INT);
-	private final TntHandler TNT_HANDLER = new TntHandler(this, this.entityData, TNT_PROGRESS);
+	private final TntHandler TNT_HANDLER = new TntHandler(this);
 	private final HitBoxCalculator HITBOX_HANDLER = new HitBoxCalculator(this);
 	private final ConcurrentHashMap<InPlayerBlockPos, BlockInPlayer2> blocksData = new ConcurrentHashMap<>();
 	private final List<InPlayerBlockPos> updates = new CopyOnWriteArrayList<>();
@@ -136,11 +132,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 
 	public boolean isBreaking() {
 		return this.breakingMode;
-	}
-
-	@Inject(method = "defineSynchedData", at = @At("TAIL"), cancellable = true)
-	protected void defineSynchedData(SynchedEntityData.Builder entityData, CallbackInfo ci) {
-		entityData.define(TNT_PROGRESS, -1);
 	}
 
 	@Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
