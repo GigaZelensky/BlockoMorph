@@ -3,13 +3,13 @@ plugins {
     id 'net.neoforged.moddev' version '2.0.99'
 }
 
-version = '7.0.1'
-base.archivesName = "blockomorph-1.21.7-neoforge"
+version = '8.0.0'
+base.archivesName = "blockomorph-1.21.8-neoforge"
 
 java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
 neoForge {
-    version = "21.7.14-beta"
+    version = "21.8.27"
 
     runs {
         client {

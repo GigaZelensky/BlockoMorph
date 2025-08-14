@@ -2,8 +2,6 @@ package net.blockomorph;
 
 import net.blockomorph.network.*;
 import net.blockomorph.utils.MorphUtils;
-import org.apache.logging.log4j.Logger;
-import org.apache.logging.log4j.LogManager;
 
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
