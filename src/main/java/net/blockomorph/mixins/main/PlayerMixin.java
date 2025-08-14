@@ -51,8 +51,7 @@ import java.util.function.Predicate;
 
 @Mixin(Player.class)
 public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor {
-	private static final EntityDataAccessor<Integer> TNT_PROGRESS = SynchedEntityData.defineId(Player.class, EntityDataSerializers.INT);
-	private final TntHandler TNT_HANDLER = new TntHandler(this, this.entityData, TNT_PROGRESS);
+	private final TntHandler TNT_HANDLER = new TntHandler(this);
 	private final HitBoxCalculator HITBOX_HANDLER = new HitBoxCalculator(this);
 	private final ConcurrentHashMap<InPlayerBlockPos, BlockInPlayer2> blocksData = new ConcurrentHashMap<>();
 	private final List<InPlayerBlockPos> updates = new CopyOnWriteArrayList<>();
@@ -131,11 +130,6 @@ public abstract class PlayerMixin extends LivingEntity implements PlayerAccessor
 
 	public boolean isBreaking() {
 		return this.breakingMode;
-	}
-
-	@Inject(method = "defineSynchedData", at = @At("TAIL"), cancellable = true)
-	protected void defineSynchedData(CallbackInfo ci) {
-		this.entityData.define(TNT_PROGRESS, -1);
 	}
 
 	@Inject(method = "readAdditionalSaveData", at = @At("TAIL"))

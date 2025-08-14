@@ -8,6 +8,7 @@
     "compat.vs2.VS2_BM_RaycastUtil",
     "compat.vs2.VS2_BM_VsUtilsMixin",
     "main.BlockInputMixin",
+    "main.EntityDataSupportMixin",
     "main.EntityMixin",
     "main.EnumArgumentRegister",
     "main.LivingEntityMixin",
