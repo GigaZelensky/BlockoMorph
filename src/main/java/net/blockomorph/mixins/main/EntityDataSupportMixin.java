@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-@Mixin(Entity.class)
+@Mixin(value = Entity.class, priority = 1030)
 public abstract class EntityDataSupportMixin implements SyncedEntity {
 
 	@Shadow private int id;
