@@ -31,13 +31,11 @@ import java.util.Optional;
 public abstract class EntityMixin implements EntityAccessor {
 	@Shadow public abstract boolean hasPassenger(Entity p_20364_);
 	@Shadow public abstract Level level();
-	@Shadow @Final protected SynchedEntityData entityData;
 	@Shadow public abstract boolean startRiding(Entity p_19966_, boolean p_19967_);
 
 	@Shadow private Level level;
 	@Unique private Vec3 fromMorphedPos;
-	@Unique private static final EntityDataAccessor<CompoundTag> CHAIR_DATA = SynchedEntityData.defineId(Entity.class, EntityDataSerializers.COMPOUND_TAG);
-	private final ChairController CHAIR_CONTROLLER = new ChairController((Entity)(Object) this, CHAIR_DATA);
+	private final ChairController CHAIR_CONTROLLER = new ChairController((Entity)(Object) this);
 
 	public Vec3 getMorphedPos() {
 		return this.fromMorphedPos;
@@ -45,7 +43,7 @@ public abstract class EntityMixin implements EntityAccessor {
 
 	@Nullable
 	public Vec3 getSyncedPos() {
-		CompoundTag tg = this.entityData.get(CHAIR_DATA);
+		CompoundTag tg = CHAIR_CONTROLLER.getTagData();
 		if (!tg.isEmpty()) {
 			Vec3 vec = new Vec3(tg.getDouble("x"), tg.getDouble("y"), tg.getDouble("z"));
 			return InPlayerBlockPos.checkOnReal(vec);
@@ -61,17 +59,6 @@ public abstract class EntityMixin implements EntityAccessor {
 	@Inject(method = "distanceToSqr(Lnet/minecraft/world/phys/Vec3;)D", at = @At("RETURN"), cancellable = true)
 	public void getRealCoordsVec3(Vec3 pos, CallbackInfoReturnable<Double> cir) {
 		MorphUtils.distanceTo(pos, ((Entity) (Object) this).position(), true, 0, cir::setReturnValue);
-	}
-
-	@Inject(method = "<init>", at = @At(value = "TAIL"))
-	public void init(EntityType<?> type, Level lv, CallbackInfo ci) {
-		CHAIR_CONTROLLER.setEntityData(this.entityData);
-	}
-
-	@ModifyVariable(method = "<init>", at = @At("STORE"))
-	public SynchedEntityData.Builder init(SynchedEntityData.Builder data) {
-		data.define(CHAIR_DATA, new CompoundTag());
-		return data;
 	}
 
 	@Inject(method = "isAttackable", at = @At("HEAD"), cancellable = true)
@@ -125,14 +112,6 @@ public abstract class EntityMixin implements EntityAccessor {
 		}
 	}
 
-	@Inject(method = "onSyncedDataUpdated(Lnet/minecraft/network/syncher/EntityDataAccessor;)V", at = @At("TAIL"))
-	public void onDataReceived(EntityDataAccessor<?> data, CallbackInfo ci) {
-		CHAIR_CONTROLLER.onDataReceived(data);
-		if (this instanceof PlayerAccessor acc) {
-			TntHandler TNT = acc.getTntHandler();
-			if (TNT != null) TNT.onClientUpdater(data);
-		}
-	}
 	@Inject(method = "tick", at = @At("TAIL"))
 	public void tick(CallbackInfo ci) {
 		CHAIR_CONTROLLER.tick();
