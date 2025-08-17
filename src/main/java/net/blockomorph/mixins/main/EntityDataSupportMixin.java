@@ -17,12 +17,12 @@ import java.util.function.Consumer;
 public abstract class EntityDataSupportMixin implements SyncedEntity {
 
 	@Shadow private int id;
-	private final List<AutoSyncedEntityData<?>> SYNCERS = new ArrayList<>();
+	private List<AutoSyncedEntityData<?>> SYNCERS;
 	private boolean dirty;
 
 	public void registerDataSyncer(AutoSyncedEntityData<?> data) {
 		if (this.getDataById(data.getId()) != null) throw new IllegalArgumentException("Data with id: " + this.id + " already registered!");
-		SYNCERS.add(data);
+		this.get().add(data);
 	}
 
 	public void setDirty() {
@@ -31,7 +31,7 @@ public abstract class EntityDataSupportMixin implements SyncedEntity {
 
 	public void checkOrSendImmediate(Consumer<ClientBoundEntityDataSyncPacket> doing, boolean force) {
 		if (!this.dirty && !force) return;
-		for (AutoSyncedEntityData<?> data : SYNCERS) {
+		for (AutoSyncedEntityData<?> data : this.get()) {
 			if (data.isDirty() || force) {
 				doing.accept(new ClientBoundEntityDataSyncPacket(this, data));
 			}
@@ -41,9 +41,16 @@ public abstract class EntityDataSupportMixin implements SyncedEntity {
 
 	@Nullable
 	public AutoSyncedEntityData<?> getDataById(ResourceLocation id) {
-		for (AutoSyncedEntityData<?> data : SYNCERS) {
+		for (AutoSyncedEntityData<?> data : this.get()) {
 			if (data.getId().equals(id)) return data;
 		}
 		return null;
+	}
+
+	private List<AutoSyncedEntityData<?>> get() {
+		if (SYNCERS == null) {
+			SYNCERS = new ArrayList<>();
+		}
+		return SYNCERS;
 	}
 }
