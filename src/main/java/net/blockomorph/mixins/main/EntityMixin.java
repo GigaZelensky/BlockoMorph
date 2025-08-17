@@ -32,7 +32,7 @@ public abstract class EntityMixin implements EntityAccessor {
 
 	@Shadow private Level level;
 	@Unique private Vec3 fromMorphedPos;
-	private ChairController CHAIR_CONTROLLER;
+	private final ChairController CHAIR_CONTROLLER = new ChairController((Entity)(Object) this);
 
 	public Vec3 getMorphedPos() {
 		return this.fromMorphedPos;
@@ -69,11 +69,6 @@ public abstract class EntityMixin implements EntityAccessor {
 	public void checkAccess(CallbackInfoReturnable<Boolean> cir) {
 		if (this instanceof PlayerAccessor pl && pl.isActive())
 			cir.setReturnValue(false);
-	}
-
-	@Inject(method = "<init>", at = @At(value = "TAIL"))
-	private void init(EntityType<?> p_19870_, Level p_19871_, CallbackInfo ci) {
-		CHAIR_CONTROLLER = new ChairController((Entity)(Object) this);
 	}
 
 	@Unique
