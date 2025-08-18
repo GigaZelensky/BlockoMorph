@@ -39,10 +39,6 @@ public class ServerBoundBlockMorphPacket implements BlockMorphPacket {
 	public void handle(Player player) {
 		if (player instanceof PlayerAccessor mob) {
 			if (tag == null) throw new IllegalArgumentException("Payload is null!");
-			if (tag.contains("fuse")) {
-				mob.setTnt();
-				return;
-			}
 			BlockState blockstate = NbtUtils.readBlockState(player.level().holderLookup(Registries.BLOCK), tag.getCompound("BlockState").orElse(new CompoundTag()));
 			CompoundTag nbt = tag.getCompound("Tags").orElse(null);
 			this.doMorph(mob, blockstate, nbt);
@@ -71,12 +67,6 @@ public class ServerBoundBlockMorphPacket implements BlockMorphPacket {
 		CompoundTag tag = new CompoundTag();
 		tag.put("BlockState", NbtUtils.writeBlockState(state));
 		if (tagMorph != null) tag.put("Tags", tagMorph);
-		return new ServerBoundBlockMorphPacket(tag);
-	}
-
-	public static ServerBoundBlockMorphPacket fuse() {
-		CompoundTag tag = new CompoundTag();
-		tag.putBoolean("fuse", true);
 		return new ServerBoundBlockMorphPacket(tag);
 	}
 }

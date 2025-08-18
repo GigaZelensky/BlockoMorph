@@ -11,6 +11,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.render.state.GuiItemRenderState;
 import net.minecraft.client.gui.render.state.GuiRenderState;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderDispatcher;
@@ -235,6 +236,15 @@ public class GuiUtils { //Cross-platform wrapper
 
 	public static SoundInstance getClickSound() {
 		return SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK, 1f);
+	}
+
+	private static Runnable rejectingAction;
+	public static Runnable getRejectingAction() {
+		return rejectingAction;
+	}
+
+	public static void setForceRejectButtonBeforeOpeningScreen(Runnable rejecting) {
+		rejectingAction = rejecting;
 	}
 
 	public static void pushHotbarMessage(Component text) {

@@ -1,6 +1,7 @@
 package net.blockomorph.screens.morph;
 
 import net.blockomorph.network.ServerBoundBlockMorphPacket;
+import net.blockomorph.network.ServerBoundMorphActionPacket;
 import net.blockomorph.screens.utils.GuiUtils;
 import net.blockomorph.screens.utils.SpriteImageButton;
 import net.blockomorph.utils.BannedBlock;
@@ -42,7 +43,7 @@ public class MorphScreen extends AbstractMorphScreen {
 		}, () -> this.player.isFullActive(), true));
 
 		action.accept(this.fuseButton = new SpriteImageButton(leftPos - 28, topPos + this.imageHeight + 1, 26, 26, FUSE_BUTTON_SPRITE, button -> {
-			MorphUtils.sendServer(ServerBoundBlockMorphPacket.fuse());
+			MorphUtils.sendServer(ServerBoundMorphActionPacket.TNT_ACTION);
 		}, () -> this.player.getTnt() == null, true));
 		this.fuseButtonVisibilityCheck();
 	}
