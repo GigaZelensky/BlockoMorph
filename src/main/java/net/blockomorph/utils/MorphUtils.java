@@ -12,6 +12,7 @@ import net.blockomorph.utils.coords.BlockPosBounds;
 import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.server.commands.ChaseCommand;
 import net.minecraft.util.TriState;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.damagesource.DamageSource;
