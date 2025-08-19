@@ -11,8 +11,10 @@ import net.blockomorph.utils.coords.InPlayerBlockPos;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.resources.sounds.SoundInstance;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTab;
@@ -46,6 +48,13 @@ public class MorphScreen extends AbstractMorphScreen {
 			MorphUtils.sendServer(ServerBoundMorphActionPacket.TNT_ACTION);
 		}, () -> this.player.getTnt() == null, true));
 		this.fuseButtonVisibilityCheck();
+
+		action.accept(Button.builder(CommonComponents.EMPTY, b -> {
+			GuiUtils.setForceRejectButtonBeforeOpeningScreen(() -> {
+				GuiUtils.MC.setScreen(this);
+			});
+			MorphUtils.sendServer(ServerBoundMorphActionPacket.openContainer(InPlayerBlockPos.ZERO));
+		}).pos(this.width/2, this.height -30).build());
 	}
 
 	@Override
