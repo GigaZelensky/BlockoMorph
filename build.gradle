@@ -32,9 +32,9 @@ processResources {
 	}
 }
 
-remapJar {
-    destinationDirectory = file("D:\\SERVER\\mods\\mod\\blockomorph\\jar\\outPut")
-}
+
+// Use default output directory for remapped JARs so the project can build on any
+// platform without relying on a Windows-specific path.
 
 java {
     withSourcesJar()
